@@ -58,4 +58,12 @@ Route::middleware(['auth'])->group(function () {
 // Public Verification Page (No Auth)
 Route::get('/verify/{number}', [DashboardController::class, 'verifyKtam'])->name('ktam.verify');
 
+// Language Switcher Route
+Route::get('/lang/{locale}', function ($locale) {
+    if (in_array($locale, ['id', 'en'])) {
+        session(['locale' => $locale]);
+    }
+    return redirect()->back();
+})->name('lang.switch');
+
 require __DIR__.'/auth.php';

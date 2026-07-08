@@ -27,7 +27,7 @@
 
             <!-- Settings Form Card -->
             <div class="content-card bg-white border border-slate-200 rounded-2xl p-6">
-                <form method="POST" action="{{ route('admin.settings.update') }}" class="space-y-6">
+                <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     @method('PUT')
 
@@ -50,6 +50,23 @@
                                                     <option value="1" {{ $setting->value == '1' ? 'selected' : '' }}>Aktif (Ya)</option>
                                                     <option value="0" {{ $setting->value == '0' ? 'selected' : '' }}>Nonaktif (Tidak)</option>
                                                 </select>
+                                            </div>
+                                        @elseif($setting->type === 'textarea')
+                                            <textarea id="setting_{{ $setting->key }}" name="settings[{{ $setting->key }}]" rows="3" class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm" required>{{ old('settings.' . $setting->key, $setting->value) }}</textarea>
+                                        @elseif($setting->type === 'file')
+                                            <div class="flex items-center gap-4 mt-1">
+                                                @if($setting->value)
+                                                    <div class="h-12 w-12 bg-slate-100 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 flex items-center justify-center">
+                                                        <img src="{{ asset('storage/' . $setting->value) }}" alt="{{ $setting->label }}" class="h-full w-full object-cover">
+                                                    </div>
+                                                @else
+                                                    <div class="h-12 w-12 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center text-slate-400 text-xs font-semibold">
+                                                        Kosong
+                                                    </div>
+                                                @endif
+                                                <div class="flex-1">
+                                                    <input type="file" id="setting_{{ $setting->key }}" name="settings[{{ $setting->key }}]" class="form-input w-full py-1 text-xs border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
+                                                </div>
                                             </div>
                                         @else
                                             <input type="text" id="setting_{{ $setting->key }}" name="settings[{{ $setting->key }}]" value="{{ old('settings.' . $setting->key, $setting->value) }}" class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm" required>

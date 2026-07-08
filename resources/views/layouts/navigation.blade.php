@@ -6,8 +6,12 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-2 text-decoration-none">
-                        <span class="text-2xl">🐱</span>
-                        <span class="font-outfit font-extrabold text-teal-800 text-lg tracking-tight">KucingMu</span>
+                        @if(isset($app_settings['app_logo']))
+                            <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="Logo" class="h-8 w-auto object-contain">
+                        @else
+                            <span class="text-2xl">🐱</span>
+                        @endif
+                        <span class="font-outfit font-extrabold text-teal-800 text-lg tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
                     </a>
                 </div>
 

@@ -3,7 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>KucingMu - Kesehatan Kucing & Syiar Dakwah Muhammadiyah</title>
+    <title>{{ $app_settings['app_name'] ?? 'KucingMu' }} - {{ $app_settings['app_description'] ?? 'Kesehatan Kucing & Syiar Dakwah Muhammadiyah' }}</title>
+
+    @if(isset($app_settings['app_description']))
+        <meta name="description" content="{{ $app_settings['app_description'] }}">
+    @endif
+
+    @if(isset($app_settings['app_favicon']))
+        <link rel="shortcut icon" href="{{ asset('storage/' . $app_settings['app_favicon']) }}" type="image/x-icon">
+    @endif
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,23 +28,33 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <!-- Brand Logo -->
             <a href="#" class="flex items-center gap-2">
-                <span class="text-3xl">🐱</span>
-                <span class="font-outfit font-extrabold text-teal-800 text-xl tracking-tight">KucingMu</span>
+                @if(isset($app_settings['app_logo']))
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="Logo" class="h-8 w-auto object-contain">
+                @else
+                    <span class="text-3xl">🐱</span>
+                @endif
+                <span class="font-outfit font-extrabold text-teal-800 text-xl tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
             </a>
 
             <!-- Desktop Nav Links -->
-            <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-                <a href="#tentang" class="hover:text-teal-700 transition">Tentang</a>
-                <a href="#fitur" class="hover:text-teal-700 transition">Layanan</a>
+            <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-600">
+                <a href="#tentang" class="hover:text-teal-700 transition">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
+                <a href="#fitur" class="hover:text-teal-700 transition">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
                 @if(isset($events) && $events->isNotEmpty())
-                    <a href="#events" class="hover:text-teal-700 transition">Kegiatan</a>
+                    <a href="#events" class="hover:text-teal-700 transition">{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</a>
                 @endif
-                <a href="#verifikasi" class="hover:text-teal-700 transition">Verifikasi KTAM</a>
-                <a href="#kontak" class="hover:text-teal-700 transition">Hubungi Kami</a>
+                <a href="#faq" class="hover:text-teal-700 transition">FAQ</a>
+                <a href="#verifikasi" class="hover:text-teal-700 transition">{{ app()->getLocale() == 'en' ? 'KTAM Verification' : 'Verifikasi KTAM' }}</a>
+                <a href="#kontak" class="hover:text-teal-700 transition">{{ app()->getLocale() == 'en' ? 'Contact' : 'Hubungi Kami' }}</a>
             </nav>
 
-            <!-- Auth Buttons -->
+            <!-- Language Switcher & Auth Buttons -->
             <div class="flex items-center gap-3">
+                <div class="flex border border-slate-200 rounded-xl overflow-hidden text-xs bg-slate-50 font-bold shadow-sm mr-2">
+                    <a href="{{ route('lang.switch', 'id') }}" class="px-2.5 py-1.5 {{ app()->getLocale() == 'id' ? 'bg-teal-800 text-white' : 'text-slate-600 hover:bg-slate-100' }}">ID</a>
+                    <a href="{{ route('lang.switch', 'en') }}" class="px-2.5 py-1.5 {{ app()->getLocale() == 'en' ? 'bg-teal-800 text-white' : 'text-slate-600 hover:bg-slate-100' }}">EN</a>
+                </div>
+
                 @if (Route::has('login'))
                     @auth
                         <a href="{{ url('/dashboard') }}" class="button-primary px-4 py-2 text-xs">
@@ -44,11 +62,11 @@
                         </a>
                     @else
                         <a href="{{ route('login') }}" class="button-secondary px-4 py-2 text-xs">
-                            Masuk
+                            {{ app()->getLocale() == 'en' ? 'Login' : 'Masuk' }}
                         </a>
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}" class="button-primary px-4 py-2 text-xs">
-                                Daftar
+                                {{ app()->getLocale() == 'en' ? 'Register' : 'Daftar' }}
                             </a>
                         @endif
                     @endauth
@@ -67,10 +85,10 @@
                     🐱 Inisiatif Komunitas & Dakwah Muhammadiyah
                 </span>
                 <h1 class="font-outfit text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-                    Kepedulian Kesehatan Kucing & Syiar Manfaat Nyata
+                    {{ $app_settings['app_name'] ?? 'KucingMu' }}
                 </h1>
                 <p class="text-base sm:text-lg text-teal-100/90 leading-relaxed max-w-xl">
-                    KucingMu adalah platform terpadu bagi warga Muhammadiyah untuk mendaftarkan kucing kesayangan, melacak riwayat medis pemeriksaan dokter hewan, serta menerbitkan Kartu Tanda Anggota Muhammadiyah (KTAM) khusus kucing.
+                    {{ $app_settings['app_description'] ?? 'KucingMu adalah platform terpadu bagi warga Muhammadiyah untuk mendaftarkan kucing kesayangan, melacak riwayat medis pemeriksaan dokter hewan, serta menerbitkan Kartu Tanda Anggota Muhammadiyah (KTAM) khusus kucing.' }}
                 </p>
                 <div class="pt-4 flex flex-wrap gap-4">
                     <a href="{{ route('register') }}" class="rounded-xl bg-white text-teal-900 px-6 py-3.5 text-sm font-bold shadow-md hover:bg-teal-50 transition">
@@ -315,8 +333,69 @@
         </section>
     @endif
 
+    <!-- FAQ Section -->
+    <section id="faq" class="py-20 bg-white border-t border-slate-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="text-center max-w-2xl mx-auto">
+                <span class="eyebrow">FAQ</span>
+                <h2 class="mt-2 text-3xl font-bold text-slate-900 font-outfit">
+                    {{ app()->getLocale() == 'en' ? 'Frequently Asked Questions' : 'Pertanyaan Yang Sering Diajukan' }}
+                </h2>
+                <p class="mt-4 text-sm text-slate-500 leading-relaxed">
+                    {{ app()->getLocale() == 'en' ? 'Got questions about KucingMu? Find answers to commonly asked questions below.' : 'Punya pertanyaan mengenai KucingMu? Temukan jawaban untuk pertanyaan umum di bawah ini.' }}
+                </p>
+            </div>
+
+            <div class="space-y-4" x-data="{ activeFaq: null }">
+                <!-- FAQ Item 1 -->
+                <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50 hover:bg-white transition">
+                    <button @click="activeFaq = activeFaq === 1 ? null : 1" class="w-full flex items-center justify-between p-5 text-left font-bold text-slate-900 focus:outline-none">
+                        <span>{{ app()->getLocale() == 'en' ? 'What is KucingMu and who is it for?' : 'Apa itu KucingMu dan untuk siapa platform ini?' }}</span>
+                        <span class="text-teal-700 text-lg transition duration-200" :class="activeFaq === 1 ? 'rotate-45' : ''">＋</span>
+                    </button>
+                    <div x-show="activeFaq === 1" class="p-5 pt-0 text-sm text-slate-500 leading-relaxed border-t border-slate-100 bg-white">
+                        {{ app()->getLocale() == 'en' ? 'KucingMu is an integrated web platform created for the Muhammadiyah community to register their cats, record veterinary clinic history, and issue a digital Muhammadiyah Cat Member Card (KTAM).' : 'KucingMu adalah platform web terpadu bagi warga Muhammadiyah untuk mendaftarkan kucing peliharaan mereka, mencatat riwayat klinik medis hewan, serta menerbitkan Kartu Tanda Anggota Muhammadiyah Kucing (KTAM) secara digital.' }}
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50 hover:bg-white transition">
+                    <button @click="activeFaq = activeFaq === 2 ? null : 2" class="w-full flex items-center justify-between p-5 text-left font-bold text-slate-900 focus:outline-none">
+                        <span>{{ app()->getLocale() == 'en' ? 'How can my cat get a KTAM Card?' : 'Bagaimana cara kucing saya mendapatkan kartu KTAM?' }}</span>
+                        <span class="text-teal-700 text-lg transition duration-200" :class="activeFaq === 2 ? 'rotate-45' : ''">＋</span>
+                    </button>
+                    <div x-show="activeFaq === 2" class="p-5 pt-0 text-sm text-slate-500 leading-relaxed border-t border-slate-100 bg-white">
+                        {{ app()->getLocale() == 'en' ? 'After registering your cat on the dashboard, book a health checkup session. Once a doctor vet examines your cat and inputs the checkup status, the KTAM Card will be automatically issued and ready to download.' : 'Setelah mendaftarkan data kucing Anda di dashboard, silakan buat janji temu pemeriksaan kesehatan. Setelah dokter hewan memeriksa kucing Anda dan mengonfirmasi rekam medisnya, kartu KTAM akan otomatis terbit dan siap diunduh.' }}
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50 hover:bg-white transition">
+                    <button @click="activeFaq = activeFaq === 3 ? null : 3" class="w-full flex items-center justify-between p-5 text-left font-bold text-slate-900 focus:outline-none">
+                        <span>{{ app()->getLocale() == 'en' ? 'Are the clinic checkups and KTAM cards free?' : 'Apakah pemeriksaan klinik dan kartu KTAM ini gratis?' }}</span>
+                        <span class="text-teal-700 text-lg transition duration-200" :class="activeFaq === 3 ? 'rotate-45' : ''">＋</span>
+                    </button>
+                    <div x-show="activeFaq === 3" class="p-5 pt-0 text-sm text-slate-500 leading-relaxed border-t border-slate-100 bg-white">
+                        {{ app()->getLocale() == 'en' ? 'Yes! All services including health checkups, deworming, anti-flea, vitamin supplements, and digital KTAM card issuance are 100% free of charge for the Muhammadiyah community.' : 'Ya! Seluruh layanan mulai dari pemeriksaan kesehatan kucing, pemberian obat cacing, obat kutu, vitamin/suplemen, hingga penerbitan kartu KTAM digital adalah 100% gratis tanpa dipungut biaya apapun bagi warga Muhammadiyah.' }}
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50 hover:bg-white transition">
+                    <button @click="activeFaq = activeFaq === 4 ? null : 4" class="w-full flex items-center justify-between p-5 text-left font-bold text-slate-900 focus:outline-none">
+                        <span>{{ app()->getLocale() == 'en' ? 'What registration link is used?' : 'Link pendaftaran apa yang digunakan?' }}</span>
+                        <span class="text-teal-700 text-lg transition duration-200" :class="activeFaq === 4 ? 'rotate-45' : ''">＋</span>
+                    </button>
+                    <div x-show="activeFaq === 4" class="p-5 pt-0 text-sm text-slate-500 leading-relaxed border-t border-slate-100 bg-white">
+                        {{ app()->getLocale() == 'en' ? 'For official health checkup events, the registration form links are integrated with gentix-apps.com. You can find active event links in the agenda section.' : 'Untuk kegiatan sosialisasi pemeriksaan kesehatan resmi, tautan formulir pendaftaran kami terintegrasi dengan gentix-apps.com. Anda dapat menemukannya pada daftar agenda terdekat.' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Verification Section (Verifikasi KTAM) -->
-    <section id="verifikasi" class="py-20 bg-white border-t border-slate-200">
+    <section id="verifikasi" class="py-20 bg-slate-50 border-t border-slate-200">
         <div class="max-w-md mx-auto px-4 text-center space-y-6">
             <span class="eyebrow">Verifikasi Kartu</span>
             <h2 class="font-outfit text-3xl font-bold text-slate-900 leading-snug">Periksa Keaslian KTAM Kucing</h2>
@@ -354,15 +433,20 @@
     <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div class="flex items-center gap-2">
-                <span class="text-3xl">🐱</span>
-                <span class="font-outfit font-extrabold text-white text-lg tracking-tight">KucingMu</span>
+                @if(isset($app_settings['app_logo']))
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="Logo" class="h-8 w-auto object-contain">
+                @else
+                    <span class="text-3xl">🐱</span>
+                @endif
+                <span class="font-outfit font-extrabold text-white text-lg tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
             </div>
             
             <p class="text-xs text-slate-500">
-                &copy; 2026 KucingMu. Warga Muhammadiyah Peduli Hewan. Seluruh hak cipta dilindungi.
+                {!! $app_settings['app_footer'] ?? '&copy; 2026 KucingMu. Warga Muhammadiyah Peduli Hewan. Seluruh hak cipta dilindungi.' !!}
             </p>
         </div>
     </footer>
 
+    @include('partials.accessibility-widget')
 </body>
 </html>

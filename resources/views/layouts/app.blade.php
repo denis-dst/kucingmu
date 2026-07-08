@@ -5,7 +5,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ $app_settings['app_name'] ?? config('app.name', 'Laravel') }}</title>
+
+        @if(isset($app_settings['app_description']))
+            <meta name="description" content="{{ $app_settings['app_description'] }}">
+        @endif
+
+        @if(isset($app_settings['app_favicon']))
+            <link rel="shortcut icon" href="{{ asset('storage/' . $app_settings['app_favicon']) }}" type="image/x-icon">
+        @endif
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,5 +41,7 @@
                 {{ $slot }}
             </main>
         </div>
+
+        @include('partials.accessibility-widget')
     </body>
 </html>
