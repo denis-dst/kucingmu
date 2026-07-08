@@ -1,5 +1,5 @@
 <!-- Floating Accessibility Widget -->
-<div x-data="{ open: false, contrast: false, tts: false, fontSize: 100 }" class="fixed bottom-6 left-6 z-50">
+<div x-data="{ open: false, contrast: false, tts: false, fontSize: 100 }" class="fixed bottom-24 left-6 z-50">
     <!-- Trigger Button -->
     <button @click="open = !open" class="h-12 w-12 rounded-full bg-teal-800 hover:bg-teal-900 text-white shadow-lg flex items-center justify-center text-xl transition transform hover:scale-105 focus:outline-none" title="Widget Aksesibilitas">
         ♿
@@ -69,6 +69,15 @@
     .accessibility-contrast .text-teal-700, 
     .accessibility-contrast .text-teal-800 {
         color: #ffd700 !important;
+    }
+    /* Dynamic active language styling in high contrast */
+    .accessibility-contrast .lang-active {
+        background-color: #ffd700 !important;
+        color: #000000 !important;
+        border-color: #ffd700 !important;
+    }
+    .accessibility-contrast .lang-active span {
+        color: #000000 !important;
     }
 </style>
 <script>

@@ -51,8 +51,12 @@
             <!-- Language Switcher & Auth Buttons -->
             <div class="flex items-center gap-3">
                 <div class="flex border border-slate-200 rounded-xl overflow-hidden text-xs bg-slate-50 font-bold shadow-sm mr-2">
-                    <a href="{{ route('lang.switch', 'id') }}" class="px-2.5 py-1.5 {{ app()->getLocale() == 'id' ? 'bg-teal-800 text-white' : 'text-slate-600 hover:bg-slate-100' }}">ID</a>
-                    <a href="{{ route('lang.switch', 'en') }}" class="px-2.5 py-1.5 {{ app()->getLocale() == 'en' ? 'bg-teal-800 text-white' : 'text-slate-600 hover:bg-slate-100' }}">EN</a>
+                    <a href="{{ route('lang.switch', 'id') }}" class="px-2.5 py-1.5 flex items-center gap-1.5 {{ app()->getLocale() == 'id' ? 'bg-teal-800 text-white lang-active' : 'text-slate-600 hover:bg-slate-100' }}">
+                        <span>🇮🇩</span> <span>ID</span>
+                    </a>
+                    <a href="{{ route('lang.switch', 'en') }}" class="px-2.5 py-1.5 flex items-center gap-1.5 {{ app()->getLocale() == 'en' ? 'bg-teal-800 text-white lang-active' : 'text-slate-600 hover:bg-slate-100' }}">
+                        <span>🇬🇧</span> <span>EN</span>
+                    </a>
                 </div>
 
                 @if (Route::has('login'))
