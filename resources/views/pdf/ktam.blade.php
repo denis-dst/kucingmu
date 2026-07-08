@@ -1,3 +1,24 @@
+@php
+    // Inline Base64 Logo
+    $logoPath = public_path('images/logo-muhammadiyah.svg');
+    $logoData = null;
+    if (file_exists($logoPath)) {
+        $logoData = 'data:image/svg+xml;base64,' . base64_encode(file_get_contents($logoPath));
+    }
+
+    // Inline Base64 Photo
+    $photoData = null;
+    if ($cat->photo_path) {
+        $storagePath = storage_path('app/public/' . $cat->photo_path);
+        $publicPath = public_path('storage/' . $cat->photo_path);
+        
+        if (file_exists($storagePath)) {
+            $photoData = 'data:' . mime_content_type($storagePath) . ';base64,' . base64_encode(file_get_contents($storagePath));
+        } elseif (file_exists($publicPath)) {
+            $photoData = 'data:' . mime_content_type($publicPath) . ';base64,' . base64_encode(file_get_contents($publicPath));
+        }
+    }
+@endphp
 <!DOCTYPE html>
 <html>
 
@@ -14,7 +35,7 @@
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #ffffff;
+            background-color: #061d12;
             width: 86mm;
             height: 54mm;
             overflow: hidden;
@@ -25,7 +46,7 @@
             position: relative;
             width: 86mm;
             height: 54mm;
-            background: linear-gradient(135deg, #04140b 0%, #0a2516 100%);
+            background-color: #061d12;
             color: #ffffff;
             overflow: hidden;
             box-sizing: border-box;
@@ -258,13 +279,17 @@
         <div class="gold-border-top"></div>
 
         <!-- Watermark Background -->
-        <img class="watermark" src="{{ public_path('images/logo-muhammadiyah.svg') }}" alt="watermark">
+        @if($logoData)
+            <img class="watermark" src="{{ $logoData }}" alt="watermark">
+        @endif
 
         <!-- Header -->
         <table class="header-table" cellpadding="0" cellspacing="0" border="0">
             <tr>
                 <td class="logo-container">
-                    <img class="logo-img" src="{{ public_path('images/logo-muhammadiyah.svg') }}" alt="Logo">
+                    @if($logoData)
+                        <img class="logo-img" src="{{ $logoData }}" alt="Logo">
+                    @endif
                 </td>
                 <td class="header-text-container">
                     <div class="org-title">kucingmu.online</div>
@@ -279,9 +304,8 @@
                 <!-- Column 1: Photo -->
                 <td class="col-photo">
                     <div class="photo-frame">
-                        @if($cat->photo_path)
-                            <img class="photo-img" src="{{ storage_path('app/public/' . $cat->photo_path) }}"
-                                alt="{{ $cat->name }}">
+                        @if($photoData)
+                            <img class="photo-img" src="{{ $photoData }}" alt="{{ $cat->name }}">
                         @else
                             <div class="photo-placeholder">No Photo</div>
                         @endif

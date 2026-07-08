@@ -87,20 +87,28 @@
                                             </div>
                                         </div>
 
-                                        <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                                        <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                                             @if($cat->ktamCard)
                                                 <div class="text-left">
                                                     <span class="text-[9px] font-bold uppercase tracking-wider text-teal-700 block">KTAM AKTIF</span>
                                                     <span class="text-[10px] font-mono font-bold text-slate-700">{{ $cat->ktamCard->ktam_number }}</span>
                                                 </div>
-                                                <a href="{{ route('ktam.download', $cat->id) }}" class="button-primary px-3 py-1.5 text-xs">
-                                                    Unduh KTAM (PDF)
-                                                </a>
+                                                <div class="flex items-center gap-2">
+                                                    <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs">
+                                                        Ubah
+                                                    </a>
+                                                    <a href="{{ route('ktam.download', $cat->id) }}" class="button-primary px-3 py-1.5 text-xs">
+                                                        Unduh
+                                                    </a>
+                                                </div>
                                             @else
                                                 <div class="text-left">
                                                     <span class="text-[9px] font-bold uppercase tracking-wider text-amber-600 block">STATUS KTAM</span>
                                                     <span class="text-[10px] text-slate-500">Menunggu Hasil Pemeriksaan</span>
                                                 </div>
+                                                <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs">
+                                                    Ubah Profil
+                                                </a>
                                             @endif
                                         </div>
                                     </div>

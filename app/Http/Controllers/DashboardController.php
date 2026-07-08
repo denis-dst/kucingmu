@@ -138,6 +138,63 @@ class DashboardController extends Controller
     }
 
     /**
+     * Show the edit cat profile form (for Member).
+     */
+    public function editCat(Cat $cat)
+    {
+        // Check permission: owner only
+        if ($cat->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        return view('member.edit-cat', compact('cat'));
+    }
+
+    /**
+     * Update the cat profile (for Member).
+     */
+    public function updateCat(Request $request, Cat $cat)
+    {
+        // Check permission: owner only
+        if ($cat->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'breed' => 'required|string|max:255',
+            'gender' => 'required|in:male,female',
+            'date_of_birth' => 'required|date',
+            'photo' => 'nullable|image|max:2048',
+            'allergies' => 'nullable|string',
+            'vaccine_history' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
+
+        $photoPath = $cat->photo_path;
+        if ($request->hasFile('photo')) {
+            // Delete old photo if exists
+            if ($cat->photo_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
+            }
+            $photoPath = $request->file('photo')->store('cats', 'public');
+        }
+
+        $cat->update([
+            'name' => $request->name,
+            'breed' => $request->breed,
+            'gender' => $request->gender,
+            'date_of_birth' => $request->date_of_birth,
+            'photo_path' => $photoPath,
+            'allergies' => $request->allergies,
+            'vaccine_history' => $request->vaccine_history,
+            'notes' => $request->notes,
+        ]);
+
+        return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil diperbarui.');
+    }
+
+    /**
      * Book a health checkup appointment (for Member).
      */
     public function storeAppointment(Request $request)
@@ -225,7 +282,7 @@ class DashboardController extends Controller
         // 86mm x 54mm equivalent in points: 243.78 x 153.07
         $pdf->setPaper([0, 0, 243.78, 153.07], 'portrait');
         
-        return $pdf->download('ktam_' . str_replace(' ', '_', strtolower($cat->name)) . '.pdf');
+        return $pdf->stream('ktam_' . str_replace(' ', '_', strtolower($cat->name)) . '.pdf');
     }
 
     /**

@@ -22,6 +22,8 @@ Route::middleware('auth')->group(function () {
 // Member Routes
 Route::middleware(['auth', 'role:member'])->group(function () {
     Route::post('/cat', [DashboardController::class, 'storeCat'])->name('cat.store');
+    Route::get('/cat/{cat}/edit', [DashboardController::class, 'editCat'])->name('cat.edit');
+    Route::put('/cat/{cat}', [DashboardController::class, 'updateCat'])->name('cat.update');
     Route::post('/appointment', [DashboardController::class, 'storeAppointment'])->name('appointment.store');
 });
 
