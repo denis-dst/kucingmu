@@ -26,4 +26,19 @@ class KtamCard extends Model
     {
         return $this->belongsTo(Cat::class);
     }
+
+    /**
+     * Generate QR code payload dynamically using the current APP_URL configuration.
+     */
+    public function getQrCodePayloadAttribute()
+    {
+        $verificationUrl = route('ktam.verify', ['number' => $this->ktam_number]);
+        
+        $qrCodeSvg = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(200)
+            ->color(6, 29, 18)
+            ->backgroundColor(255, 255, 255)
+            ->generate($verificationUrl);
+
+        return 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
+    }
 }
