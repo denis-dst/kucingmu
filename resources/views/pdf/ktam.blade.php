@@ -78,10 +78,10 @@
         .header-table {
             position: absolute;
             top: 1.5mm;
-            left: 0;
-            width: 100%;
+            left: 3mm;
+            width: 80mm;
             height: 12mm;
-            padding: 2mm 3mm 0 3mm;
+            padding: 2mm 0 0 0;
             z-index: 10;
             border-bottom: 0.5px solid rgba(255, 255, 255, 0.15);
             box-sizing: border-box;
@@ -129,34 +129,33 @@
         /* Content section */
         .content-table {
             position: absolute;
-            top: 14.5mm;
-            left: 0;
-            width: 100%;
-            height: 31mm;
-            padding: 0 3mm;
+            top: 15mm;
+            left: 3mm;
+            width: 80mm;
+            height: 30mm;
             z-index: 10;
             box-sizing: border-box;
         }
 
-        /* Column widths: Photo (21mm), Details (39mm), QR (20mm) */
+        /* Column widths: Photo (22mm), Details (40mm), QR (18mm) */
         .col-photo {
-            width: 21mm;
+            width: 22mm;
             vertical-align: top;
-            padding-top: 1mm;
+            padding-top: 1.5mm;
         }
 
         .col-details {
-            width: 39mm;
+            width: 40mm;
             vertical-align: top;
-            padding-left: 3mm;
-            padding-top: 1mm;
+            padding-left: 2mm;
+            padding-top: 1.5mm;
         }
 
         .col-qr {
-            width: 20mm;
+            width: 18mm;
             vertical-align: top;
-            text-align: right;
-            padding-top: 1mm;
+            text-align: center;
+            padding-top: 1.5mm;
         }
 
         /* Photo Styles */
@@ -242,11 +241,10 @@
         /* Footer section */
         .footer-table {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 7.5mm;
-            padding: 0 3mm 2mm 3mm;
+            bottom: 1.5mm;
+            left: 3mm;
+            width: 80mm;
+            height: 6mm;
             z-index: 10;
             box-sizing: border-box;
             vertical-align: middle;
