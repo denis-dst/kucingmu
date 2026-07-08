@@ -21,6 +21,11 @@ class NewPasswordController extends Controller
      */
     public function create(Request $request): View
     {
+        $num1 = rand(1, 9);
+        $num2 = rand(1, 9);
+        session(['reset_captcha' => $num1 + $num2]);
+        session(['reset_captcha_question' => "Berapakah $num1 + $num2?"]);
+
         return view('auth.reset-password', ['request' => $request]);
     }
 
@@ -35,6 +40,15 @@ class NewPasswordController extends Controller
             'token' => ['required'],
             'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'captcha' => [
+                'required',
+                'integer',
+                function ($attribute, $value, $fail) {
+                    if (session('reset_captcha') === null || (int)$value !== (int)session('reset_captcha')) {
+                        $fail('Jawaban Captcha salah.');
+                    }
+                }
+            ],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we

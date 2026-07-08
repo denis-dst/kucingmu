@@ -16,6 +16,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
+        $num1 = rand(1, 9);
+        $num2 = rand(1, 9);
+        session(['login_captcha' => $num1 + $num2]);
+        session(['login_captcha_question' => "Berapakah $num1 + $num2?"]);
+
         return view('auth.login');
     }
 
