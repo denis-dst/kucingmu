@@ -258,6 +258,7 @@
                                     Buat Janji Temu
                                 </button>
                             </form>
+                        @endif
                     </div>
 
                     <!-- Active Events / Kegiatan Sosialisasi -->
