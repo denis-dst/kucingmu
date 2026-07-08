@@ -143,7 +143,7 @@ class DashboardController extends Controller
     public function editCat(Cat $cat)
     {
         // Check permission: owner only
-        if ($cat->user_id !== Auth::id()) {
+        if ((int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -156,7 +156,7 @@ class DashboardController extends Controller
     public function updateCat(Request $request, Cat $cat)
     {
         // Check permission: owner only
-        if ($cat->user_id !== Auth::id()) {
+        if ((int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -208,7 +208,7 @@ class DashboardController extends Controller
 
         // Verify ownership
         $cat = Cat::findOrFail($request->cat_id);
-        if ($cat->user_id !== Auth::id()) {
+        if ((int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -274,7 +274,7 @@ class DashboardController extends Controller
         }
 
         // Check permission: admin, volunteer, vet, or owner
-        if (Auth::user()->role === 'member' && $cat->user_id !== Auth::id()) {
+        if (Auth::user()->role === 'member' && (int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
