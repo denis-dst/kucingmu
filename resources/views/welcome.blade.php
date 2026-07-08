@@ -28,6 +28,9 @@
             <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
                 <a href="#tentang" class="hover:text-teal-700 transition">Tentang</a>
                 <a href="#fitur" class="hover:text-teal-700 transition">Layanan</a>
+                @if(isset($events) && $events->isNotEmpty())
+                    <a href="#events" class="hover:text-teal-700 transition">Kegiatan</a>
+                @endif
                 <a href="#verifikasi" class="hover:text-teal-700 transition">Verifikasi KTAM</a>
                 <a href="#kontak" class="hover:text-teal-700 transition">Hubungi Kami</a>
             </nav>
@@ -250,8 +253,70 @@
         </div>
     </section>
 
+    <!-- Events Section (Event & Kegiatan Terdekat) -->
+    @if(isset($events) && $events->isNotEmpty())
+        <section id="events" class="py-20 bg-slate-50 border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                <div class="text-center max-w-2xl mx-auto">
+                    <span class="eyebrow">Agenda Sosialisasi</span>
+                    <h2 class="mt-2 text-3xl font-bold text-slate-900 font-outfit">Kegiatan & Pemeriksaan Kesehatan Terdekat</h2>
+                    <p class="mt-4 text-sm text-slate-500 leading-relaxed">
+                        Ikuti berbagai program sosialisasi, seminar edukasi, dan pemeriksaan kesehatan kucing gratis di lingkungan Anda.
+                    </p>
+                </div>
+
+                <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    @foreach($events as $event)
+                        <div class="content-card bg-white rounded-3xl border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-lg transition duration-300">
+                            <div>
+                                <!-- Banner -->
+                                <div class="h-48 w-full bg-slate-100 relative">
+                                    @if($event->banner_path)
+                                        <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" class="h-full w-full object-cover">
+                                    @else
+                                        <div class="h-full w-full flex flex-col items-center justify-center text-slate-400">
+                                            <span class="text-4xl">📅</span>
+                                            <span class="text-xs font-bold uppercase tracking-wider mt-2">KucingMu Event</span>
+                                        </div>
+                                    @endif
+                                    <div class="absolute top-4 left-4 bg-teal-800 text-white font-outfit font-bold text-xs px-3 py-1 rounded-full shadow">
+                                        {{ $event->date->format('d M Y') }}
+                                    </div>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="p-6 space-y-3">
+                                    <h3 class="font-outfit text-xl font-bold text-slate-900 leading-tight">
+                                        {{ $event->title }}
+                                    </h3>
+                                    <p class="text-xs text-slate-500 font-semibold flex items-center gap-1.5">
+                                        <span>📍</span> {{ $event->location }}
+                                    </p>
+                                    <p class="text-sm text-slate-600 leading-relaxed pt-2">
+                                        {{ $event->description }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Footer / Register Link -->
+                            <div class="p-6 pt-0 border-t border-slate-100 mt-4 flex items-center justify-between">
+                                @if($event->registration_link)
+                                    <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" class="w-full button-primary text-center py-2.5 text-xs font-bold">
+                                        Daftar Kegiatan (gentix-apps.com)
+                                    </a>
+                                @else
+                                    <span class="text-xs text-slate-400 font-semibold">Pendaftaran Langsung di Tempat</span>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+    @endif
+
     <!-- Verification Section (Verifikasi KTAM) -->
-    <section id="verifikasi" class="py-20 bg-slate-50">
+    <section id="verifikasi" class="py-20 bg-white border-t border-slate-200">
         <div class="max-w-md mx-auto px-4 text-center space-y-6">
             <span class="eyebrow">Verifikasi Kartu</span>
             <h2 class="font-outfit text-3xl font-bold text-slate-900 leading-snug">Periksa Keaslian KTAM Kucing</h2>

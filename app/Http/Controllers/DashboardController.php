@@ -98,7 +98,9 @@ class DashboardController extends Controller
             ->latest()
             ->get();
 
-        return view('member.dashboard', compact('cats', 'appointments'));
+        $activeEvents = \App\Models\Event::where('status', 'active')->orderBy('date', 'asc')->get();
+
+        return view('member.dashboard', compact('cats', 'appointments', 'activeEvents'));
     }
 
     /**

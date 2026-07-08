@@ -258,8 +258,35 @@
                                     Buat Janji Temu
                                 </button>
                             </form>
-                        @endif
                     </div>
+
+                    <!-- Active Events / Kegiatan Sosialisasi -->
+                    @if(isset($activeEvents) && $activeEvents->isNotEmpty())
+                        <div class="content-card border-teal-200 bg-teal-50/20">
+                            <h2 class="font-outfit text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4">📢 Kegiatan & Sosialisasi Terdekat</h2>
+                            <div class="space-y-4">
+                                @foreach($activeEvents as $event)
+                                    <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+                                        @if($event->banner_path)
+                                            <div class="h-28 w-full bg-slate-100 rounded-lg overflow-hidden mb-2">
+                                                <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" class="h-full w-full object-cover">
+                                            </div>
+                                        @endif
+                                        <h3 class="font-bold text-slate-950 text-sm leading-snug">{{ $event->title }}</h3>
+                                        <p class="text-[10px] font-mono text-slate-500">{{ $event->date->format('d F Y') }} &bull; {{ $event->location }}</p>
+                                        <p class="text-xs text-slate-600 line-clamp-2">{{ $event->description }}</p>
+                                        @if($event->registration_link)
+                                            <div class="pt-2">
+                                                <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" class="w-full button-primary flex justify-center py-2 text-xs font-bold text-center">
+                                                    Daftar (gentix-apps.com)
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
 
                 </div>
 

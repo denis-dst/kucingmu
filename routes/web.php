@@ -1,10 +1,13 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AppSettingController;
+use App\Http\Controllers\EventController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $events = \App\Models\Event::where('status', 'active')->orderBy('date', 'asc')->get();
+    return view('welcome', compact('events'));
 });
 
 use App\Http\Controllers\DashboardController;
@@ -42,6 +45,9 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/export-data', [DashboardController::class, 'exportData'])->name('export-data');
+    Route::get('/settings', [AppSettingController::class, 'index'])->name('admin.settings');
+    Route::put('/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
+    Route::resource('/events', EventController::class, ['names' => 'admin.events']);
 });
 
 // Shared KTAM Download Route
