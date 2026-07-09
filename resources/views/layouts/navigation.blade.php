@@ -5,7 +5,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 text-decoration-none">
+                    <a href="{{ url('/') }}" class="flex items-center gap-2 text-decoration-none">
                         @if(isset($app_settings['app_logo']))
                             <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="Logo" class="h-8 w-auto object-contain">
                         @else
