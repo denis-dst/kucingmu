@@ -1,9 +1,20 @@
 @php
     // Inline Base64 Logo
+    $appLogoSetting = \App\Models\AppSetting::where('key', 'app_logo')->first();
     $logoPath = public_path('images/logo-muhammadiyah.svg');
+    $logoMime = 'image/svg+xml';
+
+    if ($appLogoSetting && $appLogoSetting->value) {
+        $storagePath = storage_path('app/public/' . $appLogoSetting->value);
+        if (file_exists($storagePath)) {
+            $logoPath = $storagePath;
+            $logoMime = mime_content_type($storagePath);
+        }
+    }
+
     $logoData = null;
     if (file_exists($logoPath)) {
-        $logoData = 'data:image/svg+xml;base64,' . base64_encode(file_get_contents($logoPath));
+        $logoData = 'data:' . $logoMime . ';base64,' . base64_encode(file_get_contents($logoPath));
     }
 
     // Inline Base64 Photo
@@ -11,7 +22,7 @@
     if ($cat->photo_path) {
         $storagePath = storage_path('app/public/' . $cat->photo_path);
         $publicPath = public_path('storage/' . $cat->photo_path);
-        
+
         if (file_exists($storagePath)) {
             $photoData = 'data:' . mime_content_type($storagePath) . ';base64,' . base64_encode(file_get_contents($storagePath));
         } elseif (file_exists($publicPath)) {
@@ -24,7 +35,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>KTAM KucingMu - {{ $cat->name }}</title>
+    <title>KTA KucingMu - {{ $cat->name }}</title>
     <style>
         @page {
             size: 86mm 54mm;
@@ -296,11 +307,6 @@
         <!-- Gold Top Border -->
         <div class="gold-border-top"></div>
 
-        <!-- Watermark Background -->
-        @if($logoData)
-            <img class="watermark" src="{{ $logoData }}" alt="watermark">
-        @endif
-
         <!-- Header -->
         <table class="header-table" cellpadding="0" cellspacing="0" border="0">
             <tr>
@@ -310,8 +316,8 @@
                     @endif
                 </td>
                 <td class="header-text-container">
-                    <div class="org-title">kucingmu.online</div>
-                    <div class="card-title">Kartu Tanda Anggota Muhammadiyah KucingMu</div>
+                    <div class="org-title">KucingMu</div>
+                    <div class="card-title">Kartu Tanda Anggota KucingMu</div>
                 </td>
             </tr>
         </table>
