@@ -122,8 +122,9 @@ class DashboardController extends Controller
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
+            $binary = file_get_contents($file->getPathname());
             $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-            $image = $manager->decodePath($file->getRealPath());
+            $image = $manager->decodeBinary($binary);
             $image->scaleDown(800, 800);
             $filename = 'cats/' . uniqid() . '.jpg';
             $fullPath = storage_path('app/public/' . $filename);
@@ -190,8 +191,9 @@ class DashboardController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
             }
             $file = $request->file('photo');
+            $binary = file_get_contents($file->getPathname());
             $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-            $image = $manager->decodePath($file->getRealPath());
+            $image = $manager->decodeBinary($binary);
             $image->scaleDown(800, 800);
             $filename = 'cats/' . uniqid() . '.jpg';
             $fullPath = storage_path('app/public/' . $filename);
