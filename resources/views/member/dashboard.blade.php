@@ -55,11 +55,11 @@
                                     <div class="rounded-2xl border border-slate-200 p-5 bg-slate-50/50 hover:bg-white hover:shadow-md transition flex flex-col justify-between">
                                         <div>
                                             <div class="flex items-center gap-4">
-                                                <div class="h-16 w-16 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
+                                                <div class="h-20 w-20 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0">
                                                     @if($cat->photo_path)
-                                                        <img src="{{ asset('storage/' . $cat->photo_path) }}" alt="{{ $cat->name }}" class="h-100 w-100 object-cover">
+                                                        <img src="{{ asset('storage/' . $cat->photo_path) }}" alt="{{ $cat->name }}" class="h-full w-full object-cover">
                                                     @else
-                                                        <div class="h-100 w-100 flex items-center justify-center text-2xl bg-teal-50 text-teal-700 font-bold">
+                                                        <div class="h-full w-full flex items-center justify-center text-2xl bg-teal-50 text-teal-700 font-bold">
                                                             {{ substr($cat->name, 0, 1) }}
                                                         </div>
                                                     @endif

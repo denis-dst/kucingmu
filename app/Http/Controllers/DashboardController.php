@@ -122,17 +122,7 @@ class DashboardController extends Controller
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $file = $request->file('photo');
-            $binary = file_get_contents($file->getPathname());
-            $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-            $image = $manager->decodeBinary($binary);
-            $image->scaleDown(800, 800);
-            $filename = 'cats/' . uniqid() . '.jpg';
-            $fullPath = storage_path('app/public/' . $filename);
-            if (!file_exists(dirname($fullPath))) {
-                mkdir(dirname($fullPath), 0755, true);
-            }
-            $image->save($fullPath, 70);
-            $photoPath = $filename;
+            $photoPath = $this->compressAndStorePhoto($file);
         }
 
         Cat::create([
@@ -191,17 +181,7 @@ class DashboardController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
             }
             $file = $request->file('photo');
-            $binary = file_get_contents($file->getPathname());
-            $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-            $image = $manager->decodeBinary($binary);
-            $image->scaleDown(800, 800);
-            $filename = 'cats/' . uniqid() . '.jpg';
-            $fullPath = storage_path('app/public/' . $filename);
-            if (!file_exists(dirname($fullPath))) {
-                mkdir(dirname($fullPath), 0755, true);
-            }
-            $image->save($fullPath, 70);
-            $photoPath = $filename;
+            $photoPath = $this->compressAndStorePhoto($file);
         }
 
         $cat->update([
@@ -497,5 +477,62 @@ class DashboardController extends Controller
             'success' => true,
             'message' => $syncedCount . ' data antrian offline berhasil disinkronkan.',
         ]);
+    }
+
+    /**
+     * Compress and store an uploaded photo using native PHP GD.
+     * Scales down to max 800x800, converts to JPEG, compresses under 512KB.
+     * Compatible with all hosting environments (Laragon, cPanel, etc).
+     *
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return string The relative storage path (e.g. 'cats/xxxxx.jpg')
+     */
+    private function compressAndStorePhoto($file): string
+    {
+        // Read the raw binary from the uploaded file
+        $binary = file_get_contents($file->getPathname());
+        $sourceImage = imagecreatefromstring($binary);
+
+        if (!$sourceImage) {
+            throw new \RuntimeException('Gagal membaca file gambar. Pastikan file adalah gambar yang valid.');
+        }
+
+        // Get original dimensions
+        $origWidth = imagesx($sourceImage);
+        $origHeight = imagesy($sourceImage);
+
+        // Calculate new dimensions (scale down to fit within 800x800)
+        $maxDim = 800;
+        $newWidth = $origWidth;
+        $newHeight = $origHeight;
+
+        if ($origWidth > $maxDim || $origHeight > $maxDim) {
+            $ratio = min($maxDim / $origWidth, $maxDim / $origHeight);
+            $newWidth = (int) round($origWidth * $ratio);
+            $newHeight = (int) round($origHeight * $ratio);
+        }
+
+        // Create resized image
+        $resized = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Preserve transparency for PNG sources by filling white background
+        $white = imagecolorallocate($resized, 255, 255, 255);
+        imagefill($resized, 0, 0, $white);
+
+        imagecopyresampled($resized, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+        imagedestroy($sourceImage);
+
+        // Prepare output path
+        $filename = 'cats/' . uniqid() . '.jpg';
+        $fullPath = storage_path('app/public/' . $filename);
+        if (!file_exists(dirname($fullPath))) {
+            mkdir(dirname($fullPath), 0755, true);
+        }
+
+        // Save as JPEG with quality 70
+        imagejpeg($resized, $fullPath, 70);
+        imagedestroy($resized);
+
+        return $filename;
     }
 }
