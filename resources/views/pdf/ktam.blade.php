@@ -1,11 +1,20 @@
 @php
     // Inline Base64 Logo
+    $ktamLogoSetting = \App\Models\AppSetting::where('key', 'ktam_logo')->first();
     $appLogoSetting = \App\Models\AppSetting::where('key', 'app_logo')->first();
+    
     $logoPath = public_path('images/logo-muhammadiyah.svg');
     $logoMime = 'image/svg+xml';
 
-    if ($appLogoSetting && $appLogoSetting->value) {
-        $storagePath = storage_path('app/public/' . $appLogoSetting->value);
+    $selectedSetting = null;
+    if ($ktamLogoSetting && $ktamLogoSetting->value) {
+        $selectedSetting = $ktamLogoSetting;
+    } elseif ($appLogoSetting && $appLogoSetting->value) {
+        $selectedSetting = $appLogoSetting;
+    }
+
+    if ($selectedSetting) {
+        $storagePath = storage_path('app/public/' . $selectedSetting->value);
         if (file_exists($storagePath)) {
             $logoPath = $storagePath;
             $logoMime = mime_content_type($storagePath);
