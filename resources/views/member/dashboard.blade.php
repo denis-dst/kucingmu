@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-12">
+    <div class="py-12" x-data="{ openDraftModal: false, draftUrl: '' }" @keydown.escape.window="openDraftModal = false">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             
             <!-- Hero Panel -->
@@ -106,9 +106,14 @@
                                                     <span class="text-[9px] font-bold uppercase tracking-wider text-amber-600 block">STATUS KTAM</span>
                                                     <span class="text-[10px] text-slate-500">Menunggu Hasil Pemeriksaan</span>
                                                 </div>
-                                                <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs">
-                                                    Ubah Profil
-                                                </a>
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-primary px-3 py-1.5 text-xs border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100">
+                                                        Lihat Draft KTAM
+                                                    </button>
+                                                    <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs">
+                                                        Ubah Profil
+                                                    </a>
+                                                </div>
                                             @endif
                                         </div>
                                     </div>
@@ -294,5 +299,21 @@
             </div>
 
         </div>
+
+        <!-- Draft Modal -->
+        <div x-show="openDraftModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+            <div @click.away="openDraftModal = false" class="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col transform transition-all" style="width: 375px; height: 280px;">
+                <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <h3 class="font-bold text-slate-900 text-sm">Preview Draft KTAM</h3>
+                    <button @click="openDraftModal = false" class="text-slate-400 hover:text-slate-600 focus:outline-none">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="flex-1 bg-[#061d12] flex items-center justify-center p-2 relative overflow-hidden">
+                    <iframe :src="draftUrl" class="w-full h-full border-0" scrolling="no"></iframe>
+                </div>
+            </div>
+        </div>
+
     </div>
 </x-app-layout>

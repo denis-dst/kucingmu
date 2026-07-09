@@ -268,11 +268,31 @@
             text-align: right;
             vertical-align: middle;
         }
+
+        .draft-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 24px;
+            font-weight: 900;
+            color: rgba(255, 50, 50, 0.35);
+            border: 2px solid rgba(255, 50, 50, 0.35);
+            padding: 2mm 5mm;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 100;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
 <body>
     <div class="card">
+        @if(isset($isDraft) && $isDraft)
+            <div class="draft-watermark">Draft KucingMu</div>
+        @endif
+
         <!-- Gold Top Border -->
         <div class="gold-border-top"></div>
 

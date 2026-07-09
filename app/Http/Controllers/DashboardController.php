@@ -113,7 +113,7 @@ class DashboardController extends Controller
             'breed' => 'required|string|max:255',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
             'notes' => 'nullable|string',
@@ -121,7 +121,17 @@ class DashboardController extends Controller
 
         $photoPath = null;
         if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('cats', 'public');
+            $file = $request->file('photo');
+            $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            $image = $manager->decodePath($file->getRealPath());
+            $image->scaleDown(800, 800);
+            $filename = 'cats/' . uniqid() . '.jpg';
+            $fullPath = storage_path('app/public/' . $filename);
+            if (!file_exists(dirname($fullPath))) {
+                mkdir(dirname($fullPath), 0755, true);
+            }
+            $image->save($fullPath, 70);
+            $photoPath = $filename;
         }
 
         Cat::create([
@@ -167,7 +177,7 @@ class DashboardController extends Controller
             'breed' => 'required|string|max:255',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
             'notes' => 'nullable|string',
@@ -179,7 +189,17 @@ class DashboardController extends Controller
             if ($cat->photo_path) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
             }
-            $photoPath = $request->file('photo')->store('cats', 'public');
+            $file = $request->file('photo');
+            $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            $image = $manager->decodePath($file->getRealPath());
+            $image->scaleDown(800, 800);
+            $filename = 'cats/' . uniqid() . '.jpg';
+            $fullPath = storage_path('app/public/' . $filename);
+            if (!file_exists(dirname($fullPath))) {
+                mkdir(dirname($fullPath), 0755, true);
+            }
+            $image->save($fullPath, 70);
+            $photoPath = $filename;
         }
 
         $cat->update([
@@ -285,6 +305,28 @@ class DashboardController extends Controller
         $pdf->setPaper([0, 0, 243.78, 153.07], 'portrait');
         
         return $pdf->stream('ktam_' . str_replace(' ', '_', strtolower($cat->name)) . '.pdf');
+    }
+
+    /**
+     * Preview Draft KTAM.
+     */
+    public function previewKtam(Cat $cat)
+    {
+        if (Auth::user()->role === 'member' && (int) $cat->user_id !== (int) Auth::id()) {
+            abort(403);
+        }
+
+        if ($cat->ktamCard) {
+            return redirect()->route('dashboard')->with('error', 'Kucing ini sudah memiliki kartu KTAM aktif. Silakan unduh KTAM.');
+        }
+
+        $card = new \stdClass();
+        $card->ktam_number = 'DRAFT-XXX-XXX';
+        $card->qr_code_payload = asset('images/logo-muhammadiyah.svg'); 
+
+        $isDraft = true;
+
+        return view('pdf.ktam', compact('card', 'cat', 'isDraft'));
     }
 
     /**

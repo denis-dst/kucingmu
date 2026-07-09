@@ -50,9 +50,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('/events', EventController::class, ['names' => 'admin.events']);
 });
 
-// Shared KTAM Download Route
+// Shared KTAM Download & Preview Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/cat/{cat}/download-ktam', [DashboardController::class, 'downloadKtam'])->name('ktam.download');
+    Route::get('/cat/{cat}/preview-ktam', [DashboardController::class, 'previewKtam'])->name('ktam.preview');
 });
 
 // Public Verification Page (No Auth)
