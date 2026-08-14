@@ -40,6 +40,7 @@ Route::middleware(['auth', 'role:dokter'])->group(function () {
 Route::middleware(['auth', 'role:volunteer'])->group(function () {
     Route::get('/surveillance-kucing', [StrayCatSurveyController::class, 'index'])->name('volunteer.surveillance.index');
     Route::post('/surveillance-kucing', [StrayCatSurveyController::class, 'store'])->name('volunteer.surveillance.store');
+    Route::get('/surveillance-kucing/{survey}/pdf', [StrayCatSurveyController::class, 'pdf'])->name('volunteer.surveillance.pdf');
     Route::post('/appointment/{appointment}/checkin', [DashboardController::class, 'checkInAppointment'])->name('appointment.checkin');
     Route::post('/quick-register', [DashboardController::class, 'quickRegister'])->name('quick-register');
     Route::post('/sync-offline', [DashboardController::class, 'syncOffline'])->name('sync-offline');

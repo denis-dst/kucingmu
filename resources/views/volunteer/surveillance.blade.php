@@ -219,13 +219,38 @@
                                     </select>
                                     @error('zone')<p class="text-rose-500 text-xs mt-1">{{ $message }}</p>@enderror
                                 </div>
-                                <div>
-                                    <label class="sur-label" for="latitude">Koordinat Lintang</label>
-                                    <input class="sur-input" type="number" step="any" id="latitude" name="latitude" value="{{ old('latitude') }}" placeholder="-7.xxxxx">
-                                </div>
-                                <div>
-                                    <label class="sur-label" for="longitude">Koordinat Bujur</label>
-                                    <input class="sur-input" type="number" step="any" id="longitude" name="longitude" value="{{ old('longitude') }}" placeholder="110.xxxxx">
+                                <div class="sur-full">
+                                    <label class="sur-label">Koordinat Lokasi (GPS)</label>
+                                    {{-- Auto-tag button --}}
+                                    <button type="button" id="btnGetLoc" onclick="surGetLocation()"
+                                        style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:9px;border:1.5px solid var(--sur-accent);background:#eaf4fd;color:var(--sur-accent);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;transition:all .2s;"
+                                        onmouseover="this.style.background='#d0e9fb'" onmouseout="this.style.background='#eaf4fd'">
+                                        <span id="locBtnIcon" style="font-size:16px;">📍</span>
+                                        <span id="locBtnText">Dapatkan Lokasi Saat Ini</span>
+                                    </button>
+
+                                    {{-- Status badge --}}
+                                    <div id="locStatus" style="display:none;align-items:center;gap:7px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:10px;"></div>
+
+                                    {{-- Lat / Lng inputs side by side --}}
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                        <div>
+                                            <label class="sur-label" for="latitude">Lintang (Latitude)</label>
+                                            <input class="sur-input" type="number" step="any" id="latitude" name="latitude" value="{{ old('latitude') }}" placeholder="-7.xxxxx">
+                                        </div>
+                                        <div>
+                                            <label class="sur-label" for="longitude">Bujur (Longitude)</label>
+                                            <input class="sur-input" type="number" step="any" id="longitude" name="longitude" value="{{ old('longitude') }}" placeholder="110.xxxxx">
+                                        </div>
+                                    </div>
+
+                                    {{-- Map preview link (shown after successful geolocation) --}}
+                                    <div id="locMapLink" style="display:none;margin-top:8px;">
+                                        <a id="locMapAnchor" href="#" target="_blank" rel="noopener"
+                                            style="font-size:12px;color:var(--sur-accent);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                                            🗺️ Lihat di Google Maps
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="sur-full">
                                     <label class="sur-label">Kondisi Cuaca Saat Survei</label>
@@ -680,8 +705,39 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div><label class="sur-label" for="soil_lat">Koordinat Lintang</label><input class="sur-input" type="number" step="any" id="soil_lat" name="soil_lat" value="{{ old('soil_lat') }}" placeholder="-7.xxxxx"></div>
-                                <div><label class="sur-label" for="soil_lng">Koordinat Bujur</label><input class="sur-input" type="number" step="any" id="soil_lng" name="soil_lng" value="{{ old('soil_lng') }}" placeholder="110.xxxxx"></div>
+                                <div class="sur-full">
+                                    <label class="sur-label">Koordinat Titik Sampling (GPS)</label>
+                                    {{-- Auto-tag button --}}
+                                    <button type="button" id="soilBtnGetLoc" onclick="soilGetLocation()"
+                                        style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:9px;border:1.5px solid var(--sur-accent);background:#eaf4fd;color:var(--sur-accent);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;transition:all .2s;"
+                                        onmouseover="this.style.background='#d0e9fb'" onmouseout="this.style.background='#eaf4fd'">
+                                        <span id="soilLocBtnIcon" style="font-size:16px;">📍</span>
+                                        <span id="soilLocBtnText">Dapatkan Koordinat Sampling</span>
+                                    </button>
+
+                                    {{-- Status badge --}}
+                                    <div id="soilLocStatus" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:10px;"></div>
+
+                                    {{-- Lat / Lng inputs side by side --}}
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                        <div>
+                                            <label class="sur-label" for="soil_lat">Lintang (Latitude)</label>
+                                            <input class="sur-input" type="number" step="any" id="soil_lat" name="soil_lat" value="{{ old('soil_lat') }}" placeholder="-7.xxxxx">
+                                        </div>
+                                        <div>
+                                            <label class="sur-label" for="soil_lng">Bujur (Longitude)</label>
+                                            <input class="sur-input" type="number" step="any" id="soil_lng" name="soil_lng" value="{{ old('soil_lng') }}" placeholder="110.xxxxx">
+                                        </div>
+                                    </div>
+
+                                    {{-- Map preview link --}}
+                                    <div id="soilLocMapLink" style="display:none;margin-top:8px;">
+                                        <a id="soilLocMapAnchor" href="#" target="_blank" rel="noopener"
+                                            style="font-size:12px;color:var(--sur-accent);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">
+                                            🗺️ Lihat di Google Maps
+                                        </a>
+                                    </div>
+                                </div>
                                 <div><label class="sur-label" for="soil_weight_g">Berat Sampel (gram)</label><input class="sur-input" type="number" id="soil_weight_g" name="soil_weight_g" value="{{ old('soil_weight_g', 50) }}" min="10" max="200"></div>
                                 <div><label class="sur-label" for="soil_depth_cm">Kedalaman Sampling (cm)</label><input class="sur-input" type="number" id="soil_depth_cm" name="soil_depth_cm" value="{{ old('soil_depth_cm', 5) }}" min="1" max="20"></div>
                                 <div>
@@ -901,7 +957,7 @@
                         <table class="sur-hist-table">
                             <thead><tr>
                                 <th>Waktu</th><th>Institusi</th><th>Zona</th>
-                                <th>Terlihat</th><th>Ear-tip</th><th>Perlu Bantuan</th><th>Cuaca</th>
+                                <th>Terlihat</th><th>Ear-tip</th><th>Perlu Bantuan</th><th>Cuaca</th><th>Aksi</th>
                             </tr></thead>
                             <tbody>
                                 @foreach($surveys as $survey)
@@ -913,6 +969,13 @@
                                         <td>{{ $survey->cats_with_ear_tip }} ekor</td>
                                         <td>{{ $survey->cats_needing_attention }} ekor</td>
                                         <td>{{ ucfirst($survey->weather ?: '—') }}</td>
+                                        <td>
+                                            <a href="{{ route('volunteer.surveillance.pdf', $survey->id) }}" target="_blank"
+                                               style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;background:#e63946;color:#fff;font-size:11px;font-weight:600;text-decoration:none;transition:background .2s;"
+                                               onmouseover="this.style.background='#b02030'" onmouseout="this.style.background='#e63946'">
+                                                🖨️ Cetak PDF
+                                            </a>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -1164,6 +1227,169 @@ function surCollectJSON() {
     document.getElementById('hidKapKnowledge').value   = JSON.stringify(surKnowledge);
     document.getElementById('hidKapAttitude').value    = JSON.stringify(surAttitude);
     document.getElementById('hidK3LChecklist').value   = JSON.stringify(surK3LState);
+}
+
+// ────────── GEOLOCATION ──────────
+function surGetLocation() {
+    const btn      = document.getElementById('btnGetLoc');
+    const btnIcon  = document.getElementById('locBtnIcon');
+    const btnText  = document.getElementById('locBtnText');
+    const status   = document.getElementById('locStatus');
+    const mapLink  = document.getElementById('locMapLink');
+    const mapAnchor= document.getElementById('locMapAnchor');
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+
+    if (!navigator.geolocation) {
+        showLocStatus('error', '❌ Browser tidak mendukung Geolocation API.');
+        return;
+    }
+
+    // Loading state
+    btn.disabled  = true;
+    btnIcon.textContent = '⏳';
+    btnText.textContent = 'Mendeteksi lokasi…';
+    btn.style.opacity   = '0.7';
+    mapLink.style.display = 'none';
+    showLocStatus('info', '⏳ Meminta izin akses lokasi…');
+
+    navigator.geolocation.getCurrentPosition(
+        // ── SUCCESS ──
+        (pos) => {
+            const lat = pos.coords.latitude.toFixed(7);
+            const lng = pos.coords.longitude.toFixed(7);
+            const acc = Math.round(pos.coords.accuracy);
+
+            latInput.value = lat;
+            lngInput.value = lng;
+
+            // Highlight inputs briefly
+            [latInput, lngInput].forEach(el => {
+                el.style.borderColor = 'var(--sur-success)';
+                el.style.background  = '#edfaf3';
+                setTimeout(() => {
+                    el.style.borderColor = '';
+                    el.style.background  = '';
+                }, 2000);
+            });
+
+            showLocStatus('success',
+                `✅ Lokasi berhasil didapatkan — akurasi ±${acc} meter`);
+
+            // Maps link
+            mapAnchor.href = `https://www.google.com/maps?q=${lat},${lng}`;
+            mapLink.style.display = 'block';
+
+            // Reset button
+            btnIcon.textContent = '✅';
+            btnText.textContent = 'Perbarui Lokasi';
+            btn.disabled        = false;
+            btn.style.opacity   = '1';
+        },
+        // ── ERROR ──
+        (err) => {
+            const msgs = {
+                1: 'Izin akses lokasi ditolak. Aktifkan izin lokasi di pengaturan browser Anda.',
+                2: 'Posisi tidak tersedia. Pastikan GPS/koneksi aktif.',
+                3: 'Waktu permintaan habis. Coba lagi.',
+            };
+            showLocStatus('error', '❌ ' + (msgs[err.code] || 'Gagal mendapatkan lokasi.'));
+            btnIcon.textContent = '📍';
+            btnText.textContent = 'Dapatkan Lokasi Saat Ini';
+            btn.disabled        = false;
+            btn.style.opacity   = '1';
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+}
+
+function showLocStatus(type, msg) {
+    const el = document.getElementById('locStatus');
+    const styles = {
+        info:    'background:#e8f4fd;border:1px solid #90cdf4;color:#1b4f72;',
+        success: 'background:#edfaf3;border:1px solid #9ae6b4;color:#1a4731;',
+        error:   'background:#fff5f5;border:1px solid #fc8181;color:#742a2a;',
+    };
+    el.style.cssText = `display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:10px;${styles[type]||styles.info}`;
+    el.textContent = msg;
+}
+
+// ────────── GEOLOCATION – SOIL SAMPLING ──────────
+function soilGetLocation() {
+    const btn       = document.getElementById('soilBtnGetLoc');
+    const btnIcon   = document.getElementById('soilLocBtnIcon');
+    const btnText   = document.getElementById('soilLocBtnText');
+    const mapLink   = document.getElementById('soilLocMapLink');
+    const mapAnchor = document.getElementById('soilLocMapAnchor');
+    const latInput  = document.getElementById('soil_lat');
+    const lngInput  = document.getElementById('soil_lng');
+
+    if (!navigator.geolocation) {
+        showSoilLocStatus('error', '❌ Browser tidak mendukung Geolocation API.');
+        return;
+    }
+
+    // Loading state
+    btn.disabled            = true;
+    btnIcon.textContent     = '⏳';
+    btnText.textContent     = 'Mendeteksi koordinat…';
+    btn.style.opacity       = '0.7';
+    mapLink.style.display   = 'none';
+    showSoilLocStatus('info', '⏳ Meminta izin akses lokasi…');
+
+    navigator.geolocation.getCurrentPosition(
+        // ── SUCCESS ──
+        (pos) => {
+            const lat = pos.coords.latitude.toFixed(7);
+            const lng = pos.coords.longitude.toFixed(7);
+            const acc = Math.round(pos.coords.accuracy);
+
+            latInput.value = lat;
+            lngInput.value = lng;
+
+            // Highlight inputs briefly
+            [latInput, lngInput].forEach(el => {
+                el.style.borderColor = 'var(--sur-success)';
+                el.style.background  = '#edfaf3';
+                setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 2000);
+            });
+
+            showSoilLocStatus('success', `✅ Koordinat sampling berhasil didapatkan — akurasi ±${acc} meter`);
+
+            mapAnchor.href        = `https://www.google.com/maps?q=${lat},${lng}`;
+            mapLink.style.display = 'block';
+
+            btnIcon.textContent = '✅';
+            btnText.textContent = 'Perbarui Koordinat';
+            btn.disabled        = false;
+            btn.style.opacity   = '1';
+        },
+        // ── ERROR ──
+        (err) => {
+            const msgs = {
+                1: 'Izin akses lokasi ditolak. Aktifkan izin lokasi di pengaturan browser Anda.',
+                2: 'Posisi tidak tersedia. Pastikan GPS/koneksi aktif.',
+                3: 'Waktu permintaan habis. Coba lagi.',
+            };
+            showSoilLocStatus('error', '❌ ' + (msgs[err.code] || 'Gagal mendapatkan lokasi.'));
+            btnIcon.textContent = '📍';
+            btnText.textContent = 'Dapatkan Koordinat Sampling';
+            btn.disabled        = false;
+            btn.style.opacity   = '1';
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+}
+
+function showSoilLocStatus(type, msg) {
+    const el = document.getElementById('soilLocStatus');
+    const styles = {
+        info:    'background:#e8f4fd;border:1px solid #90cdf4;color:#1b4f72;',
+        success: 'background:#edfaf3;border:1px solid #9ae6b4;color:#1a4731;',
+        error:   'background:#fff5f5;border:1px solid #fc8181;color:#742a2a;',
+    };
+    el.style.cssText = `display:flex;align-items:center;gap:7px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:10px;${styles[type]||styles.info}`;
+    el.textContent = msg;
 }
 
 // ────────── NAVIGATION ──────────

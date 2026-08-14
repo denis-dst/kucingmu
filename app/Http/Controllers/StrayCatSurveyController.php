@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StrayCatSurvey;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -161,5 +162,15 @@ class StrayCatSurveyController extends Controller
 
         return redirect()->route('volunteer.surveillance.index')
             ->with('success', 'Laporan eSurveillance kucing liar berhasil disimpan.');
+    }
+
+    public function pdf(StrayCatSurvey $survey)
+    {
+        if ($survey->volunteer_id !== Auth::id() && Auth::user()->role !== 'admin') {
+            abort(403, 'Anda tidak memiliki akses ke laporan ini.');
+        }
+
+        $pdf = Pdf::loadView('pdf.stray_cat_survey', compact('survey'));
+        return $pdf->stream('laporan-surveilans-' . $survey->id . '.pdf');
     }
 }
