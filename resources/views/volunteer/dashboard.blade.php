@@ -31,6 +31,17 @@
                 </div>
             </div>
 
+            <a href="{{ route('volunteer.surveillance.index') }}" class="block content-card border-teal-200 bg-teal-50 hover:bg-teal-100 transition group">
+                <div class="flex items-center justify-between gap-5">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Fitur Relawan</span>
+                        <h2 class="font-outfit text-xl font-bold text-slate-900 mt-1">🐾 eSurveillance Kucing Liar</h2>
+                        <p class="text-sm text-slate-600 mt-1">Catat observasi populasi, lokasi, ear-tip, dan kucing yang memerlukan perhatian di lapangan.</p>
+                    </div>
+                    <span class="shrink-0 text-teal-700 font-bold text-sm group-hover:translate-x-1 transition">Buka fitur →</span>
+                </div>
+            </a>
+
             <!-- Success Alert -->
             @if(session('success'))
                 <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-sm font-semibold flex items-center gap-2">

@@ -20,6 +20,11 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @if(Auth::user()->role === 'volunteer')
+                        <x-nav-link :href="route('volunteer.surveillance.index')" :active="request()->routeIs('volunteer.surveillance.*')">
+                            {{ __('eSurveillance Kucing') }}
+                        </x-nav-link>
+                    @endif
                     @if(Auth::user()->role === 'admin')
                         <x-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')">
                             {{ __('Kelola Event') }}
@@ -86,6 +91,11 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            @if(Auth::user()->role === 'volunteer')
+                <x-responsive-nav-link :href="route('volunteer.surveillance.index')" :active="request()->routeIs('volunteer.surveillance.*')">
+                    {{ __('eSurveillance Kucing') }}
+                </x-responsive-nav-link>
+            @endif
             @if(Auth::user()->role === 'admin')
                 <x-responsive-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')">
                     {{ __('Kelola Event') }}

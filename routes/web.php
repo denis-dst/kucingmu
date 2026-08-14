@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\StrayCatSurveyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -37,6 +38,8 @@ Route::middleware(['auth', 'role:dokter'])->group(function () {
 
 // Volunteer Routes
 Route::middleware(['auth', 'role:volunteer'])->group(function () {
+    Route::get('/surveillance-kucing', [StrayCatSurveyController::class, 'index'])->name('volunteer.surveillance.index');
+    Route::post('/surveillance-kucing', [StrayCatSurveyController::class, 'store'])->name('volunteer.surveillance.store');
     Route::post('/appointment/{appointment}/checkin', [DashboardController::class, 'checkInAppointment'])->name('appointment.checkin');
     Route::post('/quick-register', [DashboardController::class, 'quickRegister'])->name('quick-register');
     Route::post('/sync-offline', [DashboardController::class, 'syncOffline'])->name('sync-offline');
