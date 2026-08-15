@@ -228,8 +228,8 @@
                                 </div>
                             </div>
                             <div>
-                                <label for="cat_photo" class="form-label">Foto Kucing</label>
-                                <input type="file" id="cat_photo" name="photo" class="form-input py-1 text-xs">
+                                <label for="cat_photo" class="form-label">Foto Kucing (Galeri / Kamera)</label>
+                                <input type="file" id="cat_photo" name="photo" accept="image/*" capture="environment" class="form-input py-1 text-xs">
                             </div>
                             <div>
                                 <label for="cat_allergies" class="form-label">Alergi Kucing <span class="text-xs text-slate-400">(Opsional)</span></label>

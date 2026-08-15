@@ -72,7 +72,7 @@
                     <!-- Banner Image -->
                     <div>
                         <label for="event_banner" class="form-label font-semibold text-slate-700 block">Banner Kegiatan <span class="text-xs text-slate-400">(Opsional)</span></label>
-                        <input type="file" id="event_banner" name="banner" class="form-input mt-1 w-full py-1 text-xs border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
+                        <input type="file" id="event_banner" name="banner" accept="image/*" capture="environment" class="form-input mt-1 w-full py-1 text-xs border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
                         <p class="text-xs text-slate-400 mt-1">Format gambar (JPEG, PNG, JPG), maks. 2MB.</p>
                         <x-input-error :messages="$errors->get('banner')" class="mt-1" />
                     </div>

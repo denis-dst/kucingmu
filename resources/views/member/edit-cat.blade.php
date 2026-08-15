@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-12">
+    <div class="py-12" x-data="webcamCapture()">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
             
             <!-- Back button -->
@@ -13,7 +13,7 @@
             <div class="content-card bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <div class="border-b border-slate-100 pb-4 mb-6">
                     <h2 class="font-outfit text-2xl font-bold text-slate-900">Ubah Profil & Galeri Kucing</h2>
-                    <p class="text-sm text-slate-500 mt-1">Perbarui data detail kucing Anda, kelola banyak foto (tampak depan, samping, atas), pilih 1 foto utama untuk KTAM, serta sampel biometrik.</p>
+                    <p class="text-sm text-slate-500 mt-1">Perbarui data detail kucing Anda, kelola banyak foto (tampak depan, samping, atas), foto langsung dari kamera, serta sampel biometrik.</p>
                 </div>
 
                 <form method="POST" action="{{ route('cat.update', $cat->id) }}" enctype="multipart/form-data" class="space-y-6">
@@ -61,7 +61,7 @@
                             <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
                                 📷 Galeri Foto Kucing (Tampak Depan, Samping, Atas)
                             </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Satu kucing dapat memiliki lebih dari 1 foto. Pilih 1 foto utama sebagai foto yang akan tercetak pada kartu KTAM.</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Unggah foto dari galeri atau ambil foto langsung menggunakan kamera. Pilih 1 foto utama untuk cetak KTAM.</p>
                         </div>
 
                         <!-- Existing Photo Grid -->
@@ -98,16 +98,22 @@
                             </div>
                         @else
                             <div class="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4 text-center text-xs text-slate-400">
-                                Belum ada foto di galeri. Silakan unggah foto di bawah ini.
+                                Belum ada foto di galeri. Silakan unggah foto dari galeri atau kamera di bawah.
                             </div>
                         @endif
 
-                        <!-- Input Upload Foto Baru -->
+                        <!-- Input Upload Foto Baru + Camera Button -->
                         <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-3">
-                            <label class="form-label font-semibold text-slate-700 block text-xs">Tambah Foto Baru ke Galeri</label>
+                            <div class="flex items-center justify-between">
+                                <label class="form-label font-semibold text-slate-700 block text-xs">Tambah Foto Baru ke Galeri</label>
+                                <button type="button" @click="openCamera('new_gallery_photo_input', 'new_gallery_preview')" class="button-secondary text-xs py-1 px-3 inline-flex items-center gap-1.5">
+                                    <span>📷 Ambil Foto Kamera</span>
+                                </button>
+                            </div>
+                            
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <div>
-                                    <input type="file" name="photos[]" class="form-input w-full py-1 text-xs border-slate-300 rounded-lg">
+                                    <input type="file" id="new_gallery_photo_input" name="photos[]" accept="image/*" capture="environment" class="form-input w-full py-1 text-xs border-slate-300 rounded-lg">
                                 </div>
                                 <div>
                                     <select name="photo_labels[]" class="form-input w-full py-1 text-xs border-slate-300 rounded-lg">
@@ -120,6 +126,8 @@
                                     </select>
                                 </div>
                             </div>
+                            <!-- Realtime Camera Preview -->
+                            <img id="new_gallery_preview" class="hidden w-24 h-24 object-cover rounded-lg border border-teal-500 shadow-sm mt-2">
                         </div>
                     </div>
 
@@ -144,8 +152,14 @@
                             </div>
 
                             <div>
-                                <label for="biometric_photo" class="form-label font-semibold text-slate-700">Unggah Sampel Biometrik</label>
-                                <input type="file" id="biometric_photo" name="biometric_photo" class="form-input mt-1 block w-full text-xs border-slate-300 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <label for="biometric_photo" class="form-label font-semibold text-slate-700">Unggah Sampel Biometrik</label>
+                                    <button type="button" @click="openCamera('biometric_photo', 'biometric_preview')" class="text-[10px] font-bold text-teal-700 hover:underline">
+                                        📷 Kamera
+                                    </button>
+                                </div>
+                                <input type="file" id="biometric_photo" name="biometric_photo" accept="image/*" capture="environment" class="form-input mt-1 block w-full text-xs border-slate-300 rounded-xl">
+                                <img id="biometric_preview" class="hidden w-20 h-20 object-cover rounded-lg border border-teal-500 mt-2 shadow-xs">
                             </div>
 
                             <div>
@@ -191,6 +205,46 @@
             </div>
 
         </div>
+
+        <!-- Live Camera Modal Overlay -->
+        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-xs p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+                <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                    <h3 class="font-outfit font-bold text-slate-900 text-base flex items-center gap-2">
+                        <span>📷</span> Tangkap Foto dari Kamera
+                    </h3>
+                    <button type="button" @click="closeCamera()" class="text-slate-400 hover:text-slate-700 font-bold text-xl">&times;</button>
+                </div>
+
+                <!-- Video Stream Preview -->
+                <div class="relative bg-black rounded-2xl overflow-hidden aspect-square flex items-center justify-center shadow-inner">
+                    <video x-ref="videoElement" autoplay playsinline class="w-full h-full object-cover" x-show="!capturedImage"></video>
+                    <img :src="capturedImage" x-show="capturedImage" class="w-full h-full object-cover">
+                    <canvas x-ref="canvasElement" class="hidden"></canvas>
+                </div>
+
+                <!-- Controls -->
+                <div class="pt-2">
+                    <template x-if="!capturedImage">
+                        <button type="button" @click="takeSnap()" class="w-full button-primary py-3 text-sm font-bold flex justify-center items-center gap-2">
+                            <span>🔴</span> Tangkap Foto
+                        </button>
+                    </template>
+                    
+                    <template x-if="capturedImage">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button" @click="retakeSnap()" class="button-secondary py-2.5 text-xs font-bold">
+                                🔄 Ulangi Foto
+                            </button>
+                            <button type="button" @click="usePhoto()" class="button-primary py-2.5 text-xs font-bold">
+                                ✅ Gunakan Foto Ini
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Hidden forms for set-primary and delete photo actions -->
@@ -205,4 +259,94 @@
             @method('DELETE')
         </form>
     @endforeach
+
+    <script>
+        function webcamCapture() {
+            return {
+                showModal: false,
+                stream: null,
+                capturedImage: null,
+                targetInputId: null,
+                previewImageId: null,
+
+                openCamera(inputId, previewId = null) {
+                    this.targetInputId = inputId;
+                    this.previewImageId = previewId;
+                    this.capturedImage = null;
+                    this.showModal = true;
+
+                    this.$nextTick(() => {
+                        navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+                        }).then(s => {
+                            this.stream = s;
+                            if (this.$refs.videoElement) {
+                                this.$refs.videoElement.srcObject = s;
+                            }
+                        }).catch(err => {
+                            alert('Tidak dapat mengoperasikan kamera: ' + err.message + '\nPastikan izin akses kamera telah diberikan di browser.');
+                            this.showModal = false;
+                        });
+                    });
+                },
+
+                takeSnap() {
+                    const video = this.$refs.videoElement;
+                    const canvas = this.$refs.canvasElement;
+                    if (!video || !canvas) return;
+
+                    canvas.width = video.videoWidth || 640;
+                    canvas.height = video.videoHeight || 480;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    this.capturedImage = canvas.toDataURL('image/jpeg', 0.85);
+                },
+
+                retakeSnap() {
+                    this.capturedImage = null;
+                },
+
+                usePhoto() {
+                    if (!this.capturedImage || !this.targetInputId) return;
+
+                    const arr = this.capturedImage.split(',');
+                    const mime = arr[0].match(/:(.*?);/)[1];
+                    const bstr = atob(arr[1]);
+                    let n = bstr.length;
+                    const u8arr = new Uint8Array(n);
+                    while (n--) {
+                        u8arr[n] = bstr.charCodeAt(n);
+                    }
+                    const file = new File([u8arr], 'camera_photo_' + Date.now() + '.jpg', { type: mime });
+
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+
+                    const inputElem = document.getElementById(this.targetInputId);
+                    if (inputElem) {
+                        inputElem.files = dataTransfer.files;
+                    }
+
+                    if (this.previewImageId) {
+                        const prevElem = document.getElementById(this.previewImageId);
+                        if (prevElem) {
+                            prevElem.src = this.capturedImage;
+                            prevElem.classList.remove('hidden');
+                        }
+                    }
+
+                    this.closeCamera();
+                },
+
+                closeCamera() {
+                    if (this.stream) {
+                        this.stream.getTracks().forEach(track => track.stop());
+                        this.stream = null;
+                    }
+                    this.showModal = false;
+                    this.capturedImage = null;
+                }
+            }
+        }
+    </script>
 </x-app-layout>

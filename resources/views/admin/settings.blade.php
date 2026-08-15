@@ -65,7 +65,7 @@
                                                     </div>
                                                 @endif
                                                 <div class="flex-1">
-                                                    <input type="file" id="setting_{{ $setting->key }}" name="settings[{{ $setting->key }}]" class="form-input w-full py-1 text-xs border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
+                                                    <input type="file" id="setting_{{ $setting->key }}" name="settings[{{ $setting->key }}]" accept="image/*" capture="environment" class="form-input w-full py-1 text-xs border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
                                                 </div>
                                             </div>
                                         @else

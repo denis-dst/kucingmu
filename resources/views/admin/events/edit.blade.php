@@ -84,7 +84,7 @@
                             </div>
                             <!-- Input File -->
                             <div class="flex-1">
-                                <input type="file" id="event_banner" name="banner" class="form-input w-full py-1 text-xs border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
+                                <input type="file" id="event_banner" name="banner" accept="image/*" capture="environment" class="form-input w-full py-1 text-xs border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
                                 <p class="text-xs text-slate-400 mt-1">Unggah banner baru jika ingin menggantinya (JPEG, PNG, JPG, maks. 2MB).</p>
                             </div>
                         </div>

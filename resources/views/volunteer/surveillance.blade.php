@@ -368,7 +368,7 @@
                                                 <label><input type="radio" class="cat-resight" name="resight_1" value="Resighted"> Resighted</label>
                                             </div>
                                         </div>
-                                        <div><label class="sur-label">Foto Dokumentasi</label><input type="file" accept="image/*" class="cat-photo sur-input" style="padding:4px;font-size:11px;"></div>
+                                        <div><label class="sur-label">Foto Dokumentasi</label><input type="file" accept="image/*" capture="environment" class="cat-photo sur-input" style="padding:4px;font-size:11px;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -923,7 +923,7 @@
                             <hr class="sur-divider">
                             <div>
                                 <label class="sur-label" for="photo">Foto Dokumentasi Area <span style="color:#9ca3af;">(opsional, maks 5 MB)</span></label>
-                                <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp"
+                                <input type="file" id="photo" name="photo" accept="image/*" capture="environment"
                                     class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:font-semibold file:text-teal-700 hover:file:bg-teal-100 mt-1">
                                 @error('photo')<p class="text-rose-500 text-xs mt-1">{{ $message }}</p>@enderror
                             </div>
@@ -1196,7 +1196,7 @@ function surAddCat() {
                     <label><input type="radio" name="resight_${n}" value="Resighted"> Resighted</label>
                 </div>
             </div>
-            <div><label class="sur-label">Foto</label><input type="file" accept="image/*" class="cat-photo sur-input" style="padding:4px;font-size:11px;"></div>
+            <div><label class="sur-label">Foto</label><input type="file" accept="image/*" capture="environment" class="cat-photo sur-input" style="padding:4px;font-size:11px;"></div>
         </div>`;
     document.getElementById('surCatList').appendChild(div);
 }
