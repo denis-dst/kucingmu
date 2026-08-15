@@ -139,10 +139,13 @@
                                 </div>
 
                                 <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
+                                    <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary py-2 px-3 text-xs flex items-center justify-center gap-1 font-semibold whitespace-nowrap">
+                                        <span>✏️</span> Biometrik & Foto
+                                    </a>
                                     <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="w-full">
                                         @csrf
                                         <button type="submit" onclick="return confirm('Apakah Anda yakin ingin memverifikasi dan menerbitkan kartu KTAM untuk {{ $cat->name }}?')" class="w-full button-primary py-2 text-xs text-center flex items-center justify-center gap-1">
-                                            <span>✅</span> Verifikasi & Terbitkan KTAM
+                                            <span>✅</span> Verifikasi KTAM
                                         </button>
                                     </form>
                                 </div>
@@ -216,11 +219,14 @@
                                                     @endif
                                                 </td>
                                                 <td class="py-4 px-1">
-                                                    <div class="flex items-center gap-2">
+                                                    <div class="flex items-center gap-2 flex-wrap">
+                                                        <a href="{{ route('cat.edit', $cat->id) }}" title="Update Foto & Biometrik" class="text-xs font-bold text-slate-700 hover:text-teal-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-2.5 py-1 rounded-lg transition">
+                                                            ✏️ Biometrik & Foto
+                                                        </a>
                                                         @if($cat->ktamCard)
                                                             <a href="{{ route('ktam.download', $cat->id) }}" class="text-xs font-bold text-teal-700 hover:text-teal-900 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-lg">Unduh PDF</a>
                                                         @else
-                                                            <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST">
+                                                            <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="inline">
                                                                 @csrf
                                                                 <button type="submit" onclick="return confirm('Verifikasi & terbitkan kartu KTAM untuk {{ $cat->name }}?')" class="button-primary px-3 py-1 text-[11px] font-bold shadow-xs">
                                                                     Verifikasi KTAM

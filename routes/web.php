@@ -26,8 +26,6 @@ Route::middleware('auth')->group(function () {
 // Member Routes
 Route::middleware(['auth', 'role:member'])->group(function () {
     Route::post('/cat', [DashboardController::class, 'storeCat'])->name('cat.store');
-    Route::get('/cat/{cat}/edit', [DashboardController::class, 'editCat'])->name('cat.edit');
-    Route::put('/cat/{cat}', [DashboardController::class, 'updateCat'])->name('cat.update');
     Route::post('/appointment', [DashboardController::class, 'storeAppointment'])->name('appointment.store');
 });
 
@@ -55,8 +53,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('/events', EventController::class, ['names' => 'admin.events']);
 });
 
-// Shared KTAM Download & Preview & Photo Routes
+// Shared Cat Management, KTAM Download & Preview & Photo Routes
 Route::middleware(['auth'])->group(function () {
+    Route::get('/cat/{cat}/edit', [DashboardController::class, 'editCat'])->name('cat.edit');
+    Route::put('/cat/{cat}', [DashboardController::class, 'updateCat'])->name('cat.update');
     Route::get('/cat/{cat}/download-ktam', [DashboardController::class, 'downloadKtam'])->name('ktam.download');
     Route::get('/cat/{cat}/preview-ktam', [DashboardController::class, 'previewKtam'])->name('ktam.preview');
     Route::post('/cat/{cat}/photos', [DashboardController::class, 'uploadCatPhoto'])->name('cat.photos.store');
