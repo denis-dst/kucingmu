@@ -13,9 +13,10 @@ class KtamService
      * Issue a new KTAM Card for a cat if it does not already have one.
      *
      * @param  \App\Models\Cat  $cat
+     * @param  int|null $adminId
      * @return \App\Models\KtamCard
      */
-    public function issueCard(Cat $cat): KtamCard
+    public function issueCard(Cat $cat, ?int $adminId = null): KtamCard
     {
         // Return existing card if already issued
         if ($cat->ktamCard) {
@@ -27,7 +28,7 @@ class KtamService
 
         // Generate QR code SVG content as base64 string
         $qrCodeSvg = QrCode::size(200)
-            ->color(15, 118, 110) // Teal color matching siakad theme
+            ->color(15, 118, 110) // Teal color matching theme
             ->backgroundColor(255, 255, 255)
             ->generate($verificationUrl);
 
@@ -39,6 +40,8 @@ class KtamService
             'issue_date' => Carbon::today(),
             'qr_code_payload' => $qrCodeBase64,
             'is_printed' => false,
+            'verified_by' => $adminId,
+            'verified_at' => Carbon::now(),
         ]);
     }
 

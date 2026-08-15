@@ -22,12 +22,61 @@
                 </div>
                 <h1 class="font-outfit text-2xl font-bold mt-4 tracking-tight">KTAM KucingMu Terverifikasi</h1>
                 <p class="text-teal-100 text-xs mt-1 font-mono tracking-wider">{{ $card->ktam_number }}</p>
-                <p class="text-[10px] text-teal-200/80 mt-1 uppercase tracking-widest font-bold">Diterbitkan: {{ $card->issue_date->format('d F Y') }}</p>
+                <p class="text-[10px] text-teal-200/80 mt-1 uppercase tracking-widest font-bold">
+                    Diterbitkan & Diverifikasi: {{ $card->verified_at ? $card->verified_at->format('d F Y') : $card->issue_date->format('d F Y') }}
+                    @if($card->verifier)
+                        • Oleh Admin {{ $card->verifier->name }}
+                    @endif
+                </p>
             </div>
 
             <!-- Content Body -->
             <div class="p-6 md:p-8 space-y-8">
                 
+                <!-- Primary Photo & Biometric Card -->
+                <div class="flex flex-col sm:flex-row items-center gap-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-24 h-24 object-cover rounded-2xl border-2 border-teal-500 shadow-md flex-shrink-0">
+                    
+                    <div class="space-y-2 text-center sm:text-left flex-1">
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                            <h2 class="font-outfit text-xl font-bold text-slate-900 leading-tight">{{ $cat->name }}</h2>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 border border-teal-200">Terdaftar</span>
+                        </div>
+                        <p class="text-xs text-slate-500">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan ♂' : 'Betina ♀' }}</p>
+
+                        <!-- Biometrics Badge -->
+                        @if($cat->biometric_type && $cat->biometric_type !== 'none')
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-teal-600 text-white text-xs font-bold shadow-xs">
+                                <span>🐾 Biometrik {{ strtoupper($cat->biometric_type) }} Verified</span>
+                            </div>
+                            @if($cat->biometric_code)
+                                <p class="text-[10px] font-mono text-slate-500">ID Biometrik: {{ $cat->biometric_code }}</p>
+                            @endif
+                        @else
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-slate-200 text-slate-700 text-[11px] font-semibold">
+                                <span>⚪ Data Foto Terverifikasi</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Multi-Photo Gallery (Front, Side, Top view) -->
+                @if($cat->photos->count() > 0)
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Galeri Foto Kucing (Semua Sudut Pandang)</h3>
+                        <div class="grid grid-cols-3 gap-3">
+                            @foreach($cat->photos as $photo)
+                                <div class="relative rounded-xl overflow-hidden border {{ $photo->is_primary ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-200' }} bg-slate-100">
+                                    <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->label }}" class="w-full h-20 object-cover">
+                                    <span class="absolute bottom-0 inset-x-0 bg-slate-900/70 text-white text-[9px] font-bold text-center py-0.5 truncate px-1">
+                                        {{ $photo->label }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Cat & Owner Information -->
                 <div class="space-y-4">
                     <h2 class="font-outfit text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Informasi Anggota Kucing</h2>
@@ -120,7 +169,7 @@
 
             <!-- Footer brand signature -->
             <div class="bg-slate-50 border-t border-slate-100 px-6 py-4 text-center text-xs text-slate-400">
-                Pemeriksaan kesehatan kucing ini diselenggarakan oleh komunitas KucingMu.
+                Pemeriksaan kesehatan kucing & penerbitan KTAM ini diselenggarakan oleh komunitas KucingMu.
             </div>
         </div>
 

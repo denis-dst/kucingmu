@@ -19,6 +19,9 @@ class Cat extends Model
         'allergies',
         'vaccine_history',
         'notes',
+        'biometric_type',
+        'biometric_photo_path',
+        'biometric_code',
     ];
 
     protected $casts = [
@@ -44,4 +47,45 @@ class Cat extends Model
     {
         return $this->hasOne(KtamCard::class);
     }
+
+    public function photos()
+    {
+        return $this->hasMany(CatPhoto::class);
+    }
+
+    public function primaryPhoto()
+    {
+        return $this->hasOne(CatPhoto::class)->where('is_primary', true);
+    }
+
+    public function getPrimaryPhotoUrlAttribute()
+    {
+        $primary = $this->photos ? $this->photos->firstWhere('is_primary', true) : null;
+        if ($primary && $primary->photo_path) {
+            $fullPath = storage_path('app/public/' . $primary->photo_path);
+            if (file_exists($fullPath)) {
+                return asset('storage/' . $primary->photo_path);
+            }
+        }
+
+        if ($this->photo_path) {
+            $fullPath = storage_path('app/public/' . $this->photo_path);
+            if (file_exists($fullPath)) {
+                return asset('storage/' . $this->photo_path);
+            }
+        }
+
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=0F766E&background=E6F4F1&size=128';
+    }
+
+    public function getPrimaryPhotoPathAttribute()
+    {
+        $primary = $this->photos->firstWhere('is_primary', true);
+        if ($primary && $primary->photo_path) {
+            return $primary->photo_path;
+        }
+
+        return $this->photo_path;
+    }
 }
+

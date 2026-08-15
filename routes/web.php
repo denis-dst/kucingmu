@@ -49,15 +49,19 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
 // Admin Routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/export-data', [DashboardController::class, 'exportData'])->name('export-data');
+    Route::post('/admin/cats/{cat}/verify-ktam', [DashboardController::class, 'verifyAndIssueKtam'])->name('admin.verify-ktam');
     Route::get('/settings', [AppSettingController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
     Route::resource('/events', EventController::class, ['names' => 'admin.events']);
 });
 
-// Shared KTAM Download & Preview Routes
+// Shared KTAM Download & Preview & Photo Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/cat/{cat}/download-ktam', [DashboardController::class, 'downloadKtam'])->name('ktam.download');
     Route::get('/cat/{cat}/preview-ktam', [DashboardController::class, 'previewKtam'])->name('ktam.preview');
+    Route::post('/cat/{cat}/photos', [DashboardController::class, 'uploadCatPhoto'])->name('cat.photos.store');
+    Route::post('/photos/{photo}/set-primary', [DashboardController::class, 'setPrimaryPhoto'])->name('photos.set-primary');
+    Route::delete('/photos/{photo}', [DashboardController::class, 'deletePhoto'])->name('photos.destroy');
 });
 
 // Public Verification Page (No Auth)

@@ -26,11 +26,12 @@
         $logoData = 'data:' . $logoMime . ';base64,' . base64_encode(file_get_contents($logoPath));
     }
 
-    // Inline Base64 Photo
+    // Inline Base64 Photo (uses primary photo)
+    $photoPathToUse = $cat->primary_photo_path ?? $cat->photo_path;
     $photoData = null;
-    if ($cat->photo_path) {
-        $storagePath = storage_path('app/public/' . $cat->photo_path);
-        $publicPath = public_path('storage/' . $cat->photo_path);
+    if ($photoPathToUse) {
+        $storagePath = storage_path('app/public/' . $photoPathToUse);
+        $publicPath = public_path('storage/' . $photoPathToUse);
 
         if (file_exists($storagePath)) {
             $photoData = 'data:' . mime_content_type($storagePath) . ';base64,' . base64_encode(file_get_contents($storagePath));
@@ -230,6 +231,18 @@
             text-transform: uppercase;
         }
 
+        .biometric-tag {
+            display: inline-block;
+            font-size: 4px;
+            font-weight: bold;
+            color: #061d12;
+            background-color: #a7f3d0;
+            padding: 0.5px 2px;
+            border-radius: 1px;
+            margin-top: 1px;
+            text-transform: uppercase;
+        }
+
         /* QR Styles */
         .qr-frame {
             display: inline-block;
@@ -360,8 +373,13 @@
                         <div class="field-value">{{ $cat->owner->name }}</div>
                     </div>
                     <div class="detail-field">
-                        <div class="field-label">NBM Pemilik</div>
-                        <div class="field-value">{{ $cat->owner->muhammadiyah_id ?? '-' }}</div>
+                        <div class="field-label">Biometrik & NBM</div>
+                        <div class="field-value">
+                            {{ $cat->owner->muhammadiyah_id ?? '-' }}
+                            @if($cat->biometric_type && $cat->biometric_type !== 'none')
+                                <span class="biometric-tag">🐾 {{ strtoupper($cat->biometric_type) }} VERIFIED</span>
+                            @endif
+                        </div>
                     </div>
                 </td>
 

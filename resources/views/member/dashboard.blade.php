@@ -56,22 +56,27 @@
                                         <div>
                                             <div class="flex items-center gap-4">
                                                 <div class="rounded-xl bg-slate-100 border border-slate-200 overflow-hidden flex-shrink-0" style="width: 80px; height: 80px; min-width: 80px; min-height: 80px; max-width: 80px; max-height: 80px;">
-                                                    @if($cat->photo_path)
-                                                        <img src="{{ asset('storage/' . $cat->photo_path) }}" alt="{{ $cat->name }}" style="width: 80px; height: 80px; object-fit: cover; display: block;">
-                                                    @else
-                                                        <div style="width: 80px; height: 80px;" class="flex items-center justify-center text-2xl bg-teal-50 text-teal-700 font-bold">
-                                                            {{ substr($cat->name, 0, 1) }}
-                                                        </div>
-                                                    @endif
+                                                    <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" style="width: 80px; height: 80px; object-fit: cover; display: block;">
                                                 </div>
                                                 <div>
                                                     <h3 class="font-bold text-slate-900 text-base leading-tight">{{ $cat->name }}</h3>
                                                     <p class="text-xs text-slate-500 mt-0.5">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }}</p>
                                                     <p class="text-xs text-slate-400 mt-0.5">Lahir: {{ $cat->date_of_birth->format('d M Y') }}</p>
+                                                    @if($cat->biometric_type && $cat->biometric_type !== 'none')
+                                                        <span class="inline-block mt-1 px-2 py-0.5 rounded text-[9px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                                                            🐾 Biometrik {{ strtoupper($cat->biometric_type) }}
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             </div>
 
                                             <div class="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs">
+                                                @if($cat->photos->count() > 1)
+                                                    <div>
+                                                        <span class="font-semibold text-slate-700">Galeri Foto:</span>
+                                                        <span class="text-slate-600 block text-[11px]">{{ $cat->photos->count() }} foto tersimpan (1 foto utama KTAM)</span>
+                                                    </div>
+                                                @endif
                                                 @if($cat->allergies)
                                                     <div>
                                                         <span class="font-semibold text-slate-700">Alergi:</span>
@@ -98,20 +103,33 @@
                                                         Ubah
                                                     </a>
                                                     <a href="{{ route('ktam.download', $cat->id) }}" class="button-primary px-3 py-1.5 text-xs">
-                                                        Unduh
+                                                        Unduh PDF
+                                                    </a>
+                                                </div>
+                                            @elseif($cat->medicalRecords->isNotEmpty())
+                                                <div class="text-left">
+                                                    <span class="text-[9px] font-bold uppercase tracking-wider text-amber-600 block">PENDING VERIFIKASI ADMIN</span>
+                                                    <span class="text-[10px] text-slate-500">Pemeriksaan Dokter Selesai</span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-primary px-3 py-1.5 text-xs border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100">
+                                                        Lihat Draft
+                                                    </button>
+                                                    <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs">
+                                                        Ubah
                                                     </a>
                                                 </div>
                                             @else
                                                 <div class="text-left">
-                                                    <span class="text-[9px] font-bold uppercase tracking-wider text-amber-600 block">STATUS KTAM</span>
-                                                    <span class="text-[10px] text-slate-500">Menunggu Hasil Pemeriksaan</span>
+                                                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">STATUS KTAM</span>
+                                                    <span class="text-[10px] text-slate-500">Belum Periksa Dokter</span>
                                                 </div>
                                                 <div class="flex items-center gap-2">
-                                                    <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-primary px-3 py-1.5 text-xs border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100">
-                                                        Lihat Draft KTAM
+                                                    <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-primary px-3 py-1.5 text-xs border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100">
+                                                        Lihat Draft
                                                     </button>
                                                     <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs">
-                                                        Ubah Profil
+                                                        Ubah
                                                     </a>
                                                 </div>
                                             @endif

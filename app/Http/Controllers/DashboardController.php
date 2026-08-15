@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cat;
+use App\Models\CatPhoto;
 use App\Models\Appointment;
 use App\Models\MedicalRecord;
 use App\Models\KtamCard;
@@ -44,12 +45,18 @@ class DashboardController extends Controller
             'appointments_count' => Appointment::count(),
             'records_count' => MedicalRecord::count(),
             'ktam_count' => KtamCard::count(),
+            'pending_verification_count' => Cat::whereDoesntHave('ktamCard')->count(),
         ];
 
-        $cats = Cat::with('owner', 'ktamCard')->latest()->paginate(10);
+        $cats = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet'])->latest()->paginate(10);
+        $pendingVerificationCats = Cat::whereDoesntHave('ktamCard')
+            ->with(['owner', 'photos', 'medicalRecords.vet'])
+            ->latest()
+            ->get();
+            
         $appointments = Appointment::with('cat')->orderBy('date', 'desc')->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'cats', 'appointments'));
+        return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments'));
     }
 
     /**
@@ -92,7 +99,7 @@ class DashboardController extends Controller
      */
     protected function memberDashboard()
     {
-        $cats = Auth::user()->cats()->with('ktamCard', 'medicalRecords')->get();
+        $cats = Auth::user()->cats()->with(['ktamCard', 'medicalRecords', 'photos'])->get();
         $appointments = Appointment::whereIn('cat_id', $cats->pluck('id'))
             ->with('cat')
             ->latest()
@@ -114,6 +121,12 @@ class DashboardController extends Controller
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo_labels.*' => 'nullable|string|max:255',
+            'primary_photo_index' => 'nullable|integer',
+            'biometric_type' => 'nullable|in:none,paw,nose,both',
+            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'biometric_code' => 'nullable|string|max:255',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
             'notes' => 'nullable|string',
@@ -125,17 +138,59 @@ class DashboardController extends Controller
             $photoPath = $this->compressAndStorePhoto($file);
         }
 
-        Cat::create([
+        $biometricPhotoPath = null;
+        if ($request->hasFile('biometric_photo')) {
+            $file = $request->file('biometric_photo');
+            $biometricPhotoPath = $this->compressAndStorePhoto($file, 'biometrics');
+        }
+
+        $cat = Cat::create([
             'user_id' => Auth::id(),
             'name' => $request->name,
             'breed' => $request->breed,
             'gender' => $request->gender,
             'date_of_birth' => $request->date_of_birth,
             'photo_path' => $photoPath,
+            'biometric_type' => $request->biometric_type ?? 'none',
+            'biometric_photo_path' => $biometricPhotoPath,
+            'biometric_code' => $request->biometric_code,
             'allergies' => $request->allergies,
             'vaccine_history' => $request->vaccine_history,
             'notes' => $request->notes,
         ]);
+
+        if ($photoPath) {
+            CatPhoto::create([
+                'cat_id' => $cat->id,
+                'photo_path' => $photoPath,
+                'label' => 'Tampak Depan',
+                'is_primary' => true,
+            ]);
+        }
+
+        if ($request->hasFile('photos')) {
+            $uploadedPhotos = $request->file('photos');
+            $labels = $request->input('photo_labels', []);
+            $primaryIdx = (int) $request->input('primary_photo_index', -1);
+
+            foreach ($uploadedPhotos as $index => $uploadedFile) {
+                $savedPath = $this->compressAndStorePhoto($uploadedFile);
+                $label = isset($labels[$index]) && !empty($labels[$index]) ? $labels[$index] : 'Foto ' . ($index + 1);
+                $isPrimary = ($index === $primaryIdx) || (!$photoPath && $index === 0);
+
+                if ($isPrimary && $photoPath) {
+                    CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
+                    $cat->update(['photo_path' => $savedPath]);
+                }
+
+                CatPhoto::create([
+                    'cat_id' => $cat->id,
+                    'photo_path' => $savedPath,
+                    'label' => $label,
+                    'is_primary' => $isPrimary,
+                ]);
+            }
+        }
 
         return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil dibuat.');
     }
@@ -145,21 +200,21 @@ class DashboardController extends Controller
      */
     public function editCat(Cat $cat)
     {
-        // Check permission: owner only
-        if ((int) $cat->user_id !== (int) Auth::id()) {
+        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
             abort(403);
         }
+
+        $cat->load('photos');
 
         return view('member.edit-cat', compact('cat'));
     }
 
     /**
-     * Update the cat profile (for Member).
+     * Update the cat profile (for Member/Admin).
      */
     public function updateCat(Request $request, Cat $cat)
     {
-        // Check permission: owner only
-        if ((int) $cat->user_id !== (int) Auth::id()) {
+        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
             abort(403);
         }
 
@@ -169,6 +224,11 @@ class DashboardController extends Controller
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo_labels.*' => 'nullable|string|max:255',
+            'biometric_type' => 'nullable|in:none,paw,nose,both',
+            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'biometric_code' => 'nullable|string|max:255',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
             'notes' => 'nullable|string',
@@ -176,12 +236,28 @@ class DashboardController extends Controller
 
         $photoPath = $cat->photo_path;
         if ($request->hasFile('photo')) {
-            // Delete old photo if exists
             if ($cat->photo_path) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
             }
             $file = $request->file('photo');
             $photoPath = $this->compressAndStorePhoto($file);
+
+            CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
+            CatPhoto::create([
+                'cat_id' => $cat->id,
+                'photo_path' => $photoPath,
+                'label' => 'Tampak Depan',
+                'is_primary' => true,
+            ]);
+        }
+
+        $biometricPhotoPath = $cat->biometric_photo_path;
+        if ($request->hasFile('biometric_photo')) {
+            if ($cat->biometric_photo_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->biometric_photo_path);
+            }
+            $file = $request->file('biometric_photo');
+            $biometricPhotoPath = $this->compressAndStorePhoto($file, 'biometrics');
         }
 
         $cat->update([
@@ -190,12 +266,126 @@ class DashboardController extends Controller
             'gender' => $request->gender,
             'date_of_birth' => $request->date_of_birth,
             'photo_path' => $photoPath,
+            'biometric_type' => $request->biometric_type ?? $cat->biometric_type,
+            'biometric_photo_path' => $biometricPhotoPath,
+            'biometric_code' => $request->biometric_code ?? $cat->biometric_code,
             'allergies' => $request->allergies,
             'vaccine_history' => $request->vaccine_history,
             'notes' => $request->notes,
         ]);
 
+        if ($request->hasFile('photos')) {
+            $uploadedPhotos = $request->file('photos');
+            $labels = $request->input('photo_labels', []);
+
+            foreach ($uploadedPhotos as $index => $uploadedFile) {
+                $savedPath = $this->compressAndStorePhoto($uploadedFile);
+                $label = isset($labels[$index]) && !empty($labels[$index]) ? $labels[$index] : 'Foto Samping/Lain';
+
+                $hasPrimary = CatPhoto::where('cat_id', $cat->id)->where('is_primary', true)->exists();
+
+                CatPhoto::create([
+                    'cat_id' => $cat->id,
+                    'photo_path' => $savedPath,
+                    'label' => $label,
+                    'is_primary' => !$hasPrimary,
+                ]);
+
+                if (!$hasPrimary) {
+                    $cat->update(['photo_path' => $savedPath]);
+                }
+            }
+        }
+
         return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil diperbarui.');
+    }
+
+    /**
+     * Upload an individual photo for cat gallery.
+     */
+    public function uploadCatPhoto(Request $request, Cat $cat)
+    {
+        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'label' => 'required|string|max:255',
+            'is_primary' => 'nullable|boolean',
+        ]);
+
+        $photoPath = $this->compressAndStorePhoto($request->file('photo'));
+        $isPrimary = $request->boolean('is_primary');
+
+        if ($isPrimary) {
+            CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
+            $cat->update(['photo_path' => $photoPath]);
+        } else {
+            $hasPrimary = CatPhoto::where('cat_id', $cat->id)->where('is_primary', true)->exists();
+            if (!$hasPrimary) {
+                $isPrimary = true;
+                $cat->update(['photo_path' => $photoPath]);
+            }
+        }
+
+        CatPhoto::create([
+            'cat_id' => $cat->id,
+            'photo_path' => $photoPath,
+            'label' => $request->label,
+            'is_primary' => $isPrimary,
+        ]);
+
+        return redirect()->back()->with('success', 'Foto kucing berhasil ditambahkan ke galeri.');
+    }
+
+    /**
+     * Set a photo as primary for KTAM.
+     */
+    public function setPrimaryPhoto(CatPhoto $photo)
+    {
+        $cat = $photo->cat;
+        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
+        $photo->update(['is_primary' => true]);
+
+        $cat->update(['photo_path' => $photo->photo_path]);
+
+        return redirect()->back()->with('success', 'Foto utama KTAM berhasil diperbarui.');
+    }
+
+    /**
+     * Delete a photo from cat gallery.
+     */
+    public function deletePhoto(CatPhoto $photo)
+    {
+        $cat = $photo->cat;
+        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        $wasPrimary = $photo->is_primary;
+
+        if ($photo->photo_path) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($photo->photo_path);
+        }
+
+        $photo->delete();
+
+        if ($wasPrimary) {
+            $nextPrimary = CatPhoto::where('cat_id', $cat->id)->first();
+            if ($nextPrimary) {
+                $nextPrimary->update(['is_primary' => true]);
+                $cat->update(['photo_path' => $nextPrimary->photo_path]);
+            } else {
+                $cat->update(['photo_path' => null]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Foto berhasil dihapus.');
     }
 
     /**
@@ -210,7 +400,6 @@ class DashboardController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        // Verify ownership
         $cat = Cat::findOrFail($request->cat_id);
         if ((int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
@@ -228,9 +417,10 @@ class DashboardController extends Controller
     }
 
     /**
-     * Store clinical check-up and automatically issue KTAM (for Dokter).
+     * Store clinical check-up (for Dokter).
+     * Dokter only records medical findings. KTAM is issued separately via Admin verification.
      */
-    public function storeCheckup(Request $request, Appointment $appointment, KtamService $ktamService)
+    public function storeCheckup(Request $request, Appointment $appointment)
     {
         $request->validate([
             'weight' => 'required|numeric|min:0',
@@ -243,7 +433,6 @@ class DashboardController extends Controller
             'recommendation' => 'nullable|string',
         ]);
 
-        // Create Medical Record
         MedicalRecord::create([
             'appointment_id' => $appointment->id,
             'cat_id' => $appointment->cat_id,
@@ -258,13 +447,23 @@ class DashboardController extends Controller
             'recommendation' => $request->recommendation,
         ]);
 
-        // Update Appointment status to completed
         $appointment->update(['status' => 'completed']);
 
-        // Issue KTAM Card for the cat
-        $ktamService->issueCard($appointment->cat);
+        return redirect()->route('dashboard')->with('success', 'Rekam medis berhasil disimpan. Data kucing masuk ke antrian Verifikasi Admin untuk penerbitan KTAM.');
+    }
 
-        return redirect()->route('dashboard')->with('success', 'Rekam medis berhasil disimpan & Kartu KTAM diterbitkan.');
+    /**
+     * Verify cat data & issue KTAM Card (for Admin).
+     */
+    public function verifyAndIssueKtam(Request $request, Cat $cat, KtamService $ktamService)
+    {
+        if (!Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        $card = $ktamService->issueCard($cat, Auth::id());
+
+        return redirect()->back()->with('success', 'Kartu KTAM (' . $card->ktam_number . ') berhasil terverifikasi & diterbitkan oleh Admin.');
     }
 
     /**
@@ -272,18 +471,17 @@ class DashboardController extends Controller
      */
     public function downloadKtam(Cat $cat)
     {
+        $cat->load('photos');
         $card = $cat->ktamCard;
         if (!$card) {
             return redirect()->route('dashboard')->with('error', 'Kucing ini belum memiliki kartu KTAM.');
         }
 
-        // Check permission: admin, volunteer, vet, or owner
         if (Auth::user()->role === 'member' && (int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
         $pdf = Pdf::loadView('pdf.ktam', compact('card', 'cat'));
-        // 86mm x 54mm equivalent in points: 243.78 x 153.07
         $pdf->setPaper([0, 0, 243.78, 153.07], 'portrait');
         
         return $pdf->stream('ktam_' . str_replace(' ', '_', strtolower($cat->name)) . '.pdf');
@@ -294,6 +492,8 @@ class DashboardController extends Controller
      */
     public function previewKtam(Cat $cat)
     {
+        $cat->load('photos');
+
         if (Auth::user()->role === 'member' && (int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
@@ -334,37 +534,63 @@ class DashboardController extends Controller
             'cat_breed' => 'required|string|max:255',
             'cat_gender' => 'required|in:male,female',
             'cat_dob' => 'required|date',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'biometric_type' => 'nullable|in:none,paw,nose,both',
+            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'biometric_code' => 'nullable|string|max:255',
         ]);
 
-        // Create Member User
         $owner = User::create([
             'name' => $request->owner_name,
             'email' => $request->owner_email,
-            'password' => bcrypt('kucingmu123'), // Default password
+            'password' => bcrypt('kucingmu123'),
             'phone' => $request->owner_phone,
             'role' => 'member',
             'muhammadiyah_id' => $request->owner_nbm,
         ]);
 
-        // Create Cat
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $file = $request->file('photo');
+            $photoPath = $this->compressAndStorePhoto($file);
+        }
+
+        $biometricPhotoPath = null;
+        if ($request->hasFile('biometric_photo')) {
+            $file = $request->file('biometric_photo');
+            $biometricPhotoPath = $this->compressAndStorePhoto($file, 'biometrics');
+        }
+
         $cat = Cat::create([
             'user_id' => $owner->id,
             'name' => $request->cat_name,
             'breed' => $request->cat_breed,
             'gender' => $request->cat_gender,
             'date_of_birth' => $request->cat_dob,
+            'photo_path' => $photoPath,
+            'biometric_type' => $request->biometric_type ?? 'none',
+            'biometric_photo_path' => $biometricPhotoPath,
+            'biometric_code' => $request->biometric_code,
         ]);
 
-        // Automatically create a scheduled check-up for today
+        if ($photoPath) {
+            CatPhoto::create([
+                'cat_id' => $cat->id,
+                'photo_path' => $photoPath,
+                'label' => 'Tampak Depan',
+                'is_primary' => true,
+            ]);
+        }
+
         Appointment::create([
             'cat_id' => $cat->id,
             'date' => Carbon::today(),
             'time_slot' => 'On-site Registration',
-            'status' => 'checked_in', // Check-in immediately
+            'status' => 'checked_in',
             'notes' => 'Registrasi langsung di lokasi event.',
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Registrasi berhasil. Kucing langsung masuk antrian.');
+        return redirect()->route('dashboard')->with('success', 'Registrasi berhasil. Kucing langsung masuk antrian dokter.');
     }
 
     /**
@@ -372,10 +598,9 @@ class DashboardController extends Controller
      */
     public function verifyKtam($number)
     {
-        $card = KtamCard::where('ktam_number', $number)->firstOrFail();
-        $cat = $card->cat()->with('owner')->first();
+        $card = KtamCard::where('ktam_number', $number)->with('verifier')->firstOrFail();
+        $cat = $card->cat()->with(['owner', 'photos'])->first();
 
-        // Retrieve checkup history
         $records = MedicalRecord::where('cat_id', $cat->id)->with('vet')->latest()->get();
 
         return view('ktam-verify', compact('card', 'cat', 'records'));
@@ -398,11 +623,11 @@ class DashboardController extends Controller
             "Expires"             => "0"
         ];
 
-        $cards = KtamCard::with('cat.owner')->get();
+        $cards = KtamCard::with(['cat.owner', 'verifier'])->get();
 
         $callback = function() use($cards) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['KTAM Number', 'Cat Name', 'Breed', 'Gender', 'Owner Name', 'Owner NBM', 'Owner Phone', 'Issue Date']);
+            fputcsv($file, ['KTAM Number', 'Cat Name', 'Breed', 'Gender', 'Biometric Type', 'Owner Name', 'Owner NBM', 'Owner Phone', 'Issue Date', 'Verified By']);
 
             foreach ($cards as $card) {
                 fputcsv($file, [
@@ -410,10 +635,12 @@ class DashboardController extends Controller
                     $card->cat->name,
                     $card->cat->breed,
                     $card->cat->gender,
+                    strtoupper($card->cat->biometric_type ?? 'NONE'),
                     $card->cat->owner->name,
                     $card->cat->owner->muhammadiyah_id ?? '-',
                     $card->cat->owner->phone ?? '-',
                     $card->issue_date->format('Y-m-d'),
+                    $card->verifier->name ?? 'System/Admin',
                 ]);
             }
 
@@ -482,14 +709,13 @@ class DashboardController extends Controller
     /**
      * Compress and store an uploaded photo using native PHP GD.
      * Scales down to max 800x800, converts to JPEG, compresses under 512KB.
-     * Compatible with all hosting environments (Laragon, cPanel, etc).
      *
      * @param \Illuminate\Http\UploadedFile $file
+     * @param string $dir
      * @return string The relative storage path (e.g. 'cats/xxxxx.jpg')
      */
-    private function compressAndStorePhoto($file): string
+    private function compressAndStorePhoto($file, string $dir = 'cats'): string
     {
-        // Read the raw binary from the uploaded file
         $binary = file_get_contents($file->getPathname());
         $sourceImage = imagecreatefromstring($binary);
 
@@ -497,11 +723,9 @@ class DashboardController extends Controller
             throw new \RuntimeException('Gagal membaca file gambar. Pastikan file adalah gambar yang valid.');
         }
 
-        // Get original dimensions
         $origWidth = imagesx($sourceImage);
         $origHeight = imagesy($sourceImage);
 
-        // Calculate new dimensions (scale down to fit within 800x800)
         $maxDim = 800;
         $newWidth = $origWidth;
         $newHeight = $origHeight;
@@ -512,24 +736,19 @@ class DashboardController extends Controller
             $newHeight = (int) round($origHeight * $ratio);
         }
 
-        // Create resized image
         $resized = imagecreatetruecolor($newWidth, $newHeight);
-
-        // Preserve transparency for PNG sources by filling white background
         $white = imagecolorallocate($resized, 255, 255, 255);
         imagefill($resized, 0, 0, $white);
 
         imagecopyresampled($resized, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
         imagedestroy($sourceImage);
 
-        // Prepare output path
-        $filename = 'cats/' . uniqid() . '.jpg';
+        $filename = $dir . '/' . uniqid() . '.jpg';
         $fullPath = storage_path('app/public/' . $filename);
         if (!file_exists(dirname($fullPath))) {
             mkdir(dirname($fullPath), 0755, true);
         }
 
-        // Save as JPEG with quality 70
         imagejpeg($resized, $fullPath, 70);
         imagedestroy($resized);
 

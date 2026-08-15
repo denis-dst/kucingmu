@@ -253,7 +253,14 @@
                         <span class="text-xl">🩺</span>
                         <div>
                             <strong class="text-sm block text-slate-900">Dokter Hewan (Vet)</strong>
-                            <span class="text-xs text-slate-500">Memeriksa antrian, menginput rekam medis, dan menerbitkan kartu KTAM.</span>
+                            <span class="text-xs text-slate-500">Memeriksa kesehatan, mendiagnosis, dan mencatat rekam medis lengkap.</span>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-white rounded-2xl border border-slate-200 flex items-center gap-4">
+                        <span class="text-xl">🛡️</span>
+                        <div>
+                            <strong class="text-sm block text-slate-900">Administrator Utama</strong>
+                            <span class="text-xs text-slate-500">Memverifikasi foto galeri, biometrik (paw/nose), dan menerbitkan kartu KTAM resmi.</span>
                         </div>
                     </div>
                     <div class="p-4 bg-white rounded-2xl border border-slate-200 flex items-center gap-4">
@@ -369,7 +376,7 @@
                         <span class="text-teal-700 text-lg transition duration-200" :class="activeFaq === 2 ? 'rotate-45' : ''">＋</span>
                     </button>
                     <div x-show="activeFaq === 2" class="p-5 pt-0 text-sm text-slate-500 leading-relaxed border-t border-slate-100 bg-white">
-                        {{ app()->getLocale() == 'en' ? 'After registering your cat on the dashboard, book a health checkup session. Once a doctor vet examines your cat and inputs the checkup status, the KTAM Card will be automatically issued and ready to download.' : 'Setelah mendaftarkan data kucing Anda di dashboard, silakan buat janji temu pemeriksaan kesehatan. Setelah dokter hewan memeriksa kucing Anda dan mengonfirmasi rekam medisnya, kartu KTAM akan otomatis terbit dan siap diunduh.' }}
+                        {{ app()->getLocale() == 'en' ? 'After registering your cat on the dashboard and uploading photo/biometric data, book a health checkup session. Once a doctor vet examines your cat, Admin will review the medical records, photos, and biometrics to verify and issue the official KTAM Card.' : 'Setelah mendaftarkan data kucing Anda di dashboard serta mengunggah foto dan sampel biometrik, silakan buat janji temu pemeriksaan kesehatan. Setelah dokter hewan memeriksa kucing Anda, Admin akan meninjau data rekam medis, galeri foto, serta biometrik untuk memverifikasi dan menerbitkan Kartu KTAM resmi yang siap diunduh.' }}
                     </div>
                 </div>
 

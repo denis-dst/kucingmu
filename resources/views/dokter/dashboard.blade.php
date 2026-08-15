@@ -146,8 +146,13 @@
                                 <textarea name="recommendation" rows="2" class="form-input" placeholder="e.g. Istirahat yang cukup, bersihkan telinga rutin..."></textarea>
                             </div>
 
+                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 flex items-start gap-2">
+                                <span class="text-sm">ℹ️</span>
+                                <span>Hasil rekam medis akan tersimpan dan data kucing akan masuk ke antrian <strong>Verifikasi Admin</strong> untuk penerbitan kartu KTAM resmi.</span>
+                            </div>
+
                             <button type="submit" class="w-full button-primary flex justify-center py-2.5">
-                                Simpan Hasil & Terbitkan KTAM
+                                Simpan Rekam Medis (Kirim ke Admin)
                             </button>
                         </form>
                     </div>

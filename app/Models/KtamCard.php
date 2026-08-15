@@ -15,16 +15,24 @@ class KtamCard extends Model
         'issue_date',
         'qr_code_payload',
         'is_printed',
+        'verified_by',
+        'verified_at',
     ];
 
     protected $casts = [
         'issue_date' => 'date',
         'is_printed' => 'boolean',
+        'verified_at' => 'datetime',
     ];
 
     public function cat()
     {
         return $this->belongsTo(Cat::class);
+    }
+
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 
     /**
