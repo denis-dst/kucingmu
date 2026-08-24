@@ -655,6 +655,9 @@ class DashboardController extends Controller
      */
     public function syncOffline(Request $request)
     {
+        $rawEntries = $request->input('entries', $request->input('items', []));
+        $request->merge(['entries' => $rawEntries]);
+
         $request->validate([
             'entries' => 'required|array',
             'entries.*.owner_name' => 'required|string',

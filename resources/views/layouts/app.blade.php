@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ $app_settings['app_name'] ?? config('app.name', 'Laravel') }}</title>
+        <title>{{ $app_settings['app_name'] ?? config('app.name', 'KucingMu') }}</title>
 
         @if(isset($app_settings['app_description']))
             <meta name="description" content="{{ $app_settings['app_description'] }}">
@@ -23,23 +23,36 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+    <body class="font-sans antialiased text-slate-800 bg-slate-50 min-h-screen">
+        <!-- Skip link for keyboard accessibility -->
+        <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-teal-800 focus:text-white focus:rounded-md focus:shadow-md focus:font-semibold">
+            Lewati ke konten utama
+        </a>
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+        <div class="min-h-screen bg-slate-50 flex flex-col justify-between">
+            <div>
+                @include('layouts.navigation')
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
+                <!-- Page Heading -->
+                @isset($header)
+                    <header class="bg-white border-b border-slate-200">
+                        <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                            {{ $header }}
+                        </div>
+                    </header>
+                @endisset
+
+                <!-- Page Content -->
+                <main id="main-content" tabindex="-1" class="focus:outline-none">
+                    {{ $slot }}
+                </main>
+            </div>
+
+            <footer class="mt-auto py-6 border-t border-slate-200 text-center text-xs text-slate-500">
+                <div class="max-w-7xl mx-auto px-4">
+                    {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
+                </div>
+            </footer>
         </div>
 
         @include('partials.accessibility-widget')

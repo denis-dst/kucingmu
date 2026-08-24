@@ -2,15 +2,15 @@
 <style>
 /* ── eSurveillance custom styles ── */
 :root {
-    --sur-primary: #1a3a5c;
-    --sur-accent:  #0077b6;
-    --sur-accent2: #48cae4;
-    --sur-success: #2d6a4f;
-    --sur-warning: #e07a00;
-    --sur-danger:  #c0392b;
-    --sur-bg:      #f4f7fb;
-    --sur-border:  #dde3ea;
-    --sur-muted:   #6b7a8d;
+    --sur-primary: #115e59;
+    --sur-accent:  #0f766e;
+    --sur-accent2: #14b8a6;
+    --sur-success: #047857;
+    --sur-warning: #b45309;
+    --sur-danger:  #be123c;
+    --sur-bg:      #f8fafc;
+    --sur-border:  #cbd5e1;
+    --sur-muted:   #475569;
 }
 
 /* wrapper */
@@ -131,7 +131,7 @@
                 <div>
                     <span class="card-kicker">eSurveillance Kucing Liar</span>
                     <h1 class="font-outfit text-3xl font-bold text-slate-900 mt-1">Laporan Surveilans Lapangan</h1>
-                    <p class="card-copy max-w-2xl">Formulir 7-langkah berbasis One Health — mencakup sensus populasi, pemeriksaan fisik, parasitologi, sampling tanah, survei KAP, hingga evaluasi kebijakan K3L kampus.</p>
+                    <p class="card-copy max-w-2xl">Formulir 7 langkah berbasis One Health: sensus populasi, pemeriksaan fisik, parasitologi, sampling tanah, survei KAP, hingga evaluasi kebijakan K3L kampus.</p>
                 </div>
                 <div class="hidden md:block text-5xl">🐾</div>
             </div>
@@ -145,7 +145,7 @@
 
                 {{-- Progress --}}
                 <div class="sur-prog-wrap"><div class="sur-prog-bar" id="surProgBar" style="width:14%"></div></div>
-                <div class="sur-prog-lbl" id="surProgLbl">Langkah 1 dari 7 — Identitas Surveyor & Lokasi</div>
+                <div class="sur-prog-lbl" id="surProgLbl">Langkah 1 dari 7: Identitas Surveyor & Lokasi</div>
 
                 {{-- Step nav --}}
                 <div class="sur-steps-nav">
@@ -199,7 +199,7 @@
                                     <label class="sur-label" for="institution">Nama Institusi / Kampus <span class="req">*</span></label>
                                     <select class="sur-select" id="institution" name="institution">
                                         <option value="">-- Pilih Institusi --</option>
-                                        @foreach(['PP Muhammadiyah — Pusat','Universitas Muhammadiyah Yogyakarta (UMY)','Universitas Ahmad Dahlan (UAD)','Universitas Muhammadiyah Purwokerto (UMP)','Universitas Muhammadiyah Surakarta (UMS)','STIKES Muhammadiyah','Lainnya (PTMA)'] as $inst)
+                                        @foreach(['PP Muhammadiyah (Pusat)','Universitas Muhammadiyah Yogyakarta (UMY)','Universitas Ahmad Dahlan (UAD)','Universitas Muhammadiyah Purwokerto (UMP)','Universitas Muhammadiyah Surakarta (UMS)','STIKES Muhammadiyah','Lainnya (PTMA)'] as $inst)
                                             <option value="{{ $inst }}" @selected(old('institution')===$inst)>{{ $inst }}</option>
                                         @endforeach
                                     </select>
@@ -438,7 +438,7 @@
                         </div>
 
                         <div class="sur-card">
-                            <div class="sur-card-title"><span class="si">⚖️</span> Body Condition Score (BCS) — Skala Purina 1–9</div>
+                            <div class="sur-card-title"><span class="si">⚖️</span> Body Condition Score (BCS) - Skala Purina 1-9</div>
                             <p class="sur-sub">Pilih Nilai BCS</p>
                             <div class="bcs-grid" id="surBcsGrid"></div>
                             <div id="surBcsDesc" class="text-xs" style="color:var(--sur-muted);min-height:18px;"></div>
@@ -565,7 +565,7 @@
 
                         {{-- Welfare Index --}}
                         <div class="sur-card">
-                            <div class="sur-card-title"><span class="si">🛡️</span> Welfare Index — Penilaian Kesejahteraan Hewan</div>
+                            <div class="sur-card-title"><span class="si">🛡️</span> Welfare Index - Penilaian Kesejahteraan Hewan</div>
                             <p style="font-size:12px;color:var(--sur-muted);margin-bottom:10px;">Pilih <strong>"YA"</strong> jika gejala/kondisi berikut <u>ditemukan</u>. Skor dihitung otomatis.</p>
                             <div id="surWelfareList"></div>
                             <hr class="sur-divider">
@@ -786,7 +786,7 @@
                     {{-- ═══════════════ STEP 5: KAP ═══════════════ --}}
                     <div class="sur-section" id="surStep5">
                         <div class="sur-card">
-                            <div class="sur-card-title"><span class="si">📊</span> Survei KAP — Pengetahuan, Sikap, dan Perilaku Civitas Akademika</div>
+                            <div class="sur-card-title"><span class="si">📊</span> Survei KAP: Pengetahuan, Sikap, dan Perilaku Civitas Akademika</div>
 
                             <p class="sur-sub">Data Responden</p>
                             <div class="sur-grid">
@@ -817,7 +817,7 @@
                             </div>
 
                             <hr class="sur-divider">
-                            <p class="sur-sub">A. Pengetahuan (Knowledge) — Skala Benar/Salah</p>
+                            <p class="sur-sub">A. Pengetahuan (Knowledge): Skala Benar/Salah</p>
                             <table class="sur-table" style="margin-bottom:14px;">
                                 <thead><tr>
                                     <th style="width:60%">Pernyataan</th>
@@ -826,7 +826,7 @@
                                 <tbody id="surKnowledgeTable"></tbody>
                             </table>
 
-                            <p class="sur-sub">B. Sikap (Attitude) — Skala Likert (1=Sangat Tidak Setuju, 5=Sangat Setuju)</p>
+                            <p class="sur-sub">B. Sikap (Attitude): Skala Likert (1=Sangat Tidak Setuju, 5=Sangat Setuju)</p>
                             <table class="sur-table" style="margin-bottom:14px;">
                                 <thead><tr>
                                     <th style="width:50%">Pernyataan</th>
@@ -968,7 +968,7 @@
                                         <td>{{ $survey->cats_observed }} ekor</td>
                                         <td>{{ $survey->cats_with_ear_tip }} ekor</td>
                                         <td>{{ $survey->cats_needing_attention }} ekor</td>
-                                        <td>{{ ucfirst($survey->weather ?: '—') }}</td>
+                                        <td>{{ ucfirst($survey->weather ?: '-') }}</td>
                                         <td>
                                             <a href="{{ route('volunteer.surveillance.pdf', $survey->id) }}" target="_blank"
                                                style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;background:#e63946;color:#fff;font-size:11px;font-weight:600;text-decoration:none;transition:background .2s;"
@@ -991,15 +991,15 @@
 <script>
 // ────────── DATA ──────────
 const SUR_BCS_DESCS = {
-    1:'Sangat Kurus — tulang rusuk, tulang panggul sangat menonjol, tidak ada lemak.',
-    2:'Kurus — tulang rusuk mudah diraba, sedikit otot.',
-    3:'Kurus-Normal — tulang rusuk teraba, pinggang terlihat.',
-    4:'Ideal — tulang rusuk teraba dengan sedikit lemak, pinggang terlihat dari atas.',
-    5:'Ideal Optimal — proporsional, tulang rusuk teraba, perut sedikit tertarik.',
-    6:'Gemuk-Normal — lapisan lemak tipis di rusuk, pinggang kurang terlihat.',
-    7:'Gemuk — lemak berlapis, pinggang tidak terlihat.',
-    8:'Obesitas — lapisan lemak tebal, perut membulat.',
-    9:'Obesitas Berat — massa lemak sangat besar, susah bergerak.'
+    1:'Sangat Kurus: tulang rusuk, tulang panggul sangat menonjol, tidak ada lemak.',
+    2:'Kurus: tulang rusuk mudah diraba, sedikit otot.',
+    3:'Kurus-Normal: tulang rusuk teraba, pinggang terlihat.',
+    4:'Ideal: tulang rusuk teraba dengan sedikit lemak, pinggang terlihat dari atas.',
+    5:'Ideal Optimal: proporsional, tulang rusuk teraba, perut sedikit tertarik.',
+    6:'Gemuk-Normal: lapisan lemak tipis di rusuk, pinggang kurang terlihat.',
+    7:'Gemuk: lemak berlapis, pinggang tidak terlihat.',
+    8:'Obesitas: lapisan lemak tebal, perut membulat.',
+    9:'Obesitas Berat: massa lemak sangat besar, susah bergerak.'
 };
 const SUR_WELFARE_ITEMS = [
     'Luka Fisik / Cedera (luka terbuka, patah tulang)',
@@ -1274,7 +1274,7 @@ function surGetLocation() {
             });
 
             showLocStatus('success',
-                `✅ Lokasi berhasil didapatkan — akurasi ±${acc} meter`);
+                `Lokasi berhasil didapatkan: akurasi ±${acc} meter`);
 
             // Maps link
             mapAnchor.href = `https://www.google.com/maps?q=${lat},${lng}`;
@@ -1354,7 +1354,7 @@ function soilGetLocation() {
                 setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 2000);
             });
 
-            showSoilLocStatus('success', `✅ Koordinat sampling berhasil didapatkan — akurasi ±${acc} meter`);
+            showSoilLocStatus('success', `Koordinat sampling berhasil didapatkan: akurasi ±${acc} meter`);
 
             mapAnchor.href        = `https://www.google.com/maps?q=${lat},${lng}`;
             mapLink.style.display = 'block';
@@ -1407,13 +1407,13 @@ function updateProgress() {
     const pct = Math.round(((surCurrentStep + 1) / SUR_TOTAL) * 100);
     document.getElementById('surProgBar').style.width = pct + '%';
     const labels = [
-        'Langkah 1 dari 7 — Identitas Surveyor & Lokasi',
-        'Langkah 2 dari 7 — Sensus Visual Kucing',
-        'Langkah 3 dari 7 — Pemeriksaan Fisik Lengkap',
-        'Langkah 4 dari 7 — Ekto & Endoparasit',
-        'Langkah 5 dari 7 — Sampling Tanah Lingkungan',
-        'Langkah 6 dari 7 — Survei KAP Civitas Akademika',
-        'Langkah 7 dari 7 — Evaluasi K3L & SOP',
+        'Langkah 1 dari 7: Identitas Surveyor & Lokasi',
+        'Langkah 2 dari 7: Sensus Visual Kucing',
+        'Langkah 3 dari 7: Pemeriksaan Fisik Lengkap',
+        'Langkah 4 dari 7: Ekto & Endoparasit',
+        'Langkah 5 dari 7: Sampling Tanah Lingkungan',
+        'Langkah 6 dari 7: Survei KAP Civitas Akademika',
+        'Langkah 7 dari 7: Evaluasi K3L & SOP',
     ];
     document.getElementById('surProgLbl').textContent = labels[surCurrentStep];
 }

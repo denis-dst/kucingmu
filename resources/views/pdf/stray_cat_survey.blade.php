@@ -132,7 +132,7 @@
             <tr>
                 <td>
                     <h1>E-Surveillance Stray Cat</h1>
-                    <p>Sistem Surveilans Stray Cat Berbasis One Health — PP Muhammadiyah</p>
+                    <p>Sistem Surveilans Stray Cat Berbasis One Health: PP Muhammadiyah</p>
                 </td>
                 <td style="text-align: right; width: 140px;">
                     <div class="badge-oh">🌐 One Health K3L<br>ID: SURV-{{ str_pad($survey->id, 5, '0', STR_PAD_LEFT) }}</div>
@@ -146,21 +146,21 @@
     <table class="grid-table">
         <tr>
             <td class="label">Tanggal Survei</td>
-            <td class="value">{{ optional($survey->surveyed_at)->format('d M Y') ?: '—' }} (Waktu: {{ $survey->start_time ?: '—' }})</td>
+            <td class="value">{{ optional($survey->surveyed_at)->format('d M Y') ?: '-' }} (Waktu: {{ $survey->start_time ?: '-' }})</td>
             <td class="label">Surveyor</td>
-            <td class="value">{{ $survey->surveyor_name ?: (optional($survey->volunteer)->name ?: '—') }} ({{ $survey->surveyor_role ?: 'Relawan' }})</td>
+            <td class="value">{{ $survey->surveyor_name ?: (optional($survey->volunteer)->name ?: '-') }} ({{ $survey->surveyor_role ?: 'Relawan' }})</td>
         </tr>
         <tr>
             <td class="label">Institusi / Kampus</td>
             <td class="value">{{ $survey->institution ?: $survey->campus_location }}</td>
             <td class="label">Detail Lokasi & Zona</td>
-            <td class="value">{{ $survey->campus_location }} &mdash; {{ $survey->zone }}</td>
+            <td class="value">{{ $survey->campus_location }} - {{ $survey->zone }}</td>
         </tr>
         <tr>
             <td class="label">Koordinat GPS (Lokasi)</td>
-            <td class="value">Lat: {{ $survey->latitude ?: '—' }}, Lng: {{ $survey->longitude ?: '—' }}</td>
+            <td class="value">Lat: {{ $survey->latitude ?: '-' }}, Lng: {{ $survey->longitude ?: '-' }}</td>
             <td class="label">Cuaca Saat Survei</td>
-            <td class="value">{{ ucfirst($survey->weather ?: '—') }}</td>
+            <td class="value">{{ ucfirst($survey->weather ?: '-') }}</td>
         </tr>
         @if($survey->weather_notes)
         <tr>
@@ -175,9 +175,9 @@
     <table class="grid-table">
         <tr>
             <td class="label">Sesi Pengamatan</td>
-            <td class="value">{{ $survey->observation_session ?: '—' }}</td>
+            <td class="value">{{ $survey->observation_session ?: '-' }}</td>
             <td class="label">Waktu Pengamatan</td>
-            <td class="value">{{ $survey->observation_time_range ?: '—' }}</td>
+            <td class="value">{{ $survey->observation_time_range ?: '-' }}</td>
         </tr>
         <tr>
             <td class="label">Jumlah Dijumpai (C)</td>
@@ -217,13 +217,13 @@
             <tbody>
                 @foreach($survey->cat_individuals as $cat)
                     <tr>
-                        <td><strong>{{ $cat['id'] ?? '—' }}</strong></td>
-                        <td>{{ $cat['name'] ?? '—' }}</td>
-                        <td>{{ $cat['gender'] ?? '—' }}</td>
-                        <td>{{ $cat['age'] ?? '—' }}</td>
-                        <td>{{ $cat['color'] ?? '—' }} ({{ $cat['pattern'] ?? '—' }})</td>
-                        <td>{{ $cat['eartip'] ?? '—' }}</td>
-                        <td>{{ $cat['mark'] ?? '—' }}</td>
+                        <td><strong>{{ $cat['id'] ?? '-' }}</strong></td>
+                        <td>{{ $cat['name'] ?? '-' }}</td>
+                        <td>{{ $cat['gender'] ?? '-' }}</td>
+                        <td>{{ $cat['age'] ?? '-' }}</td>
+                        <td>{{ $cat['color'] ?? '-' }} ({{ $cat['pattern'] ?? '-' }})</td>
+                        <td>{{ $cat['eartip'] ?? '-' }}</td>
+                        <td>{{ $cat['mark'] ?? '-' }}</td>
                         <td>{{ $cat['resight'] ?? 'Baru' }}</td>
                     </tr>
                 @endforeach
@@ -236,33 +236,33 @@
     <table class="grid-table">
         <tr>
             <td class="label">ID & Nama Kucing</td>
-            <td class="value">{{ $survey->physical_cat_id ?: '—' }} {{ $survey->physical_cat_name ? '('.$survey->physical_cat_name.')' : '' }}</td>
+            <td class="value">{{ $survey->physical_cat_id ?: '-' }} {{ $survey->physical_cat_name ? '('.$survey->physical_cat_name.')' : '' }}</td>
             <td class="label">Pemeriksa (Dokter Hewan)</td>
-            <td class="value">{{ $survey->examining_vet ?: '—' }}</td>
+            <td class="value">{{ $survey->examining_vet ?: '-' }}</td>
         </tr>
         <tr>
             <td class="label">Status Sterilisasi</td>
-            <td class="value">{{ $survey->sterilization_status ?: '—' }}</td>
+            <td class="value">{{ $survey->sterilization_status ?: '-' }}</td>
             <td class="label">Metode Penangkapan</td>
-            <td class="value">{{ $survey->capture_method ?: '—' }}</td>
+            <td class="value">{{ $survey->capture_method ?: '-' }}</td>
         </tr>
         <tr>
             <td class="label">Vital Signs</td>
             <td class="value">
-                BB: {{ $survey->body_weight_kg ? $survey->body_weight_kg.' kg' : '—' }} | 
-                Suhu: {{ $survey->rectal_temp_c ? $survey->rectal_temp_c.'°C' : '—' }}<br>
-                HR: {{ $survey->heart_rate ? $survey->heart_rate.' bpm' : '—' }} | 
-                RR: {{ $survey->resp_rate ? $survey->resp_rate.' bpm' : '—' }}
+                BB: {{ $survey->body_weight_kg ? $survey->body_weight_kg.' kg' : '-' }} | 
+                Suhu: {{ $survey->rectal_temp_c ? $survey->rectal_temp_c.'°C' : '-' }}<br>
+                HR: {{ $survey->heart_rate ? $survey->heart_rate.' bpm' : '-' }} | 
+                RR: {{ $survey->resp_rate ? $survey->resp_rate.' bpm' : '-' }}
             </td>
             <td class="label">Dehidrasi & Kesadaran</td>
-            <td class="value">Dehidrasi: {{ $survey->dehydration_status ?: '—' }}<br>Kesadaran: {{ $survey->consciousness_level ?: '—' }}</td>
+            <td class="value">Dehidrasi: {{ $survey->dehydration_status ?: '-' }}<br>Kesadaran: {{ $survey->consciousness_level ?: '-' }}</td>
         </tr>
         <tr>
             <td class="label">Body Condition Score (BCS)</td>
-            <td class="value"><strong>Skala {{ $survey->bcs_score ?: '—' }} / 9</strong></td>
+            <td class="value"><strong>Skala {{ $survey->bcs_score ?: '-' }} / 9</strong></td>
             <td class="label">Welfare Index Score</td>
             <td class="value">
-                <strong>Skor: {{ $survey->welfare_score ?? '0' }} / 8</strong> &mdash; 
+                <strong>Skor: {{ $survey->welfare_score ?? '0' }} / 8</strong> - 
                 <span class="badge-status {{ ($survey->welfare_score ?? 0) == 0 ? 'badge-good' : (($survey->welfare_score ?? 0) <= 2 ? 'badge-warn' : 'badge-bad') }}">
                     {{ $survey->welfare_status ?: 'Baik' }}
                 </span>
@@ -271,18 +271,18 @@
         <tr>
             <td class="label">Temuan Sistem Organ</td>
             <td class="value" colspan="3">
-                Mata: {{ is_array($survey->eye_condition) ? implode(', ', $survey->eye_condition) : '—' }} | Mukosa: {{ $survey->mucosa_color ?: '—' }}<br>
-                Telinga: {{ is_array($survey->ear_condition) ? implode(', ', $survey->ear_condition) : '—' }} | Bulu & Kulit: {{ $survey->coat_condition ?: '—' }}, {{ is_array($survey->skin_condition) ? implode(', ', $survey->skin_condition) : '' }}<br>
-                Muskuloskeletal: {{ $survey->posture_gait ?: '—' }}, {{ is_array($survey->musculoskeletal) ? implode(', ', $survey->musculoskeletal) : '' }}
+                Mata: {{ is_array($survey->eye_condition) ? implode(', ', $survey->eye_condition) : '-' }} | Mukosa: {{ $survey->mucosa_color ?: '-' }}<br>
+                Telinga: {{ is_array($survey->ear_condition) ? implode(', ', $survey->ear_condition) : '-' }} | Bulu & Kulit: {{ $survey->coat_condition ?: '-' }}, {{ is_array($survey->skin_condition) ? implode(', ', $survey->skin_condition) : '' }}<br>
+                Muskuloskeletal: {{ $survey->posture_gait ?: '-' }}, {{ is_array($survey->musculoskeletal) ? implode(', ', $survey->musculoskeletal) : '' }}
             </td>
         </tr>
         @if($survey->diagnosis_presumptif || $survey->clinical_notes)
         <tr>
             <td class="label">Diagnosa & Rekomendasi</td>
             <td class="value" colspan="3">
-                <strong>Diagnosa:</strong> {{ $survey->diagnosis_presumptif ?: '—' }}<br>
-                <strong>Tindak Lanjut:</strong> {{ is_array($survey->follow_up_actions) ? implode(', ', $survey->follow_up_actions) : '—' }}<br>
-                <strong>Catatan Klinis:</strong> {{ $survey->clinical_notes ?: '—' }}
+                <strong>Diagnosa:</strong> {{ $survey->diagnosis_presumptif ?: '-' }}<br>
+                <strong>Tindak Lanjut:</strong> {{ is_array($survey->follow_up_actions) ? implode(', ', $survey->follow_up_actions) : '-' }}<br>
+                <strong>Catatan Klinis:</strong> {{ $survey->clinical_notes ?: '-' }}
             </td>
         </tr>
         @endif
@@ -295,19 +295,19 @@
     <table class="grid-table">
         <tr>
             <td class="label">Hasil Comb Test (Ektoparasit)</td>
-            <td class="value"><strong>{{ $survey->comb_test_result ?: '—' }}</strong> (Pinjal: {{ $survey->flea_count ?? 0 }} ekor)</td>
+            <td class="value"><strong>{{ $survey->comb_test_result ?: '-' }}</strong> (Pinjal: {{ $survey->flea_count ?? 0 }} ekor)</td>
             <td class="label">Spesies Ektoparasit</td>
-            <td class="value">{{ is_array($survey->ectoparasite_species) ? implode(', ', $survey->ectoparasite_species) : '—' }}</td>
+            <td class="value">{{ is_array($survey->ectoparasite_species) ? implode(', ', $survey->ectoparasite_species) : '-' }}</td>
         </tr>
         <tr>
             <td class="label">Pemeriksaan Endoparasit Feses</td>
-            <td class="value">Metode: {{ $survey->feces_collection_method ?: '—' }} ({{ $survey->feces_preservation ?: '—' }})</td>
+            <td class="value">Metode: {{ $survey->feces_collection_method ?: '-' }} ({{ $survey->feces_preservation ?: '-' }})</td>
             <td class="label">Hasil Endoparasit</td>
-            <td class="value"><strong>{{ $survey->endoparasite_result ?: '—' }}</strong></td>
+            <td class="value"><strong>{{ $survey->endoparasite_result ?: '-' }}</strong></td>
         </tr>
         <tr>
             <td class="label">Agen Zoonosis Ditemukan</td>
-            <td class="value" colspan="3">{{ is_array($survey->zoonotic_agents) ? implode(', ', $survey->zoonotic_agents) : 'Tidak ditemukan / —' }}</td>
+            <td class="value" colspan="3">{{ is_array($survey->zoonotic_agents) ? implode(', ', $survey->zoonotic_agents) : 'Tidak ditemukan / -' }}</td>
         </tr>
         @if($survey->endoparasite_notes || $survey->ectoparasite_notes)
         <tr>
@@ -322,21 +322,21 @@
     <table class="grid-table">
         <tr>
             <td class="label">Kode & Area Sampel</td>
-            <td class="value">{{ $survey->soil_sample_code ?: '—' }} &mdash; {{ $survey->soil_sampling_area ?: '—' }}</td>
+            <td class="value">{{ $survey->soil_sample_code ?: '-' }} - {{ $survey->soil_sampling_area ?: '-' }}</td>
             <td class="label">Koordinat GPS Titik Sampling</td>
-            <td class="value">Lat: {{ $survey->soil_lat ?: '—' }}, Lng: {{ $survey->soil_lng ?: '—' }}</td>
+            <td class="value">Lat: {{ $survey->soil_lat ?: '-' }}, Lng: {{ $survey->soil_lng ?: '-' }}</td>
         </tr>
         <tr>
             <td class="label">Kondisi & Indikasi Visual</td>
-            <td class="value">Berat: {{ $survey->soil_weight_g ?: 50 }}g, Kedalaman: {{ $survey->soil_depth_cm ?: 5 }}cm (Kondisi: {{ $survey->soil_condition ?: '—' }})</td>
+            <td class="value">Berat: {{ $survey->soil_weight_g ?: 50 }}g, Kedalaman: {{ $survey->soil_depth_cm ?: 5 }}cm (Kondisi: {{ $survey->soil_condition ?: '-' }})</td>
             <td class="label">Indikasi Visual Feses</td>
-            <td class="value">{{ $survey->feces_visual_indicator ?: '—' }}</td>
+            <td class="value">{{ $survey->feces_visual_indicator ?: '-' }}</td>
         </tr>
         <tr>
             <td class="label">Hasil Lab Tanah</td>
-            <td class="value"><strong>{{ $survey->soil_lab_result ?: '—' }}</strong> (EPG: {{ $survey->eggs_per_gram ?? 0 }})</td>
+            <td class="value"><strong>{{ $survey->soil_lab_result ?: '-' }}</strong> (EPG: {{ $survey->eggs_per_gram ?? 0 }})</td>
             <td class="label">Agen Parasitik Ditemukan</td>
-            <td class="value">{{ is_array($survey->soil_parasitic_agents) ? implode(', ', $survey->soil_parasitic_agents) : '—' }}</td>
+            <td class="value">{{ is_array($survey->soil_parasitic_agents) ? implode(', ', $survey->soil_parasitic_agents) : '-' }}</td>
         </tr>
         @if($survey->sanitation_notes)
         <tr>
@@ -351,22 +351,22 @@
     <table class="grid-table">
         <tr>
             <td class="label">Responden KAP Civitas</td>
-            <td class="value">{{ $survey->kap_respondent_status ?: '—' }} ({{ $survey->kap_respondent_gender ?: '—' }}) &mdash; {{ $survey->kap_faculty ?: '—' }}</td>
+            <td class="value">{{ $survey->kap_respondent_status ?: '-' }} ({{ $survey->kap_respondent_gender ?: '-' }}) - {{ $survey->kap_faculty ?: '-' }}</td>
             <td class="label">Dukungan Program TNRM</td>
-            <td class="value"><strong>{{ $survey->kap_prac_tnrm_support ?: '—' }}</strong></td>
+            <td class="value"><strong>{{ $survey->kap_prac_tnrm_support ?: '-' }}</strong></td>
         </tr>
         <tr>
             <td class="label">Informan Kunci K3L Kampus</td>
-            <td class="value">{{ $survey->k3l_informant_name ?: '—' }} ({{ $survey->k3l_informant_role ?: '—' }})</td>
+            <td class="value">{{ $survey->k3l_informant_name ?: '-' }} ({{ $survey->k3l_informant_role ?: '-' }})</td>
             <td class="label">Penanganan Kucing Saat Ini</td>
-            <td class="value">{{ is_array($survey->k3l_current_handling) ? implode(', ', $survey->k3l_current_handling) : '—' }}</td>
+            <td class="value">{{ is_array($survey->k3l_current_handling) ? implode(', ', $survey->k3l_current_handling) : '-' }}</td>
         </tr>
         @if($survey->k3l_obstacles || $survey->k3l_intervention_plan)
         <tr>
             <td class="label">Hambatan & Rencana Intervensi</td>
             <td class="value" colspan="3">
-                <strong>Hambatan:</strong> {{ is_array($survey->k3l_obstacles) ? implode(', ', $survey->k3l_obstacles) : '—' }}<br>
-                <strong>Rencana:</strong> {{ $survey->k3l_intervention_plan ?: '—' }}
+                <strong>Hambatan:</strong> {{ is_array($survey->k3l_obstacles) ? implode(', ', $survey->k3l_obstacles) : '-' }}<br>
+                <strong>Rencana:</strong> {{ $survey->k3l_intervention_plan ?: '-' }}
             </td>
         </tr>
         @endif
@@ -379,7 +379,7 @@
     </table>
 
     <div class="footer">
-        Dokumen Resmi e-Surveillance Stray Cat — PP Muhammadiyah &bull; Dicetak pada {{ date('d M Y H:i') }} WIB
+        Dokumen Resmi e-Surveillance Stray Cat: PP Muhammadiyah &bull; Dicetak pada {{ date('d M Y H:i') }} WIB
     </div>
 
 </body>
