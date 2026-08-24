@@ -57,7 +57,7 @@ class PtmaCatCensus extends Model
     }
 
     /**
-     * Generate the next 8-digit sequential ID for a given PTMA campus.
+     * Generate the next 3-digit sequential ID for a given PTMA campus (e.g. UMY-001).
      *
      * @param string $kampus
      * @param string|null $kampusCustom
@@ -83,11 +83,11 @@ class PtmaCatCensus extends Model
         $nextSeq = $latest ? ($latest->sequence_number + 1) : 1;
 
         // Ensure uniqueness loop in case of manual input
-        while (self::where('id_kucing', $prefix . '-' . str_pad($nextSeq, 8, '0', STR_PAD_LEFT))->exists()) {
+        while (self::where('id_kucing', $prefix . '-' . str_pad($nextSeq, 3, '0', STR_PAD_LEFT))->exists()) {
             $nextSeq++;
         }
 
-        $idKucing = $prefix . '-' . str_pad($nextSeq, 8, '0', STR_PAD_LEFT);
+        $idKucing = $prefix . '-' . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
 
         return [
             'id_kucing' => $idKucing,

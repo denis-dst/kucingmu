@@ -103,13 +103,14 @@ class PtmaCatCensusController extends Controller
             'warna_custom'        => 'nullable|string|max:100|required_if:warna,Lainnya',
             'bcs'                 => 'required|string|max:50',
             'kondisi_klinis'      => 'nullable|array',
-            'kondisi_klinis.*'    => 'string|max:50',
+            'kondisi_klinis.*'    => 'string|max:100',
+            'kondisi_klinis_custom' => 'nullable|string|max:150',
             'panjang_badan_cm'    => 'nullable|numeric|min:0|max:200',
             'panjang_ekor_cm'     => 'nullable|numeric|min:0|max:100',
             'jarak_pakan'         => 'nullable|integer|min:0|max:5000',
-            'jenis_pakan'         => 'required|string|max:100',
+            'jenis_pakan'         => 'required|string|max:150',
             'jenis_pakan_custom'  => 'nullable|string|max:150|required_if:jenis_pakan,Lainnya',
-            'ancaman'             => 'required|string|max:100',
+            'ancaman'             => 'required|string|max:150',
             'ancaman_custom'      => 'nullable|string|max:150|required_if:ancaman,Lainnya',
             'catatan'             => 'nullable|string|max:2000',
 
@@ -137,6 +138,14 @@ class PtmaCatCensusController extends Controller
             $sequenceNumber = (int) $matches[1];
         }
 
+        $kondisiKlinis = $request->kondisi_klinis ?? [];
+        if ($request->filled('kondisi_klinis_custom')) {
+            $kondisiKlinis[] = trim($request->kondisi_klinis_custom);
+        }
+        if (empty($kondisiKlinis)) {
+            $kondisiKlinis = ['Sehat'];
+        }
+
         $census = PtmaCatCensus::create([
             'volunteer_id'        => Auth::id(),
             'id_kucing'           => $idKucing,
@@ -155,7 +164,7 @@ class PtmaCatCensusController extends Controller
             'foto_samping_kiri'   => $fotoSampingKiri,
             'foto_opsional'       => $fotoOpsional,
             'bcs'                 => $request->bcs,
-            'kondisi_klinis'      => $request->kondisi_klinis ?? ['Sehat'],
+            'kondisi_klinis'      => array_values(array_unique($kondisiKlinis)),
             'panjang_badan_cm'    => $request->panjang_badan_cm,
             'panjang_ekor_cm'     => $request->panjang_ekor_cm,
             'jarak_pakan'         => $request->jarak_pakan,
@@ -217,13 +226,14 @@ class PtmaCatCensusController extends Controller
             'warna_custom'        => 'nullable|string|max:100|required_if:warna,Lainnya',
             'bcs'                 => 'required|string|max:50',
             'kondisi_klinis'      => 'nullable|array',
-            'kondisi_klinis.*'    => 'string|max:50',
+            'kondisi_klinis.*'    => 'string|max:100',
+            'kondisi_klinis_custom' => 'nullable|string|max:150',
             'panjang_badan_cm'    => 'nullable|numeric|min:0|max:200',
             'panjang_ekor_cm'     => 'nullable|numeric|min:0|max:100',
             'jarak_pakan'         => 'nullable|integer|min:0|max:5000',
-            'jenis_pakan'         => 'required|string|max:100',
+            'jenis_pakan'         => 'required|string|max:150',
             'jenis_pakan_custom'  => 'nullable|string|max:150|required_if:jenis_pakan,Lainnya',
-            'ancaman'             => 'required|string|max:100',
+            'ancaman'             => 'required|string|max:150',
             'ancaman_custom'      => 'nullable|string|max:150|required_if:ancaman,Lainnya',
             'catatan'             => 'nullable|string|max:2000',
 
@@ -238,6 +248,14 @@ class PtmaCatCensusController extends Controller
             'foto_opsional_cam'   => 'nullable|string',
         ]);
 
+        $kondisiKlinis = $request->kondisi_klinis ?? [];
+        if ($request->filled('kondisi_klinis_custom')) {
+            $kondisiKlinis[] = trim($request->kondisi_klinis_custom);
+        }
+        if (empty($kondisiKlinis)) {
+            $kondisiKlinis = ['Sehat'];
+        }
+
         $data = [
             'id_kucing'           => trim($request->id_kucing),
             'kampus'              => $request->kampus,
@@ -250,7 +268,7 @@ class PtmaCatCensusController extends Controller
             'warna'               => $request->warna,
             'warna_custom'        => $request->warna === 'Lainnya' ? $request->warna_custom : null,
             'bcs'                 => $request->bcs,
-            'kondisi_klinis'      => $request->kondisi_klinis ?? ['Sehat'],
+            'kondisi_klinis'      => array_values(array_unique($kondisiKlinis)),
             'panjang_badan_cm'    => $request->panjang_badan_cm,
             'panjang_ekor_cm'     => $request->panjang_ekor_cm,
             'jarak_pakan'         => $request->jarak_pakan,

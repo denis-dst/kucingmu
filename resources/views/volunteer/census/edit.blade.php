@@ -72,7 +72,7 @@
                         <!-- ID Kucing -->
                         <div>
                             <label for="id_kucing" class="form-label text-xs">
-                                ID Kucing (8 Digit) <span class="text-rose-500">*</span>
+                                ID Kucing (3 Digit) <span class="text-rose-500">*</span>
                             </label>
                             <input type="text" id="id_kucing" name="id_kucing" value="{{ old('id_kucing', $census->id_kucing) }}" required class="form-input text-xs font-mono font-bold text-teal-900 bg-teal-50/50 border-teal-200">
                             <p class="text-[11px] text-slate-500 mt-1">ID unik registrasi sensus kucing PTMA.</p>
@@ -432,27 +432,46 @@
                         <!-- Kondisi Klinis / Lesi -->
                         @php
                             $klinisArr = is_array($census->kondisi_klinis) ? $census->kondisi_klinis : [];
+                            $knownKlinis = ['Sehat', 'Luka Terbuka/Abses', 'Luka', 'Infeksi Mata/Beres', 'Infeksi Mata', 'Botak/Kudis (Alopecia)', 'Alopecia', 'Patah Tulang/Pincang', 'Telinga Robek/Ear Tipping', 'Telinga Robek'];
+                            $customKlinis = array_diff($klinisArr, $knownKlinis);
+                            $customKlinisStr = implode(', ', $customKlinis);
                         @endphp
-                        <div>
-                            <label class="form-label text-xs">Kondisi Klinis / Lesi</label>
-                            <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                        <div class="md:col-span-2">
+                            <label class="form-label text-xs">Kondisi Fisik / Lesi (Bisa pilih lebih dari satu)</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                                     <input type="checkbox" name="kondisi_klinis[]" value="Sehat" x-model="klinisSehat" @change="toggleKlinis('Sehat')" class="rounded text-teal-700 focus:ring-teal-700">
                                     Tampak Sehat
                                 </label>
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
-                                    <input type="checkbox" name="kondisi_klinis[]" value="Luka" x-model="klinisLuka" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
-                                    Luka / Abses
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Luka Terbuka/Abses" x-model="klinisLuka" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Luka Terbuka / Abses
                                 </label>
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
-                                    <input type="checkbox" name="kondisi_klinis[]" value="Infeksi Mata" x-model="klinisMata" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
-                                    Infeksi Mata
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Infeksi Mata/Beres" x-model="klinisMata" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Infeksi Mata / Beres
                                 </label>
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
-                                    <input type="checkbox" name="kondisi_klinis[]" value="Alopecia" x-model="klinisAlopecia" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
-                                    Botak / Kudis
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Botak/Kudis (Alopecia)" x-model="klinisAlopecia" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Botak / Kudis (Alopecia)
+                                </label>
+                                <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Patah Tulang/Pincang" x-model="klinisPatah" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Patah Tulang / Pincang
+                                </label>
+                                <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Telinga Robek/Ear Tipping" x-model="klinisEarTip" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Telinga Robek / Ear Tipping
                                 </label>
                             </div>
+                        </div>
+
+                        <!-- Kondisi Fisik Lainnya -->
+                        <div class="md:col-span-2">
+                            <label for="kondisi_klinis_custom" class="form-label text-xs">
+                                Kondisi Fisik Lainnya (Tuliskan jika ada)
+                            </label>
+                            <input type="text" id="kondisi_klinis_custom" name="kondisi_klinis_custom" value="{{ old('kondisi_klinis_custom', $customKlinisStr) }}" placeholder="Contoh: Ekor bengkok, buta satu mata, kuku patah..." class="form-input text-xs">
                         </div>
 
                         <!-- Panjang Badan Total -->
@@ -500,10 +519,13 @@
                                 Sumber Pakan Utama <span class="text-rose-500">*</span>
                             </label>
                             <select id="jenis_pakan" name="jenis_pakan" x-model="jenisPakan" required class="form-input text-xs">
-                                <option value="Sampah Terbuka" @selected($census->jenis_pakan === 'Sampah Terbuka')>Sampah Terbuka</option>
-                                <option value="Limbah Kantin" @selected($census->jenis_pakan === 'Limbah Kantin')>Sisa Limbah Kantin</option>
-                                <option value="Feeding Station" @selected($census->jenis_pakan === 'Feeding Station')>Pemberian Pakan Komunitas (Feeding Station)</option>
-                                <option value="Mangsa Alami" @selected($census->jenis_pakan === 'Mangsa Alami')>Mangsa Alami (Tikus / Burung)</option>
+                                <option value="Tempat Sampah Terbuka" @selected($census->jenis_pakan === 'Tempat Sampah Terbuka' || $census->jenis_pakan === 'Sampah Terbuka')>Tempat Sampah Terbuka / Bak Sampah</option>
+                                <option value="Limbah Kantin/Dapur" @selected($census->jenis_pakan === 'Limbah Kantin/Dapur' || $census->jenis_pakan === 'Limbah Kantin')>Limbah Kantin / Dapur Kampus</option>
+                                <option value="Pemberian Civitas Akademika (Acak)" @selected($census->jenis_pakan === 'Pemberian Civitas Akademika (Acak)')>Pemberian Civitas Akademika (Acak/Sporadis)</option>
+                                <option value="Feeding Station Komunitas" @selected($census->jenis_pakan === 'Feeding Station Komunitas' || $census->jenis_pakan === 'Feeding Station')>Feeding Station Komunitas (Terjadwal/Rutin)</option>
+                                <option value="Mangsa Alami (Tikus/Burung/Serangga)" @selected($census->jenis_pakan === 'Mangsa Alami (Tikus/Burung/Serangga)' || $census->jenis_pakan === 'Mangsa Alami')>Mangsa Alami (Tikus / Burung / Serangga)</option>
+                                <option value="Sisa Makanan Asrama/Kos" @selected($census->jenis_pakan === 'Sisa Makanan Asrama/Kos')>Sisa Makanan Area Asrama/Kos</option>
+                                <option value="Tidak Diketahui / Tidak Terlihat" @selected($census->jenis_pakan === 'Tidak Diketahui / Tidak Terlihat')>Tidak Diketahui / Tidak Terlihat</option>
                                 <option value="Lainnya" @selected($census->jenis_pakan === 'Lainnya')>Lainnya</option>
                             </select>
                         </div>
@@ -514,9 +536,13 @@
                                 Ancaman Lingkungan <span class="text-rose-500">*</span>
                             </label>
                             <select id="ancaman" name="ancaman" x-model="ancaman" required class="form-input text-xs">
-                                <option value="Lalu Lintas Padat" @selected($census->ancaman === 'Lalu Lintas Padat')>Lalu Lintas Padat / Area Parkir</option>
-                                <option value="Predator/Anjing" @selected($census->ancaman === 'Predator/Anjing')>Ancaman Hewan Lain (Anjing Liar)</option>
-                                <option value="Aman" @selected($census->ancaman === 'Aman')>Relatif Aman</option>
+                                <option value="Lalu Lintas Kendaraan Padat (Jalan Utama/Parkiran)" @selected($census->ancaman === 'Lalu Lintas Kendaraan Padat (Jalan Utama/Parkiran)' || $census->ancaman === 'Lalu Lintas Padat')>Lalu Lintas Kendaraan Padat (Jalan Utama/Parkiran)</option>
+                                <option value="Ancaman Hewan Lain (Anjing Liar/Kucing Dominan)" @selected($census->ancaman === 'Ancaman Hewan Lain (Anjing Liar/Kucing Dominan)' || $census->ancaman === 'Predator/Anjing')>Ancaman Hewan Lain (Anjing Liar / Kucing Dominan)</option>
+                                <option value="Aktivitas Konstruksi / Pembangunan" @selected($census->ancaman === 'Aktivitas Konstruksi / Pembangunan')>Aktivitas Konstruksi / Pembangunan</option>
+                                <option value="Potensi Kekerasan Manusia (Pengusiran Kasar)" @selected($census->ancaman === 'Potensi Kekerasan Manusia (Pengusiran Kasar)')>Potensi Kekerasan Manusia (Pengusiran Kasar)</option>
+                                <option value="Cuaca Ekstrem tanpa Shelter yang Layak" @selected($census->ancaman === 'Cuaca Ekstrem tanpa Shelter yang Layak')>Cuaca Ekstrem tanpa Shelter yang Layak</option>
+                                <option value="Area Pembuangan Limbah Kimia/Berbahaya" @selected($census->ancaman === 'Area Pembuangan Limbah Kimia/Berbahaya')>Area Pembuangan Limbah Kimia / Berbahaya</option>
+                                <option value="Relatif Aman (Zona Minim Gangguan)" @selected($census->ancaman === 'Relatif Aman (Zona Minim Gangguan)' || $census->ancaman === 'Aman')>Relatif Aman (Zona Minim Gangguan)</option>
                                 <option value="Lainnya" @selected($census->ancaman === 'Lainnya')>Lainnya</option>
                             </select>
                         </div>
@@ -570,6 +596,7 @@
                         <button type="button" @click="closeCamera()" class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1">✕</button>
                     </div>
 
+                    <!-- Video Viewfinder -->
                     <div class="relative aspect-video rounded-xl bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-800">
                         <video id="censusEditWebcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
                         <canvas id="censusEditWebcamCanvas" class="hidden"></canvas>
@@ -610,9 +637,11 @@
                 ancaman: '{{ $census->ancaman }}',
 
                 klinisSehat: {{ in_array('Sehat', $klinisArr) ? 'true' : 'false' }},
-                klinisLuka: {{ in_array('Luka', $klinisArr) ? 'true' : 'false' }},
-                klinisMata: {{ in_array('Infeksi Mata', $klinisArr) ? 'true' : 'false' }},
-                klinisAlopecia: {{ in_array('Alopecia', $klinisArr) ? 'true' : 'false' }},
+                klinisLuka: {{ (in_array('Luka', $klinisArr) || in_array('Luka Terbuka/Abses', $klinisArr)) ? 'true' : 'false' }},
+                klinisMata: {{ (in_array('Infeksi Mata', $klinisArr) || in_array('Infeksi Mata/Beres', $klinisArr)) ? 'true' : 'false' }},
+                klinisAlopecia: {{ (in_array('Alopecia', $klinisArr) || in_array('Botak/Kudis (Alopecia)', $klinisArr)) ? 'true' : 'false' }},
+                klinisPatah: {{ in_array('Patah Tulang/Pincang', $klinisArr) ? 'true' : 'false' }},
+                klinisEarTip: {{ (in_array('Telinga Robek/Ear Tipping', $klinisArr) || in_array('Telinga Robek', $klinisArr)) ? 'true' : 'false' }},
 
                 isSubmitting: false,
 
@@ -665,8 +694,10 @@
                         this.klinisLuka = false;
                         this.klinisMata = false;
                         this.klinisAlopecia = false;
+                        this.klinisPatah = false;
+                        this.klinisEarTip = false;
                     } else if (type === 'Gejala') {
-                        if (this.klinisLuka || this.klinisMata || this.klinisAlopecia) {
+                        if (this.klinisLuka || this.klinisMata || this.klinisAlopecia || this.klinisPatah || this.klinisEarTip) {
                             this.klinisSehat = false;
                         } else {
                             this.klinisSehat = true;

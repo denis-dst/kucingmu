@@ -72,18 +72,18 @@
                         <div>
                             <div class="flex items-center justify-between">
                                 <label for="id_kucing" class="form-label text-xs">
-                                    ID Kucing (Otomatis 8 Digit) <span class="text-rose-500">*</span>
+                                    ID Kucing (Otomatis 3 Digit) <span class="text-rose-500">*</span>
                                 </label>
                                 <span class="text-[11px] text-teal-700 font-semibold" x-show="loadingId">Menghitung ID...</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <input type="text" id="id_kucing" name="id_kucing" x-model="idKucing" required placeholder="Contoh: UMY-00000001" class="form-input text-xs font-mono font-bold text-teal-900 bg-teal-50/50 border-teal-200 flex-1">
+                                <input type="text" id="id_kucing" name="id_kucing" x-model="idKucing" required placeholder="Contoh: UMY-001" class="form-input text-xs font-mono font-bold text-teal-900 bg-teal-50/50 border-teal-200 flex-1">
                                 <button type="button" @click="fetchNextId()" :disabled="loadingId" title="Generate ulang nomor ID" class="btn-action-secondary px-3 py-2.5 text-xs font-bold shrink-0 min-h-[42px] border-teal-200 text-teal-800 bg-teal-50 hover:bg-teal-100 shadow-xs inline-flex items-center gap-1">
                                     <span x-show="!loadingId">↻ Auto</span>
                                     <span x-show="loadingId" class="animate-spin text-teal-700">⟳</span>
                                 </button>
                             </div>
-                            <p class="text-[11px] text-slate-500 mt-1">ID otomatis mengikuti kode kampus dan 8 digit nomor urut berikutnya.</p>
+                            <p class="text-[11px] text-slate-500 mt-1">ID otomatis mengikuti kode kampus dan 3 digit nomor urut berikutnya.</p>
                         </div>
 
                         <!-- Isian Manual Kampus Lainnya -->
@@ -438,26 +438,42 @@
                         </div>
 
                         <!-- Kondisi Klinis / Lesi (Checkboxes) -->
-                        <div>
-                            <label class="form-label text-xs">Kondisi Klinis / Lesi</label>
-                            <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                        <div class="md:col-span-2">
+                            <label class="form-label text-xs">Kondisi Fisik / Lesi (Bisa pilih lebih dari satu)</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
                                     <input type="checkbox" name="kondisi_klinis[]" value="Sehat" x-model="klinisSehat" @change="toggleKlinis('Sehat')" class="rounded text-teal-700 focus:ring-teal-700">
                                     Tampak Sehat
                                 </label>
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
-                                    <input type="checkbox" name="kondisi_klinis[]" value="Luka" x-model="klinisLuka" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
-                                    Luka / Abses
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Luka Terbuka/Abses" x-model="klinisLuka" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Luka Terbuka / Abses
                                 </label>
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
-                                    <input type="checkbox" name="kondisi_klinis[]" value="Infeksi Mata" x-model="klinisMata" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
-                                    Infeksi Mata
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Infeksi Mata/Beres" x-model="klinisMata" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Infeksi Mata / Beres
                                 </label>
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
-                                    <input type="checkbox" name="kondisi_klinis[]" value="Alopecia" x-model="klinisAlopecia" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
-                                    Botak / Kudis
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Botak/Kudis (Alopecia)" x-model="klinisAlopecia" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Botak / Kudis (Alopecia)
+                                </label>
+                                <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Patah Tulang/Pincang" x-model="klinisPatah" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Patah Tulang / Pincang
+                                </label>
+                                <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
+                                    <input type="checkbox" name="kondisi_klinis[]" value="Telinga Robek/Ear Tipping" x-model="klinisEarTip" @change="toggleKlinis('Gejala')" class="rounded text-teal-700 focus:ring-teal-700">
+                                    Telinga Robek / Ear Tipping
                                 </label>
                             </div>
+                        </div>
+
+                        <!-- Kondisi Fisik Lainnya -->
+                        <div class="md:col-span-2">
+                            <label for="kondisi_klinis_custom" class="form-label text-xs">
+                                Kondisi Fisik Lainnya (Tuliskan jika ada)
+                            </label>
+                            <input type="text" id="kondisi_klinis_custom" name="kondisi_klinis_custom" value="{{ old('kondisi_klinis_custom') }}" placeholder="Contoh: Ekor bengkok, buta satu mata, kuku patah..." class="form-input text-xs">
                         </div>
 
                         <!-- Panjang Badan Total -->
@@ -505,10 +521,13 @@
                                 Sumber Pakan Utama <span class="text-rose-500">*</span>
                             </label>
                             <select id="jenis_pakan" name="jenis_pakan" x-model="jenisPakan" required class="form-input text-xs">
-                                <option value="Sampah Terbuka">Sampah Terbuka</option>
-                                <option value="Limbah Kantin" selected>Sisa Limbah Kantin</option>
-                                <option value="Feeding Station">Pemberian Pakan Komunitas (Feeding Station)</option>
-                                <option value="Mangsa Alami">Mangsa Alami (Tikus / Burung)</option>
+                                <option value="Tempat Sampah Terbuka">Tempat Sampah Terbuka / Bak Sampah</option>
+                                <option value="Limbah Kantin/Dapur" selected>Limbah Kantin / Dapur Kampus</option>
+                                <option value="Pemberian Civitas Akademika (Acak)">Pemberian Civitas Akademika (Acak/Sporadis)</option>
+                                <option value="Feeding Station Komunitas">Feeding Station Komunitas (Terjadwal/Rutin)</option>
+                                <option value="Mangsa Alami (Tikus/Burung/Serangga)">Mangsa Alami (Tikus/Burung/Serangga)</option>
+                                <option value="Sisa Makanan Asrama/Kos">Sisa Makanan Area Asrama/Kos</option>
+                                <option value="Tidak Diketahui / Tidak Terlihat">Tidak Diketahui / Tidak Terlihat</option>
                                 <option value="Lainnya">Lainnya</option>
                             </select>
                         </div>
@@ -519,9 +538,13 @@
                                 Ancaman Lingkungan <span class="text-rose-500">*</span>
                             </label>
                             <select id="ancaman" name="ancaman" x-model="ancaman" required class="form-input text-xs">
-                                <option value="Lalu Lintas Padat">Lalu Lintas Padat / Area Parkir</option>
-                                <option value="Predator/Anjing">Ancaman Hewan Lain (Anjing Liar)</option>
-                                <option value="Aman" selected>Relatif Aman</option>
+                                <option value="Lalu Lintas Kendaraan Padat (Jalan Utama/Parkiran)">Lalu Lintas Kendaraan Padat (Jalan Utama/Parkiran)</option>
+                                <option value="Ancaman Hewan Lain (Anjing Liar/Kucing Dominan)">Ancaman Hewan Lain (Anjing Liar/Kucing Dominan)</option>
+                                <option value="Aktivitas Konstruksi / Pembangunan">Aktivitas Konstruksi / Pembangunan</option>
+                                <option value="Potensi Kekerasan Manusia (Pengusiran Kasar)">Potensi Kekerasan Manusia (Pengusiran Kasar)</option>
+                                <option value="Cuaca Ekstrem tanpa Shelter yang Layak">Cuaca Ekstrem tanpa Shelter yang Layak</option>
+                                <option value="Area Pembuangan Limbah Kimia/Berbahaya">Area Pembuangan Limbah Kimia/Berbahaya</option>
+                                <option value="Relatif Aman (Zona Minim Gangguan)" selected>Relatif Aman (Zona Minim Gangguan)</option>
                                 <option value="Lainnya">Lainnya</option>
                             </select>
                         </div>
@@ -541,6 +564,7 @@
                             </label>
                             <input type="text" id="ancaman_custom" name="ancaman_custom" placeholder="Contoh: Saluran drainase terbuka berarus deras saat hujan" class="form-input text-xs bg-white">
                         </div>
+                    </div>
                     </div>
 
                     <!-- Catatan Tambahan (Full Width Card) -->
@@ -608,7 +632,7 @@
             return {
                 kampus: 'UMY',
                 kampusCustom: '',
-                idKucing: 'UMY-00000001',
+                idKucing: 'UMY-001',
                 loadingId: false,
 
                 latitude: '',
@@ -618,13 +642,15 @@
                 gpsStatusClass: 'text-slate-500',
 
                 warna: 'Tabby',
-                jenisPakan: 'Limbah Kantin',
-                ancaman: 'Aman',
+                jenisPakan: 'Limbah Kantin/Dapur',
+                ancaman: 'Relatif Aman (Zona Minim Gangguan)',
 
                 klinisSehat: true,
                 klinisLuka: false,
                 klinisMata: false,
                 klinisAlopecia: false,
+                klinisPatah: false,
+                klinisEarTip: false,
 
                 isSubmitting: false,
 
@@ -705,8 +731,10 @@
                         this.klinisLuka = false;
                         this.klinisMata = false;
                         this.klinisAlopecia = false;
+                        this.klinisPatah = false;
+                        this.klinisEarTip = false;
                     } else if (type === 'Gejala') {
-                        if (this.klinisLuka || this.klinisMata || this.klinisAlopecia) {
+                        if (this.klinisLuka || this.klinisMata || this.klinisAlopecia || this.klinisPatah || this.klinisEarTip) {
                             this.klinisSehat = false;
                         } else {
                             this.klinisSehat = true;
