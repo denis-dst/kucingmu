@@ -106,23 +106,23 @@
 
     <main id="main-content" tabindex="-1" class="focus:outline-none">
         <!-- Hero Section -->
-        <section class="bg-teal-900 text-white py-16 lg:py-24 border-b border-teal-950">
+        <section class="bg-gradient-to-br from-teal-900 via-teal-800 to-sky-800 text-white py-16 lg:py-24 border-b border-teal-950">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-12 lg:grid-cols-12 items-center">
                 <div class="lg:col-span-7 space-y-6">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-teal-800 border border-teal-700 text-teal-100 text-xs font-semibold uppercase tracking-wider">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-100 text-xs font-semibold uppercase tracking-wider backdrop-blur">
                         Inisiatif Majelis Lingkungan Hidup PP Muhammadiyah
                     </span>
                     <h1 class="font-outfit text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
                         {{ $app_settings['app_name'] ?? 'KucingMu' }}
                     </h1>
-                    <p class="text-base sm:text-lg text-teal-100 leading-relaxed max-w-xl">
+                    <p class="text-base sm:text-lg text-teal-100/90 leading-relaxed max-w-xl">
                         {{ $app_settings['app_description'] ?? 'Platform terpadu untuk pendataan kesehatan kucing, surveilans populasi kucing liar, dan penerbitan Kartu Tanda Anggota Muhammadiyah (KTAM) Kucing secara digital.' }}
                     </p>
                     <div class="pt-2 flex flex-wrap gap-3.5">
-                        <a href="{{ route('register') }}" class="min-h-[44px] inline-flex items-center justify-center rounded-lg bg-white text-teal-950 px-6 py-3 text-sm font-bold shadow-sm hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-white">
+                        <a href="{{ route('register') }}" class="min-h-[44px] inline-flex items-center justify-center rounded-xl bg-white text-teal-950 px-6 py-3 text-sm font-bold shadow-md hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-white">
                             Daftarkan Kucing Peliharaan
                         </a>
-                        <a href="#verifikasi" class="min-h-[44px] inline-flex items-center justify-center rounded-lg border border-teal-600 bg-teal-800/80 text-white px-5 py-3 text-sm font-semibold hover:bg-teal-800 focus-visible:ring-2 focus-visible:ring-white">
+                        <a href="#verifikasi" class="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white px-5 py-3 text-sm font-semibold hover:bg-white/20 backdrop-blur focus-visible:ring-2 focus-visible:ring-white">
                             Periksa Nomor KTAM
                         </a>
                     </div>
@@ -130,25 +130,25 @@
                 
                 <!-- Preview Card Representation -->
                 <div class="lg:col-span-5 flex justify-center">
-                    <div class="w-full max-w-sm rounded-2xl border border-teal-700/60 bg-teal-800/90 p-6 shadow-md text-white">
-                        <div class="flex justify-between items-start border-b border-teal-700 pb-3 mb-4">
+                    <div class="w-full max-w-sm rounded-3xl border border-white/20 bg-white/10 backdrop-blur-md p-6 shadow-xl text-white">
+                        <div class="flex justify-between items-start border-b border-white/15 pb-3 mb-4">
                             <div>
                                 <span class="text-xs font-bold text-teal-200 uppercase tracking-wide">Kartu Keanggotaan</span>
                                 <h3 class="font-outfit text-lg font-bold text-white mt-0.5">KTAM KucingMu</h3>
                             </div>
-                            <span class="bg-teal-100 text-teal-950 text-[11px] font-bold px-2 py-0.5 rounded">Resmi Terverifikasi</span>
+                            <span class="bg-white/20 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-white/30">Resmi Terverifikasi</span>
                         </div>
 
                         <div class="space-y-2.5 text-xs text-teal-100">
-                            <div class="flex justify-between border-b border-teal-700/40 pb-1.5">
+                            <div class="flex justify-between border-b border-white/10 pb-1.5">
                                 <span class="text-teal-200">Nama Kucing:</span>
                                 <strong class="text-white">Mochi</strong>
                             </div>
-                            <div class="flex justify-between border-b border-teal-700/40 pb-1.5">
+                            <div class="flex justify-between border-b border-white/10 pb-1.5">
                                 <span class="text-teal-200">Ras / Jenis:</span>
                                 <strong class="text-white">Domestik Campuran</strong>
                             </div>
-                            <div class="flex justify-between border-b border-teal-700/40 pb-1.5">
+                            <div class="flex justify-between border-b border-white/10 pb-1.5">
                                 <span class="text-teal-200">Nomor Registrasi:</span>
                                 <strong class="text-white font-mono">KM-20260707-0001</strong>
                             </div>
