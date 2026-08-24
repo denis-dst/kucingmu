@@ -94,12 +94,76 @@
                             <input type="text" id="kampus_custom" name="kampus_custom" x-model="kampusCustom" @input.debounce.500ms="fetchNextId()" placeholder="Contoh: UNISA Yogyakarta / UM Magelang" class="form-input text-xs bg-white">
                         </div>
 
-                        <!-- Zona / Sektor Kampus -->
-                        <div class="md:col-span-2">
-                            <label for="zona" class="form-label text-xs">
-                                Zona / Sektor Kampus <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="text" id="zona" name="zona" value="{{ old('zona') }}" required placeholder="Contoh: Area Kantin Pusat, Depan Gedung AR Fachruddin B, Koridor Perpustakaan" class="form-input text-xs">
+                        <!-- Zona / Sektor Kampus (Autocomplete Select / Combobox) -->
+                        <div class="md:col-span-2" x-data="{
+                            open: false,
+                            search: '{{ old('zona') }}',
+                            zones: {{ json_encode($zones ?? ['UMY - Selatan', 'UMY - Utara', 'UMY - Tengah (admisi, AR, maskam, boga)', 'Unires & E8']) }},
+                            get filteredZones() {
+                                if (!this.search) return this.zones;
+                                return this.zones.filter(z => z.toLowerCase().includes(this.search.toLowerCase()));
+                            },
+                            selectZone(val) {
+                                this.search = val;
+                                this.open = false;
+                            }
+                        }" @click.outside="open = false">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="zona" class="form-label text-xs mb-0">
+                                    Zona / Sektor Kampus <span class="text-rose-500">*</span>
+                                </label>
+                                <span class="text-[11px] text-slate-500">Pilih dari daftar atau ketik zona baru</span>
+                            </div>
+
+                            <div class="relative">
+                                <div class="relative flex items-center">
+                                    <input type="text"
+                                           id="zona"
+                                           name="zona"
+                                           x-model="search"
+                                           @focus="open = true"
+                                           @input="open = true"
+                                           required
+                                           autocomplete="off"
+                                           placeholder="Pilih atau ketik zona baru (contoh: UMY - Selatan, UMY - Utara)..."
+                                           class="form-input text-xs pr-10">
+                                    
+                                    <button type="button" @click="open = !open" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs p-1" title="Buka pilihan zona">
+                                        <span :class="open ? 'rotate-180' : ''" class="inline-block transition-transform duration-150">▼</span>
+                                    </button>
+                                </div>
+
+                                <!-- Autocomplete Dropdown Menu -->
+                                <div x-show="open"
+                                     x-transition
+                                     class="absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto divide-y divide-slate-100 text-xs"
+                                     style="display: none;">
+                                    
+                                    <!-- Filtered Options List -->
+                                    <template x-for="item in filteredZones" :key="item">
+                                        <button type="button"
+                                                @click="selectZone(item)"
+                                                class="w-full text-left px-3.5 py-2.5 hover:bg-teal-50 hover:text-teal-900 transition flex items-center justify-between group">
+                                            <span class="font-medium text-slate-800 group-hover:text-teal-900" x-text="item"></span>
+                                            <span class="text-[10px] text-teal-700 font-semibold opacity-0 group-hover:opacity-100 transition">Pilih ✓</span>
+                                        </button>
+                                    </template>
+
+                                    <!-- Custom New Option if not exact match -->
+                                    <template x-if="search && !zones.some(z => z.toLowerCase() === search.toLowerCase().trim())">
+                                        <button type="button"
+                                                @click="open = false"
+                                                class="w-full text-left px-3.5 py-2.5 bg-amber-50/70 hover:bg-amber-100 text-amber-900 transition flex items-center gap-2">
+                                            <span class="font-bold text-teal-700">➕</span>
+                                            <span>Gunakan zona baru: <strong class="underline" x-text="search"></strong></span>
+                                        </button>
+                                    </template>
+
+                                    <div x-show="filteredZones.length === 0 && (!search || zones.some(z => z.toLowerCase() === search.toLowerCase().trim()))" class="px-3.5 py-2.5 text-slate-400 text-center">
+                                        Tidak ada opsi yang cocok. Ketik untuk menambahkan zona baru.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Koordinat GPS (Auto Tagging) -->

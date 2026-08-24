@@ -55,7 +55,16 @@ class PtmaCatCensusController extends Controller
      */
     public function create()
     {
-        return view('volunteer.census.create');
+        $defaultZones = [
+            'UMY - Selatan',
+            'UMY - Utara',
+            'UMY - Tengah (admisi, AR, maskam, boga)',
+            'Unires & E8',
+        ];
+        $dbZones = PtmaCatCensus::whereNotNull('zona')->pluck('zona')->toArray();
+        $zones = array_values(array_unique(array_filter(array_merge($defaultZones, $dbZones))));
+
+        return view('volunteer.census.create', compact('zones'));
     }
 
     /**
@@ -175,7 +184,19 @@ class PtmaCatCensusController extends Controller
      */
     public function edit(PtmaCatCensus $sensu)
     {
-        return view('volunteer.census.edit', ['census' => $sensu]);
+        $defaultZones = [
+            'UMY - Selatan',
+            'UMY - Utara',
+            'UMY - Tengah (admisi, AR, maskam, boga)',
+            'Unires & E8',
+        ];
+        $dbZones = PtmaCatCensus::whereNotNull('zona')->pluck('zona')->toArray();
+        $zones = array_values(array_unique(array_filter(array_merge($defaultZones, $dbZones))));
+
+        return view('volunteer.census.edit', [
+            'census' => $sensu,
+            'zones' => $zones
+        ]);
     }
 
     /**
