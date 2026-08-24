@@ -21,6 +21,9 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     @if(Auth::user()->role === 'volunteer')
+                        <x-nav-link :href="route('volunteer.census.index')" :active="request()->routeIs('volunteer.census.*')">
+                            {{ __('Sensus PTMA') }}
+                        </x-nav-link>
                         <x-nav-link :href="route('volunteer.surveillance.index')" :active="request()->routeIs('volunteer.surveillance.*')">
                             {{ __('eSurveillance Kucing') }}
                         </x-nav-link>
@@ -90,6 +93,9 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             @if(Auth::user()->role === 'volunteer')
+                <x-responsive-nav-link :href="route('volunteer.census.index')" :active="request()->routeIs('volunteer.census.*')">
+                    {{ __('Sensus PTMA') }}
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('volunteer.surveillance.index')" :active="request()->routeIs('volunteer.surveillance.*')">
                     {{ __('eSurveillance Kucing') }}
                 </x-responsive-nav-link>

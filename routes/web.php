@@ -34,6 +34,8 @@ Route::middleware(['auth', 'role:dokter'])->group(function () {
     Route::post('/checkup/{appointment}', [DashboardController::class, 'storeCheckup'])->name('checkup.store');
 });
 
+use App\Http\Controllers\PtmaCatCensusController;
+
 // Volunteer Routes
 Route::middleware(['auth', 'role:volunteer'])->group(function () {
     Route::get('/surveillance-kucing', [StrayCatSurveyController::class, 'index'])->name('volunteer.surveillance.index');
@@ -42,6 +44,11 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
     Route::post('/appointment/{appointment}/checkin', [DashboardController::class, 'checkInAppointment'])->name('appointment.checkin');
     Route::post('/quick-register', [DashboardController::class, 'quickRegister'])->name('quick-register');
     Route::post('/sync-offline', [DashboardController::class, 'syncOffline'])->name('sync-offline');
+
+    // Sensus Kucing PTMA
+    Route::get('/sensus-kucing/next-id', [PtmaCatCensusController::class, 'nextId'])->name('volunteer.census.next-id');
+    Route::get('/sensus-kucing/export-csv', [PtmaCatCensusController::class, 'exportCsv'])->name('volunteer.census.export');
+    Route::resource('/sensus-kucing', PtmaCatCensusController::class, ['names' => 'volunteer.census']);
 });
 
 // Admin Routes

@@ -3,20 +3,20 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <!-- Hero Panel -->
-            <div class="content-card bg-teal-900 text-white p-6 sm:p-8">
-                <div class="max-w-2xl">
-                    <span class="text-xs font-bold uppercase tracking-wider text-teal-200">Portal Relawan Lapangan</span>
-                    <h1 class="font-outfit text-2xl sm:text-3xl font-bold text-white mt-1">
-                        Selamat Bertugas, {{ Auth::user()->name }}
+            <div class="hero-card">
+                <div>
+                    <span class="card-kicker">Portal Relawan Lapangan</span>
+                    <h1 class="font-outfit text-3xl font-bold text-slate-900 mt-1">
+                        Selamat Bertugas, {{ Auth::user()->name }}!
                     </h1>
-                    <p class="text-xs sm:text-sm text-teal-100 mt-2 leading-relaxed">
-                        Fasilitasi pendaftaran langsung peserta di lokasi kegiatan, catat kehadiran check-in antrian dokter, dan sinkronkan data ketika kembali online.
+                    <p class="card-copy max-w-2xl">
+                        Fasilitasi pendaftaran langsung peserta di lokasi kegiatan, jalankan sensus kucing PTMA, catat kehadiran check-in antrian dokter, dan sinkronkan data lapangan.
                     </p>
                     
                     <div class="mt-4 flex flex-wrap gap-2.5">
                         <!-- Connection Status Badge -->
-                        <span :class="isOnline ? 'bg-teal-800 text-teal-100 border-teal-700' : 'bg-rose-900 text-rose-100 border-rose-800'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border text-xs font-medium">
-                            <span :class="isOnline ? 'bg-teal-400' : 'bg-rose-400'" class="h-2 w-2 rounded-full" aria-hidden="true"></span>
+                        <span :class="isOnline ? 'bg-teal-50 text-teal-800 border-teal-200' : 'bg-rose-50 text-rose-800 border-rose-200'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md border text-xs font-semibold">
+                            <span :class="isOnline ? 'bg-teal-600' : 'bg-rose-600'" class="h-2 w-2 rounded-full" aria-hidden="true"></span>
                             <span x-text="isOnline ? 'Status: Terhubung Online' : 'Status: Mode Offline (Lokal)'"></span>
                         </span>
                         
@@ -26,19 +26,47 @@
                         </button>
                     </div>
                 </div>
+                <div class="hidden md:block text-5xl">
+                    🐾
+                </div>
             </div>
 
-            <!-- Link to eSurveillance -->
-            <a href="{{ route('volunteer.surveillance.index') }}" class="block content-card border-teal-200 bg-teal-50/50 hover:bg-teal-50 transition">
-                <div class="flex items-center justify-between gap-4">
+            <!-- Modules Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Sensus Kucing PTMA Card -->
+                <a href="{{ route('volunteer.census.index') }}" class="content-card border-teal-200 bg-teal-50/40 hover:bg-teal-50/80 transition p-5 flex flex-col justify-between space-y-3">
                     <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-teal-800">Modul Surveilans Lapangan</span>
-                        <h2 class="font-outfit text-lg font-bold text-slate-900 mt-0.5">eSurveillance Populasi Kucing Liar</h2>
-                        <p class="text-xs text-slate-600 mt-1">Pendataan observasi titik kumpul kucing, kondisi fisik, ear-tip (sterilisasi), dan triase kesejahteraan hewan.</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-teal-700">Modul Lapangan Klaster 1</span>
+                            <span class="text-lg">📊</span>
+                        </div>
+                        <h2 class="font-outfit text-base font-bold text-slate-900 mt-1">Sensus Stray Cat PTMA</h2>
+                        <p class="text-xs text-slate-600 mt-1">Formulir sensus berbasis kampus (UMY, UAD, UMP, UMS) dengan auto-tagging GPS, 4 foto sudut pandang, morfometri, dan mikro-habitat.</p>
                     </div>
-                    <span class="button-secondary text-xs font-semibold px-3 py-1.5 shrink-0">Buka Formulir Surveilans</span>
-                </div>
-            </a>
+                    <div class="pt-2">
+                        <span class="button-primary text-xs font-semibold px-4 py-2 min-h-[36px] inline-flex items-center gap-1">
+                            Buka Sensus PTMA →
+                        </span>
+                    </div>
+                </a>
+
+                <!-- eSurveillance Card -->
+                <a href="{{ route('volunteer.surveillance.index') }}" class="content-card border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition p-5 flex flex-col justify-between space-y-3">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Surveilans One Health</span>
+                            <span class="text-lg">📋</span>
+                        </div>
+                        <h2 class="font-outfit text-base font-bold text-slate-900 mt-1">eSurveillance Populasi Kucing</h2>
+                        <p class="text-xs text-slate-600 mt-1">Survei komprehensif 7 langkah: sensus visual, parasitologi feses, sampling tanah, survei KAP, dan evaluasi K3L kampus.</p>
+                    </div>
+                    <div class="pt-2">
+                        <span class="button-secondary text-xs font-semibold px-4 py-2 min-h-[36px] inline-flex items-center gap-1 bg-white">
+                            Buka Form Surveilans →
+                        </span>
+                    </div>
+                </a>
+            </div>
 
             <!-- Success Alert -->
             @if(session('success'))
