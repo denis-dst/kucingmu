@@ -458,7 +458,7 @@
                         </div>
 
                         <!-- Isian Manual Jenis Pakan Lainnya -->
-                        <div x-show="jenisPakan === 'Lainnya'" x-transition class="md:col-span-3 bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
+                        <div x-show="jenisPakan === 'Lainnya'" x-transition class="col-span-full bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
                             <label for="jenis_pakan_custom" class="form-label text-xs text-amber-900">
                                 Deskripsikan Sumber Pakan Lainnya <span class="text-rose-500">*</span>
                             </label>
@@ -466,18 +466,18 @@
                         </div>
 
                         <!-- Isian Manual Ancaman Lainnya -->
-                        <div x-show="ancaman === 'Lainnya'" x-transition class="md:col-span-3 bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
+                        <div x-show="ancaman === 'Lainnya'" x-transition class="col-span-full bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
                             <label for="ancaman_custom" class="form-label text-xs text-amber-900">
                                 Deskripsikan Ancaman Lingkungan Lainnya <span class="text-rose-500">*</span>
                             </label>
                             <input type="text" id="ancaman_custom" name="ancaman_custom" value="{{ old('ancaman_custom', $census->ancaman_custom) }}" class="form-input text-xs bg-white">
                         </div>
+                    </div>
 
-                        <!-- Catatan Tambahan -->
-                        <div class="md:col-span-3">
-                            <label for="catatan" class="form-label text-xs">Catatan Tambahan Surveyor</label>
-                            <textarea id="catatan" name="catatan" rows="2" class="form-input text-xs">{{ old('catatan', $census->catatan) }}</textarea>
-                        </div>
+                    <!-- Catatan Tambahan (Full Width Card) -->
+                    <div class="w-full pt-2">
+                        <label for="catatan" class="form-label text-xs">Catatan Tambahan Surveyor</label>
+                        <textarea id="catatan" name="catatan" rows="3" class="form-input text-xs w-full">{{ old('catatan', $census->catatan) }}</textarea>
                     </div>
                 </div>
 

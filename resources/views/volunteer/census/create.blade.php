@@ -76,10 +76,11 @@
                                 </label>
                                 <span class="text-[11px] text-teal-700 font-semibold" x-show="loadingId">Menghitung ID...</span>
                             </div>
-                            <div class="relative">
-                                <input type="text" id="id_kucing" name="id_kucing" x-model="idKucing" required placeholder="Contoh: UMY-00000001" class="form-input text-xs font-mono font-bold text-teal-900 bg-teal-50/50 border-teal-200">
-                                <button type="button" @click="fetchNextId()" title="Generate ulang ID" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-teal-700 hover:text-teal-900 font-semibold px-2 py-1 bg-white rounded border border-teal-200 shadow-xs">
-                                    ↻ Auto
+                            <div class="flex items-center gap-2">
+                                <input type="text" id="id_kucing" name="id_kucing" x-model="idKucing" required placeholder="Contoh: UMY-00000001" class="form-input text-xs font-mono font-bold text-teal-900 bg-teal-50/50 border-teal-200 flex-1">
+                                <button type="button" @click="fetchNextId()" :disabled="loadingId" title="Generate ulang nomor ID" class="btn-action-secondary px-3 py-2.5 text-xs font-bold shrink-0 min-h-[42px] border-teal-200 text-teal-800 bg-teal-50 hover:bg-teal-100 shadow-xs inline-flex items-center gap-1">
+                                    <span x-show="!loadingId">↻ Auto</span>
+                                    <span x-show="loadingId" class="animate-spin text-teal-700">⟳</span>
                                 </button>
                             </div>
                             <p class="text-[11px] text-slate-500 mt-1">ID otomatis mengikuti kode kampus dan 8 digit nomor urut berikutnya.</p>
@@ -462,7 +463,7 @@
                         </div>
 
                         <!-- Isian Manual Jenis Pakan Lainnya -->
-                        <div x-show="jenisPakan === 'Lainnya'" x-transition class="md:col-span-3 bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
+                        <div x-show="jenisPakan === 'Lainnya'" x-transition class="col-span-full bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
                             <label for="jenis_pakan_custom" class="form-label text-xs text-amber-900">
                                 Deskripsikan Sumber Pakan Lainnya <span class="text-rose-500">*</span>
                             </label>
@@ -470,18 +471,18 @@
                         </div>
 
                         <!-- Isian Manual Ancaman Lainnya -->
-                        <div x-show="ancaman === 'Lainnya'" x-transition class="md:col-span-3 bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
+                        <div x-show="ancaman === 'Lainnya'" x-transition class="col-span-full bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
                             <label for="ancaman_custom" class="form-label text-xs text-amber-900">
                                 Deskripsikan Ancaman Lingkungan Lainnya <span class="text-rose-500">*</span>
                             </label>
                             <input type="text" id="ancaman_custom" name="ancaman_custom" placeholder="Contoh: Saluran drainase terbuka berarus deras saat hujan" class="form-input text-xs bg-white">
                         </div>
+                    </div>
 
-                        <!-- Catatan Tambahan -->
-                        <div class="md:col-span-3">
-                            <label for="catatan" class="form-label text-xs">Catatan Tambahan Surveyor (Opsional)</label>
-                            <textarea id="catatan" name="catatan" rows="2" placeholder="Tuliskan catatan khusus perilaku, lokasi tersembunyi, atau kondisi lingkungan saat sensus..." class="form-input text-xs">{{ old('catatan') }}</textarea>
-                        </div>
+                    <!-- Catatan Tambahan (Full Width Card) -->
+                    <div class="w-full pt-2">
+                        <label for="catatan" class="form-label text-xs">Catatan Tambahan Surveyor (Opsional)</label>
+                        <textarea id="catatan" name="catatan" rows="3" placeholder="Tuliskan catatan khusus perilaku, lokasi tersembunyi, atau kondisi lingkungan saat sensus..." class="form-input text-xs w-full">{{ old('catatan') }}</textarea>
                     </div>
                 </div>
 
