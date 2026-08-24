@@ -565,7 +565,6 @@
                             <input type="text" id="ancaman_custom" name="ancaman_custom" placeholder="Contoh: Saluran drainase terbuka berarus deras saat hujan" class="form-input text-xs bg-white">
                         </div>
                     </div>
-                    </div>
 
                     <!-- Catatan Tambahan (Full Width Card) -->
                     <div class="w-full pt-2">
@@ -575,11 +574,11 @@
                 </div>
 
                 <!-- Submit Button Bar -->
-                <div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
-                    <a href="{{ route('volunteer.census.index') }}" class="w-full sm:w-auto button-secondary text-xs font-semibold px-6 py-3 min-h-[44px] text-center">
+                <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-2">
+                    <a href="{{ route('volunteer.census.index') }}" class="w-full sm:w-auto button-secondary text-xs font-semibold px-6 py-3 min-h-[44px] inline-flex items-center justify-center text-center">
                         Batal
                     </a>
-                    <button type="submit" :disabled="isSubmitting" class="w-full sm:w-auto button-primary text-xs font-bold px-8 py-3 min-h-[44px] inline-flex items-center justify-center gap-2">
+                    <button type="submit" :disabled="isSubmitting" class="w-full sm:w-auto button-primary text-xs font-bold px-8 py-3 min-h-[44px] inline-flex items-center justify-center gap-2 shadow-xs">
                         <span x-show="!isSubmitting">💾 Simpan Data Sensus Kucing</span>
                         <span x-show="isSubmitting" class="inline-flex items-center gap-2">
                             <span class="animate-spin text-white">⟳</span> Menyimpan Data...
