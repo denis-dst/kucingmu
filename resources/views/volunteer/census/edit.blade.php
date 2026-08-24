@@ -54,13 +54,13 @@
                         <span class="text-2xl" aria-hidden="true">📍</span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- Kampus PTMA -->
-                        <div>
+                        <div class="min-w-0">
                             <label for="kampus" class="form-label text-xs">
                                 Kampus PTMA <span class="text-rose-500">*</span>
                             </label>
-                            <select id="kampus" name="kampus" x-model="kampus" required class="form-input text-xs">
+                            <select id="kampus" name="kampus" x-model="kampus" required class="form-input text-xs w-full max-w-full truncate cursor-pointer">
                                 <option value="UMY" @selected($census->kampus === 'UMY')>UMY (Univ. Muhammadiyah Yogyakarta)</option>
                                 <option value="UAD" @selected($census->kampus === 'UAD')>UAD (Univ. Ahmad Dahlan)</option>
                                 <option value="UMP" @selected($census->kampus === 'UMP')>UMP (Univ. Muhammadiyah Purwokerto)</option>
@@ -70,24 +70,24 @@
                         </div>
 
                         <!-- ID Kucing -->
-                        <div>
+                        <div class="min-w-0">
                             <label for="id_kucing" class="form-label text-xs">
                                 ID Kucing (3 Digit) <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" id="id_kucing" name="id_kucing" value="{{ old('id_kucing', $census->id_kucing) }}" required class="form-input text-xs font-mono font-bold text-teal-900 bg-teal-50/50 border-teal-200">
+                            <input type="text" id="id_kucing" name="id_kucing" value="{{ old('id_kucing', $census->id_kucing) }}" required class="form-input text-xs font-mono font-bold text-teal-900 bg-teal-50/50 border-teal-200 w-full min-w-0">
                             <p class="text-[11px] text-slate-500 mt-1">ID unik registrasi sensus kucing PTMA.</p>
                         </div>
 
                         <!-- Isian Manual Kampus Lainnya -->
-                        <div x-show="kampus === 'Lainnya'" x-transition class="md:col-span-2 bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
+                        <div x-show="kampus === 'Lainnya'" x-transition class="col-span-full bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
                             <label for="kampus_custom" class="form-label text-xs text-amber-900">
                                 Tuliskan Nama Kampus PTMA Lainnya <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" id="kampus_custom" name="kampus_custom" value="{{ old('kampus_custom', $census->kampus_custom) }}" placeholder="Contoh: UNISA Yogyakarta / UM Magelang" class="form-input text-xs bg-white">
+                            <input type="text" id="kampus_custom" name="kampus_custom" value="{{ old('kampus_custom', $census->kampus_custom) }}" placeholder="Contoh: UNISA Yogyakarta / UM Magelang" class="form-input text-xs bg-white w-full">
                         </div>
 
                         <!-- Zona / Sektor Kampus (Autocomplete Select / Combobox) -->
-                        <div class="md:col-span-2" x-data="{
+                        <div class="col-span-full min-w-0" x-data="{
                             open: false,
                             search: '{{ old('zona', $census->zona) }}',
                             zones: {{ json_encode($zones ?? ['UMY - Selatan', 'UMY - Utara', 'UMY - Tengah (admisi, AR, maskam, boga)', 'Unires & E8']) }},
@@ -118,7 +118,7 @@
                                            required
                                            autocomplete="off"
                                            placeholder="Pilih atau ketik zona baru (contoh: UMY - Selatan, UMY - Utara)..."
-                                           class="form-input text-xs pr-10">
+                                           class="form-input text-xs pr-10 w-full">
                                     
                                     <button type="button" @click="open = !open" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs p-1" title="Buka pilihan zona">
                                         <span :class="open ? 'rotate-180' : ''" class="inline-block transition-transform duration-150">▼</span>
@@ -159,7 +159,7 @@
                         </div>
 
                         <!-- Koordinat GPS -->
-                        <div class="md:col-span-2 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                        <div class="col-span-full bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div>
                                     <label class="form-label text-xs mb-0">Koordinat GPS</label>
@@ -172,14 +172,14 @@
                                 </button>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <span class="text-[11px] font-semibold text-slate-600 block mb-1">Latitude</span>
-                                    <input type="text" id="latitude" name="latitude" x-model="latitude" readonly placeholder="-7.801234" class="form-input text-xs font-mono bg-white">
+                                    <input type="text" id="latitude" name="latitude" x-model="latitude" readonly placeholder="-7.801234" class="form-input text-xs font-mono bg-white w-full">
                                 </div>
                                 <div>
                                     <span class="text-[11px] font-semibold text-slate-600 block mb-1">Longitude</span>
-                                    <input type="text" id="longitude" name="longitude" x-model="longitude" readonly placeholder="110.365432" class="form-input text-xs font-mono bg-white">
+                                    <input type="text" id="longitude" name="longitude" x-model="longitude" readonly placeholder="110.365432" class="form-input text-xs font-mono bg-white w-full">
                                 </div>
                             </div>
 
@@ -207,13 +207,13 @@
                         <span class="text-2xl" aria-hidden="true">🐱</span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <!-- Usia -->
-                        <div>
+                        <div class="min-w-0">
                             <label for="usia" class="form-label text-xs">
                                 Estimasi Usia <span class="text-rose-500">*</span>
                             </label>
-                            <select id="usia" name="usia" required class="form-input text-xs">
+                            <select id="usia" name="usia" required class="form-input text-xs w-full max-w-full truncate cursor-pointer">
                                 <option value="Kitten" @selected($census->usia === 'Kitten')>Kitten (&lt; 6 bulan)</option>
                                 <option value="Juvenile" @selected($census->usia === 'Juvenile')>Juvenile (6 - 12 bulan)</option>
                                 <option value="Adult" @selected($census->usia === 'Adult')>Adult (&gt; 1 tahun)</option>
@@ -221,11 +221,11 @@
                         </div>
 
                         <!-- Gender -->
-                        <div>
+                        <div class="min-w-0">
                             <label for="gender" class="form-label text-xs">
                                 Jenis Kelamin <span class="text-rose-500">*</span>
                             </label>
-                            <select id="gender" name="gender" required class="form-input text-xs">
+                            <select id="gender" name="gender" required class="form-input text-xs w-full max-w-full truncate cursor-pointer">
                                 <option value="Jantan" @selected($census->gender === 'Jantan')>Jantan</option>
                                 <option value="Betina" @selected($census->gender === 'Betina')>Betina</option>
                                 <option value="Tidak Teridentifikasi" @selected($census->gender === 'Tidak Teridentifikasi')>Tidak Teridentifikasi</option>
@@ -233,11 +233,11 @@
                         </div>
 
                         <!-- Pola Warna Bulu -->
-                        <div>
+                        <div class="min-w-0 sm:col-span-2 lg:col-span-1">
                             <label for="warna" class="form-label text-xs">
                                 Pola Warna Bulu <span class="text-rose-500">*</span>
                             </label>
-                            <select id="warna" name="warna" x-model="warna" required class="form-input text-xs">
+                            <select id="warna" name="warna" x-model="warna" required class="form-input text-xs w-full max-w-full truncate cursor-pointer">
                                 <option value="Tabby" @selected($census->warna === 'Tabby')>Tabby (Garis / Coretan)</option>
                                 <option value="Calico" @selected($census->warna === 'Calico')>Calico / Tortoiseshell (Belang Tiga)</option>
                                 <option value="Black/White" @selected($census->warna === 'Black/White')>Black / White / Bicolor</option>
@@ -247,11 +247,11 @@
                         </div>
 
                         <!-- Isian Manual Warna Lainnya -->
-                        <div x-show="warna === 'Lainnya'" x-transition class="md:col-span-3 bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
+                        <div x-show="warna === 'Lainnya'" x-transition class="col-span-full bg-amber-50/70 p-3.5 rounded-xl border border-amber-200">
                             <label for="warna_custom" class="form-label text-xs text-amber-900">
                                 Deskripsikan Pola Warna Lainnya <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" id="warna_custom" name="warna_custom" value="{{ old('warna_custom', $census->warna_custom) }}" placeholder="Contoh: Solid Grey (Abu-abu polos)" class="form-input text-xs bg-white">
+                            <input type="text" id="warna_custom" name="warna_custom" value="{{ old('warna_custom', $census->warna_custom) }}" placeholder="Contoh: Solid Grey (Abu-abu polos)" class="form-input text-xs bg-white w-full">
                         </div>
                     </div>
 
@@ -414,13 +414,13 @@
                         <span class="text-2xl" aria-hidden="true">⚖️</span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <!-- BCS Score -->
-                        <div>
+                        <div class="col-span-full min-w-0">
                             <label for="bcs" class="form-label text-xs">
                                 Body Condition Score (BCS 1 - 9) <span class="text-rose-500">*</span>
                             </label>
-                            <select id="bcs" name="bcs" required class="form-input text-xs">
+                            <select id="bcs" name="bcs" required class="form-input text-xs w-full max-w-full truncate cursor-pointer">
                                 <option value="1-3" @selected($census->bcs === '1-3')>1-3 (Kurus Kering / Emaciated)</option>
                                 <option value="4-5" @selected($census->bcs === '4-5')>4-5 (Ramping / Underweight)</option>
                                 <option value="6" @selected($census->bcs === '6')>6 (Ideal / Proporsional)</option>
@@ -436,7 +436,7 @@
                             $customKlinis = array_diff($klinisArr, $knownKlinis);
                             $customKlinisStr = implode(', ', $customKlinis);
                         @endphp
-                        <div class="md:col-span-2">
+                        <div class="col-span-full">
                             <label class="form-label text-xs">Kondisi Fisik / Lesi (Bisa pilih lebih dari satu)</label>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
                                 <label class="flex items-center gap-2 font-medium text-slate-700 cursor-pointer">
@@ -467,27 +467,27 @@
                         </div>
 
                         <!-- Kondisi Fisik Lainnya -->
-                        <div class="md:col-span-2">
+                        <div class="col-span-full">
                             <label for="kondisi_klinis_custom" class="form-label text-xs">
                                 Kondisi Fisik Lainnya (Tuliskan jika ada)
                             </label>
-                            <input type="text" id="kondisi_klinis_custom" name="kondisi_klinis_custom" value="{{ old('kondisi_klinis_custom', $customKlinisStr) }}" placeholder="Contoh: Ekor bengkok, buta satu mata, kuku patah..." class="form-input text-xs">
+                            <input type="text" id="kondisi_klinis_custom" name="kondisi_klinis_custom" value="{{ old('kondisi_klinis_custom', $customKlinisStr) }}" placeholder="Contoh: Ekor bengkok, buta satu mata, kuku patah..." class="form-input text-xs w-full">
                         </div>
 
                         <!-- Panjang Badan Total -->
-                        <div>
+                        <div class="min-w-0">
                             <label for="panjang_badan_cm" class="form-label text-xs">
                                 Panjang Badan Total (cm)
                             </label>
-                            <input type="number" step="0.1" id="panjang_badan_cm" name="panjang_badan_cm" value="{{ old('panjang_badan_cm', $census->panjang_badan_cm) }}" placeholder="Contoh: 45.0" class="form-input text-xs">
+                            <input type="number" step="0.1" id="panjang_badan_cm" name="panjang_badan_cm" value="{{ old('panjang_badan_cm', $census->panjang_badan_cm) }}" placeholder="Contoh: 45.0" class="form-input text-xs w-full">
                         </div>
 
                         <!-- Panjang Ekor -->
-                        <div>
+                        <div class="min-w-0">
                             <label for="panjang_ekor_cm" class="form-label text-xs">
                                 Panjang Ekor (cm)
                             </label>
-                            <input type="number" step="0.1" id="panjang_ekor_cm" name="panjang_ekor_cm" value="{{ old('panjang_ekor_cm', $census->panjang_ekor_cm) }}" placeholder="Contoh: 20.5" class="form-input text-xs">
+                            <input type="number" step="0.1" id="panjang_ekor_cm" name="panjang_ekor_cm" value="{{ old('panjang_ekor_cm', $census->panjang_ekor_cm) }}" placeholder="Contoh: 20.5" class="form-input text-xs w-full">
                         </div>
                     </div>
                 </div>
@@ -504,21 +504,21 @@
                         <span class="text-2xl" aria-hidden="true">🌱</span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <!-- Jarak ke Sumber Pakan -->
-                        <div>
+                        <div class="min-w-0">
                             <label for="jarak_pakan" class="form-label text-xs">
                                 Jarak ke Sumber Pakan (Meter)
                             </label>
-                            <input type="number" min="0" id="jarak_pakan" name="jarak_pakan" value="{{ old('jarak_pakan', $census->jarak_pakan) }}" placeholder="Contoh: 5" class="form-input text-xs">
+                            <input type="number" min="0" id="jarak_pakan" name="jarak_pakan" value="{{ old('jarak_pakan', $census->jarak_pakan) }}" placeholder="Contoh: 5" class="form-input text-xs w-full">
                         </div>
 
                         <!-- Sumber Pakan Utama -->
-                        <div>
+                        <div class="min-w-0">
                             <label for="jenis_pakan" class="form-label text-xs">
                                 Sumber Pakan Utama <span class="text-rose-500">*</span>
                             </label>
-                            <select id="jenis_pakan" name="jenis_pakan" x-model="jenisPakan" required class="form-input text-xs">
+                            <select id="jenis_pakan" name="jenis_pakan" x-model="jenisPakan" required class="form-input text-xs w-full max-w-full truncate cursor-pointer">
                                 <option value="Tempat Sampah Terbuka" @selected($census->jenis_pakan === 'Tempat Sampah Terbuka' || $census->jenis_pakan === 'Sampah Terbuka')>Tempat Sampah Terbuka / Bak Sampah</option>
                                 <option value="Limbah Kantin/Dapur" @selected($census->jenis_pakan === 'Limbah Kantin/Dapur' || $census->jenis_pakan === 'Limbah Kantin')>Limbah Kantin / Dapur Kampus</option>
                                 <option value="Pemberian Civitas Akademika (Acak)" @selected($census->jenis_pakan === 'Pemberian Civitas Akademika (Acak)')>Pemberian Civitas Akademika (Acak/Sporadis)</option>
@@ -531,11 +531,11 @@
                         </div>
 
                         <!-- Ancaman Lingkungan -->
-                        <div>
+                        <div class="min-w-0 sm:col-span-2 lg:col-span-1">
                             <label for="ancaman" class="form-label text-xs">
                                 Ancaman Lingkungan <span class="text-rose-500">*</span>
                             </label>
-                            <select id="ancaman" name="ancaman" x-model="ancaman" required class="form-input text-xs">
+                            <select id="ancaman" name="ancaman" x-model="ancaman" required class="form-input text-xs w-full max-w-full truncate cursor-pointer">
                                 <option value="Lalu Lintas Kendaraan Padat (Jalan Utama/Parkiran)" @selected($census->ancaman === 'Lalu Lintas Kendaraan Padat (Jalan Utama/Parkiran)' || $census->ancaman === 'Lalu Lintas Padat')>Lalu Lintas Kendaraan Padat (Jalan Utama/Parkiran)</option>
                                 <option value="Ancaman Hewan Lain (Anjing Liar/Kucing Dominan)" @selected($census->ancaman === 'Ancaman Hewan Lain (Anjing Liar/Kucing Dominan)' || $census->ancaman === 'Predator/Anjing')>Ancaman Hewan Lain (Anjing Liar / Kucing Dominan)</option>
                                 <option value="Aktivitas Konstruksi / Pembangunan" @selected($census->ancaman === 'Aktivitas Konstruksi / Pembangunan')>Aktivitas Konstruksi / Pembangunan</option>
@@ -552,7 +552,7 @@
                             <label for="jenis_pakan_custom" class="form-label text-xs text-amber-900">
                                 Deskripsikan Sumber Pakan Lainnya <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" id="jenis_pakan_custom" name="jenis_pakan_custom" value="{{ old('jenis_pakan_custom', $census->jenis_pakan_custom) }}" class="form-input text-xs bg-white">
+                            <input type="text" id="jenis_pakan_custom" name="jenis_pakan_custom" value="{{ old('jenis_pakan_custom', $census->jenis_pakan_custom) }}" class="form-input text-xs bg-white w-full">
                         </div>
 
                         <!-- Isian Manual Ancaman Lainnya -->
@@ -560,7 +560,7 @@
                             <label for="ancaman_custom" class="form-label text-xs text-amber-900">
                                 Deskripsikan Ancaman Lingkungan Lainnya <span class="text-rose-500">*</span>
                             </label>
-                            <input type="text" id="ancaman_custom" name="ancaman_custom" value="{{ old('ancaman_custom', $census->ancaman_custom) }}" class="form-input text-xs bg-white">
+                            <input type="text" id="ancaman_custom" name="ancaman_custom" value="{{ old('ancaman_custom', $census->ancaman_custom) }}" class="form-input text-xs bg-white w-full">
                         </div>
                     </div>
 
