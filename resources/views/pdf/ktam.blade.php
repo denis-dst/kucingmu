@@ -101,7 +101,7 @@
             left: 4.5mm;
             bottom: 3.5mm;
             font-family: 'Finger Paint', cursive, sans-serif;
-            font-size: 10.5pt;
+            font-size: 11pt;
             font-weight: 400;
             color: #ffffff;
             letter-spacing: 0.8px;
@@ -117,13 +117,12 @@
             background-color: #0d2b78;
         }
 
-        /* Value capsules overlaying the white boxes precisely */
+        /* Value capsules overlaying the white boxes precisely with left alignment */
         .back-val {
             position: absolute;
             display: table;
             overflow: hidden;
-            font-size: 6pt;
-            font-weight: bold;
+            font-weight: 800;
             color: #0b224d;
             text-transform: uppercase;
             letter-spacing: 0.1px;
@@ -136,121 +135,111 @@
         .back-val-inner {
             display: table-cell;
             vertical-align: middle;
-            text-align: center;
-            padding: 0 1mm;
-            line-height: 1.1;
+            text-align: left;
+            padding: 0 1.8mm;
+            line-height: 1.15;
             word-wrap: break-word;
             overflow-wrap: break-word;
             word-break: break-word;
             white-space: normal;
         }
 
-        /* Left column boxes (Slightly raised & centered) */
+        /* Left column boxes (Positioned precisely inside white capsules) */
         .box-namaku {
-            top: 11.2%;
+            top: 13.5%;
             left: 17.75%;
-            width: 30.03%;
-            height: 7.5%;
+            width: 23.5%;
+            height: 6.6%;
         }
         .box-namaku .back-val-inner {
-            font-size: 6.5pt;
+            font-size: 8pt;
             color: #082440;
         }
 
-        .gender-badge {
-            display: inline-block;
-            font-size: 6.5pt;
-            font-weight: 800;
-            margin-left: 1mm;
-        }
-        .gender-male { color: #0284c7; }
-        .gender-female { color: #db2777; }
-
         .box-dob {
-            top: 20.0%;
+            top: 22.3%;
             left: 17.75%;
             width: 30.03%;
-            height: 7.5%;
+            height: 6.6%;
         }
         .box-dob .back-val-inner {
-            font-size: 6.5pt;
+            font-size: 8pt;
         }
 
         .box-breed {
-            top: 28.8%;
+            top: 31.2%;
             left: 17.75%;
             width: 30.03%;
-            height: 9.2%;
+            height: 9.1%;
         }
         .box-breed .back-val-inner {
-            font-size: 5.6pt;
+            font-size: 7.5pt;
         }
 
         .box-color {
-            top: 37.8%;
+            top: 40.0%;
             left: 17.75%;
             width: 30.03%;
-            height: 9.5%;
+            height: 10.3%;
         }
         .box-color .back-val-inner {
-            font-size: 5.6pt;
+            font-size: 7.5pt;
         }
 
         .box-nikumu {
-            top: 46.8%;
+            top: 50.0%;
             left: 17.75%;
             width: 30.03%;
-            height: 7.5%;
+            height: 5.5%;
         }
         .box-nikumu .back-val-inner {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 5.8pt;
+            font-size: 7.5pt;
             font-weight: 800;
             color: #0f4c3a;
         }
 
-        /* Right column boxes (Taller boxes for auto text wrapping) */
+        /* Right column boxes (Positioned precisely inside white capsules with text wrapping) */
         .box-owner-name {
-            top: 11.0%;
+            top: 13.7%;
             left: 66.72%;
             width: 30.03%;
-            height: 14.5%;
+            height: 13.4%;
         }
         .box-owner-name .back-val-inner {
-            font-size: 5.4pt;
-            line-height: 1.05;
+            font-size: 7.2pt;
+            line-height: 1.15;
         }
 
         .box-owner-nbm {
-            top: 26.5%;
+            top: 29.1%;
             left: 66.72%;
             width: 30.03%;
-            height: 14.5%;
+            height: 13.4%;
         }
         .box-owner-nbm .back-val-inner {
-            font-size: 5.6pt;
-            line-height: 1.1;
+            font-size: 7.5pt;
         }
 
         .box-owner-phone {
-            top: 42.0%;
+            top: 44.9%;
             left: 66.72%;
             width: 30.03%;
-            height: 14.5%;
+            height: 13.4%;
         }
         .box-owner-phone .back-val-inner {
-            font-size: 5.8pt;
+            font-size: 7.5pt;
         }
 
         /* Paw & Verification Box (bottom right) */
         .box-paw-container {
             position: absolute;
-            top: 60.5%;
+            top: 63.14%;
             left: 51.19%;
             width: 45.0%;
-            height: 29.5%;
+            height: 30.0%;
             z-index: 10;
-            padding: 0.3mm;
+            padding: 0.5mm;
         }
 
         .paw-table {
@@ -262,22 +251,22 @@
         }
 
         .paw-slot-img {
-            width: 12mm;
-            height: 12mm;
+            width: 12.5mm;
+            height: 12.5mm;
             object-fit: cover;
             border-radius: 2px;
             border: 0.5px solid #cbd5e1;
         }
 
         .paw-qr-img {
-            width: 12mm;
-            height: 12mm;
+            width: 12.5mm;
+            height: 12.5mm;
             display: block;
             margin: 0 auto;
         }
 
         .paw-tag {
-            font-size: 3.5pt;
+            font-size: 3.8pt;
             font-weight: 800;
             color: #047857;
             text-transform: uppercase;
@@ -327,11 +316,6 @@
         <div class="back-val box-namaku">
             <div class="back-val-inner">
                 {{ $cat->name }}
-                @if($cat->gender === 'male')
-                    <span class="gender-badge gender-male">♂</span>
-                @else
-                    <span class="gender-badge gender-female">♀</span>
-                @endif
             </div>
         </div>
 
