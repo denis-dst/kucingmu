@@ -13,120 +13,7 @@ class ActivityAlbumSeeder extends Seeder
     public function run(): void
     {
         $files = [
-            "IMG_1709.HEIC",
-            "IMG_1712.HEIC",
-            "IMG_1713.HEIC",
-            "IMG_1714.HEIC",
-            "IMG_1715.HEIC",
-            "IMG_1716.HEIC",
-            "IMG_1717.HEIC",
-            "IMG_1718.HEIC",
-            "IMG_1719.HEIC",
-            "IMG_1720.HEIC",
-            "IMG_1721.HEIC",
-            "IMG_1722.HEIC",
-            "IMG_1725.HEIC",
-            "IMG_1726.HEIC",
-            "IMG_1727.HEIC",
-            "IMG_1729.HEIC",
-            "IMG_1730.HEIC",
-            "IMG_1732.HEIC",
-            "IMG_1733.HEIC",
-            "IMG_1737.HEIC",
-            "IMG_1738.HEIC",
-            "IMG_1739.HEIC",
-            "IMG_1740.HEIC",
-            "IMG_1741.HEIC",
-            "IMG_1742.HEIC",
-            "IMG_1743.HEIC",
-            "IMG_1744.HEIC",
-            "IMG_1746.HEIC",
-            "IMG_1747.HEIC",
-            "IMG_1748.HEIC",
-            "IMG_1749.HEIC",
-            "IMG_1750.HEIC",
-            "IMG_1751.HEIC",
-            "IMG_1752(1).HEIC",
-            "IMG_1752.HEIC",
-            "IMG_1753.HEIC",
-            "IMG_1754.HEIC",
-            "IMG_1755.HEIC",
-            "IMG_1756.HEIC",
-            "IMG_1757.HEIC",
-            "IMG_1759.HEIC",
-            "IMG_1760.HEIC",
-            "IMG_1761.HEIC",
-            "IMG_1762.HEIC",
-            "IMG_2774.HEIC",
-            "IMG_2775.HEIC",
-            "IMG_2776.HEIC",
-            "IMG_2777.HEIC",
-            "IMG_2802.HEIC",
-            "IMG_2803.HEIC",
-            "IMG_2804.HEIC",
-            "IMG_2809.HEIC",
-            "IMG_2810.HEIC",
-            "IMG_2814.HEIC",
-            "IMG_2819.HEIC",
-            "IMG_2820.HEIC",
-            "IMG_2821.HEIC",
-            "IMG_2822.HEIC",
-            "IMG_2823.HEIC",
-            "IMG_2824.HEIC",
-            "IMG_2827.HEIC",
-            "IMG_2828.HEIC",
-            "IMG_2829.HEIC",
-            "IMG_2830.HEIC",
-            "IMG_2831.HEIC",
-            "IMG_2848.HEIC",
-            "IMG_2852.HEIC",
-            "IMG_2853.HEIC",
             "IMG_2855.JPG",
-            "IMG_2857.HEIC",
-            "IMG_2862.HEIC",
-            "IMG_2863.HEIC",
-            "IMG_2864.HEIC",
-            "IMG_2865.HEIC",
-            "IMG_2866.HEIC",
-            "IMG_2867.HEIC",
-            "IMG_2868.HEIC",
-            "IMG_2869.HEIC",
-            "IMG_2870.HEIC",
-            "IMG_2873.MOV",
-            "IMG_2874.HEIC",
-            "IMG_2875.HEIC",
-            "IMG_2876.HEIC",
-            "IMG_2877.HEIC",
-            "IMG_2878.HEIC",
-            "IMG_2879.HEIC",
-            "IMG_2880.HEIC",
-            "IMG_2881.HEIC",
-            "IMG_2882.HEIC",
-            "IMG_2883.HEIC",
-            "IMG_2884.HEIC",
-            "IMG_3101.HEIC",
-            "IMG_3102.HEIC",
-            "IMG_3103.HEIC",
-            "IMG_3104.HEIC",
-            "IMG_3106.HEIC",
-            "IMG_3107.HEIC",
-            "IMG_3108.HEIC",
-            "IMG_3109.HEIC",
-            "IMG_3110.HEIC",
-            "IMG_3111.HEIC",
-            "IMG_3112.HEIC",
-            "IMG_3113.HEIC",
-            "IMG_3114.HEIC",
-            "IMG_3115.HEIC",
-            "IMG_3116.HEIC",
-            "IMG_3117.HEIC",
-            "IMG_3118.HEIC",
-            "IMG_3119.HEIC",
-            "IMG_3120.HEIC",
-            "IMG_3122.HEIC",
-            "IMG_3123.HEIC",
-            "IMG_3124.HEIC",
-            "IMG_3125.HEIC",
             "IMG_3142.JPG",
             "IMG_5803.JPG",
             "IMG_5804.JPG",
@@ -330,60 +217,20 @@ class ActivityAlbumSeeder extends Seeder
             "IMG_6006.JPG",
             "IMG_6007.JPG",
             "IMG_6008.JPG",
-            "IMG_7460.HEIC",
-            "IMG_7461.HEIC",
-            "IMG_7462.HEIC",
-            "IMG_7463.HEIC",
-            "IMG_7464.HEIC",
-            "IMG_7465.HEIC",
-            "IMG_7466.HEIC",
-            "IMG_7468.HEIC",
-            "IMG_7469.HEIC",
             "IMG_7471.JPG",
-            "IMG_7474.HEIC",
-            "IMG_7475.HEIC",
-            "IMG_7478.HEIC",
-            "IMG_7479.HEIC",
-            "IMG_7480.HEIC",
-            "IMG_7481.HEIC",
-            "IMG_7482.HEIC",
-            "IMG_7485.HEIC",
-            "IMG_7486.HEIC",
-            "IMG_7488.HEIC",
-            "IMG_7489.HEIC",
-            "IMG_7490.HEIC",
-            "IMG_7494.HEIC",
-            "IMG_7495.HEIC",
-            "IMG_7496.HEIC",
-            "IMG_7497.HEIC",
-            "IMG_7503.HEIC",
-            "IMG_7504.HEIC",
-            "IMG_7505.HEIC",
-            "IMG_7506.HEIC",
-            "IMG_7507.HEIC",
-            "IMG_7508.HEIC",
-            "IMG_7509.HEIC",
-            "IMG_7510.HEIC",
-            "IMG_7511.HEIC",
-            "IMG_7512.HEIC",
-            "IMG_7513.HEIC",
-            "IMG_7514.HEIC",
-            "IMG_7515.HEIC",
-            "IMG_7516.HEIC",
-            "IMG_7517.HEIC",
         ];
 
+        // 1. Delete all HEIC/MOV if any exist
+        ActivityAlbum::where('image_path', 'like', '%.HEIC')
+            ->orWhere('image_path', 'like', '%.heic')
+            ->orWhere('image_path', 'like', '%.MOV')
+            ->orWhere('image_path', 'like', '%.mov')
+            ->delete();
+
+        // 2. Insert or update all JPGs as inactive first
         $order = 1;
         foreach ($files as $filename) {
-            $num = preg_replace('/\D/', '', $filename);
-            $ext = strtoupper(pathinfo($filename, PATHINFO_EXTENSION));
-
-            // Categorization and naming logic based on filename series
-            if (str_starts_with($filename, 'IMG_17')) {
-                $category = 'Sensus PTMA';
-                $title = "Dokumentasi Sensus Kucing PTMA (#{$filename})";
-                $caption = "Pendataan populasi stray cat, penilaian Body Condition Score (BCS), dan surveilans mikro-habitat klaster kampus.";
-            } elseif (str_starts_with($filename, 'IMG_27') || str_starts_with($filename, 'IMG_28')) {
+            if (str_starts_with($filename, 'IMG_28')) {
                 $category = 'Pemeriksaan Kesehatan';
                 $title = "Pemeriksaan Medis & Vaksinasi Kucing (#{$filename})";
                 $caption = "Pemeriksaan klinis komprehensif, pembersihan telinga, dan pemberian vitamin oleh dokter hewan mitra KucingMu.";
@@ -391,18 +238,14 @@ class ActivityAlbumSeeder extends Seeder
                 $category = 'Surveilans & Morfometri';
                 $title = "Surveilans Lapangan & Identifikasi (#{$filename})";
                 $caption = "Pencatatan morfometri, identifikasi pola warna/bulu, dan pemantauan kesehatan kucing di lingkungan kampus.";
-            } elseif (str_starts_with($filename, 'IMG_58') || str_starts_with($filename, 'IMG_59') || str_starts_with($filename, 'IMG_60')) {
-                $category = 'Layanan Dokter Hewan';
-                $title = "Pelayanan Kesehatan Kucing Komunitas (#{$filename})";
-                $caption = "Dokumentasi tindakan dokter hewan, pemeriksaan fisik dasar, dan konsultasi kesehatan kucing peliharaan.";
-            } elseif (str_starts_with($filename, 'IMG_74') || str_starts_with($filename, 'IMG_75')) {
+            } elseif (str_starts_with($filename, 'IMG_74')) {
                 $category = 'Edukasi & Komunitas';
                 $title = "Kegiatan Edukasi & Sosialisasi KucingMu (#{$filename})";
                 $caption = "Sosialisasi kesejahteraan hewan dan penerbitan Kartu Tanda Anggota Muhammadiyah (KTAM) Kucing bersama relawan.";
             } else {
-                $category = 'Kegiatan Komunitas';
-                $title = "Dokumentasi Kegiatan KucingMu (#{$filename})";
-                $caption = "Dokumentasi program peduli kesehatan kucing inisiatif Bidang Kesehatan DPD IMM DIY.";
+                $category = 'Layanan Dokter Hewan';
+                $title = "Pelayanan Kesehatan Kucing Komunitas (#{$filename})";
+                $caption = "Dokumentasi tindakan dokter hewan, pemeriksaan fisik dasar, dan konsultasi kesehatan kucing peliharaan.";
             }
 
             ActivityAlbum::updateOrCreate(
@@ -411,7 +254,7 @@ class ActivityAlbumSeeder extends Seeder
                     'title' => $title,
                     'caption' => $caption,
                     'category' => $category,
-                    'activity_date' => now()->subDays(max(1, 300 - ($order * 2)))->toDateString(),
+                    'activity_date' => now()->subDays(max(1, 200 - $order))->toDateString(),
                     'order' => 0,
                     'is_active' => false,
                 ]
@@ -423,8 +266,14 @@ class ActivityAlbumSeeder extends Seeder
         // Set all to inactive first
         ActivityAlbum::query()->update(['is_active' => false, 'order' => 0]);
 
-        // Pick 10 random photos to be active on the homepage slider
-        $randomActive = ActivityAlbum::inRandomOrder()->take(10)->get();
+        // 3. Pick 10 random JPG photos to be active on the homepage slider
+        $randomActive = ActivityAlbum::where(function($q) {
+            $q->where('image_path', 'like', '%.JPG')
+              ->orWhere('image_path', 'like', '%.jpg')
+              ->orWhere('image_path', 'like', '%.JPEG')
+              ->orWhere('image_path', 'like', '%.jpeg');
+        })->inRandomOrder()->take(10)->get();
+
         $slideOrder = 1;
         foreach ($randomActive as $album) {
             $album->is_active = true;
