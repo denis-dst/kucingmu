@@ -645,11 +645,6 @@ class DashboardController extends Controller
         return view('ktam-verify', compact('card', 'cat', 'records'));
     }
 
-        $records = MedicalRecord::where('cat_id', $cat->id)->with('vet')->latest()->get();
-
-        return view('ktam-verify', compact('card', 'cat', 'records'));
-    }
-
     /**
      * Export all data to CSV format (for Admin).
      */
