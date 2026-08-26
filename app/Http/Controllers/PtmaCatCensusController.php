@@ -182,16 +182,16 @@ class PtmaCatCensusController extends Controller
     /**
      * Display the specified census record.
      */
-    public function show(PtmaCatCensus $sensu)
+    public function show(PtmaCatCensus $census)
     {
-        $sensu->load('volunteer');
-        return view('volunteer.census.show', ['census' => $sensu]);
+        $census->load('volunteer');
+        return view('volunteer.census.show', ['census' => $census]);
     }
 
     /**
      * Show the form for editing the specified census record.
      */
-    public function edit(PtmaCatCensus $sensu)
+    public function edit(PtmaCatCensus $census)
     {
         $defaultZones = [
             'UMY - Selatan',
@@ -203,7 +203,7 @@ class PtmaCatCensusController extends Controller
         $zones = array_values(array_unique(array_filter(array_merge($defaultZones, $dbZones))));
 
         return view('volunteer.census.edit', [
-            'census' => $sensu,
+            'census' => $census,
             'zones' => $zones
         ]);
     }
@@ -211,10 +211,10 @@ class PtmaCatCensusController extends Controller
     /**
      * Update the specified census record in storage.
      */
-    public function update(Request $request, PtmaCatCensus $sensu)
+    public function update(Request $request, PtmaCatCensus $census)
     {
         $request->validate([
-            'id_kucing'           => ['required', 'string', 'max:50', Rule::unique('ptma_cat_censuses', 'id_kucing')->ignore($sensu->id)],
+            'id_kucing'           => ['required', 'string', 'max:50', Rule::unique('ptma_cat_censuses', 'id_kucing')->ignore($census->id)],
             'kampus'              => 'required|string|max:50',
             'kampus_custom'       => 'nullable|string|max:100|required_if:kampus,Lainnya',
             'zona'                => 'required|string|max:255',
@@ -281,45 +281,45 @@ class PtmaCatCensusController extends Controller
 
         // Process updated photos if provided
         if ($newFotoWajah = $this->handlePhotoUpload($request, 'foto_wajah', 'foto_wajah_cam')) {
-            if ($sensu->foto_wajah) Storage::disk('public')->delete($sensu->foto_wajah);
+            if ($census->foto_wajah) Storage::disk('public')->delete($census->foto_wajah);
             $data['foto_wajah'] = $newFotoWajah;
         }
 
         if ($newFotoAtas = $this->handlePhotoUpload($request, 'foto_atas', 'foto_atas_cam')) {
-            if ($sensu->foto_atas) Storage::disk('public')->delete($sensu->foto_atas);
+            if ($census->foto_atas) Storage::disk('public')->delete($census->foto_atas);
             $data['foto_atas'] = $newFotoAtas;
         }
 
         if ($newFotoSamping = $this->handlePhotoUpload($request, 'foto_samping_kiri', 'foto_samping_kiri_cam')) {
-            if ($sensu->foto_samping_kiri) Storage::disk('public')->delete($sensu->foto_samping_kiri);
+            if ($census->foto_samping_kiri) Storage::disk('public')->delete($census->foto_samping_kiri);
             $data['foto_samping_kiri'] = $newFotoSamping;
         }
 
         if ($newFotoOpsional = $this->handlePhotoUpload($request, 'foto_opsional', 'foto_opsional_cam')) {
-            if ($sensu->foto_opsional) Storage::disk('public')->delete($sensu->foto_opsional);
+            if ($census->foto_opsional) Storage::disk('public')->delete($census->foto_opsional);
             $data['foto_opsional'] = $newFotoOpsional;
         }
 
-        $sensu->update($data);
+        $census->update($data);
 
         return redirect()->route('volunteer.census.index')
-            ->with('success', "Data Sensus Kucing [{$sensu->id_kucing}] berhasil diperbarui!");
+            ->with('success', "Data Sensus Kucing [{$census->id_kucing}] berhasil diperbarui!");
     }
 
     /**
      * Remove the specified census record from storage.
      */
-    public function destroy(PtmaCatCensus $sensu)
+    public function destroy(PtmaCatCensus $census)
     {
         // Remove photos
-        foreach ([$sensu->foto_wajah, $sensu->foto_atas, $sensu->foto_samping_kiri, $sensu->foto_opsional] as $photo) {
+        foreach ([$census->foto_wajah, $census->foto_atas, $census->foto_samping_kiri, $census->foto_opsional] as $photo) {
             if ($photo) {
                 Storage::disk('public')->delete($photo);
             }
         }
 
-        $idKucing = $sensu->id_kucing;
-        $sensu->delete();
+        $idKucing = $census->id_kucing;
+        $census->delete();
 
         return redirect()->route('volunteer.census.index')
             ->with('success', "Data Sensus Kucing [{$idKucing}] berhasil dihapus.");

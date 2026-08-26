@@ -49,7 +49,12 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
     // Sensus Kucing PTMA
     Route::get('/sensus-kucing/next-id', [PtmaCatCensusController::class, 'nextId'])->name('volunteer.census.next-id');
     Route::get('/sensus-kucing/export-csv', [PtmaCatCensusController::class, 'exportCsv'])->name('volunteer.census.export');
-    Route::resource('/sensus-kucing', PtmaCatCensusController::class, ['names' => 'volunteer.census']);
+    Route::resource('/sensus-kucing', PtmaCatCensusController::class, [
+        'names' => 'volunteer.census',
+        'parameters' => [
+            'sensus-kucing' => 'census'
+        ]
+    ]);
 });
 
 // Admin Routes
