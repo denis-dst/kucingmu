@@ -17,6 +17,9 @@
                         <a href="{{ route('export-data') }}" class="button-primary text-xs font-bold px-4 py-2.5 shadow-sm">
                             <span>📊</span> Ekspor Semua Data (CSV)
                         </a>
+                        <a href="{{ route('superadmin.wilayah.index') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
+                            <span>🏛️</span> Master Wilayah (PWM)
+                        </a>
                     </div>
                 </div>
                 <div class="hidden md:block text-5xl">

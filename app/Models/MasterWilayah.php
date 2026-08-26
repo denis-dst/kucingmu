@@ -43,4 +43,12 @@ class MasterWilayah extends Model
             ->pluck('nama', 'kode')
             ->toArray();
     }
+
+    /**
+     * Cats registered under this wilayah.
+     */
+    public function cats()
+    {
+        return $this->hasMany(Cat::class, 'wilayah_code', 'kode');
+    }
 }
