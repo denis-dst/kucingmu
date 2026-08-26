@@ -96,7 +96,27 @@
             page-break-after: always;
         }
 
-        /* Foto Kucing di Halaman 1 (Tepat di atas nomor kode kucing) */
+        /* QR Code di Halaman 1 (Pojok Kanan Atas) */
+        .front-qr-container {
+            position: absolute;
+            top: 4.5mm;
+            right: 4.5mm;
+            width: 14.5mm;
+            height: 14.5mm;
+            background-color: #ffffff;
+            border-radius: 2.5px;
+            padding: 0.8mm;
+            box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.45);
+            z-index: 20;
+        }
+
+        .front-qr-img {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Foto Kucing di Halaman 1 (Pojok Kiri Bawah, Tepat di Atas Nomor Kode Kucing) */
         .front-photo-container {
             position: absolute;
             left: 4.5mm;
@@ -253,7 +273,7 @@
             font-size: 7pt;
         }
 
-        /* Paw & Verification Box (bottom right) */
+        /* Paw Box on Back (bottom right) */
         .box-paw-container {
             position: absolute;
             top: 63.14%;
@@ -273,18 +293,11 @@
         }
 
         .paw-slot-img {
-            width: 12.5mm;
-            height: 12.5mm;
+            width: 14mm;
+            height: 14mm;
             object-fit: cover;
             border-radius: 2px;
             border: 0.5px solid #cbd5e1;
-        }
-
-        .paw-qr-img {
-            width: 13mm;
-            height: 13mm;
-            display: block;
-            margin: 0 auto;
         }
 
         .paw-tag {
@@ -320,6 +333,13 @@
     <div class="card-page card-front">
         @if(isset($isDraft) && $isDraft)
             <div class="draft-watermark">DRAFT KUCINGMU</div>
+        @endif
+
+        <!-- QR Code Verifikasi (Pojok Kanan Atas) -->
+        @if(isset($card->qr_code_payload) && $card->qr_code_payload)
+            <div class="front-qr-container">
+                <img class="front-qr-img" src="{{ $card->qr_code_payload }}" alt="QR Verifikasi">
+            </div>
         @endif
 
         <!-- Foto Kucing (Pojok Kiri Bawah, Tepat di Atas Nomor Kode Kucing) -->
@@ -401,31 +421,18 @@
             </div>
         </div>
 
-        <!-- 9. TANDA PAW KUCING & QR VERIFIKASI -->
+        <!-- 9. TANDA PAW KUCING (Halaman 2) -->
         <div class="box-paw-container">
-            <table class="paw-table">
-                <tr>
-                    @if($pawPhotoData)
-                        <td width="50%" align="center" valign="middle">
+            @if($pawPhotoData)
+                <table class="paw-table">
+                    <tr>
+                        <td align="center" valign="middle">
                             <img class="paw-slot-img" src="{{ $pawPhotoData }}" alt="Paw Biometrik">
                             <div class="paw-tag">Biometrik Paw</div>
                         </td>
-                        <td width="50%" align="center" valign="middle">
-                            @if(isset($card->qr_code_payload) && $card->qr_code_payload)
-                                <img class="paw-qr-img" src="{{ $card->qr_code_payload }}" alt="QR">
-                            @endif
-                            <div class="paw-tag">Scan QR</div>
-                        </td>
-                    @else
-                        <td align="center" valign="middle">
-                            @if(isset($card->qr_code_payload) && $card->qr_code_payload)
-                                <img class="paw-qr-img" src="{{ $card->qr_code_payload }}" alt="QR">
-                            @endif
-                            <div class="paw-tag">Scan Verifikasi Resmi</div>
-                        </td>
-                    @endif
-                </tr>
-            </table>
+                    </tr>
+                </table>
+            @endif
         </div>
 
     </div>
