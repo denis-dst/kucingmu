@@ -44,7 +44,6 @@
 @endphp
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>KTAM KucingMu - {{ $cat->name }}</title>
@@ -54,7 +53,7 @@
             font-style: normal;
             font-weight: 400;
             @if($fontBase64)
-                src: url('data:font/truetype;charset=utf-8;base64,{{ $fontBase64 }}') format('truetype');
+            src: url('data:font/truetype;charset=utf-8;base64,{{ $fontBase64 }}') format('truetype');
             @endif
         }
 
@@ -69,8 +68,7 @@
             -webkit-print-color-adjust: exact;
         }
 
-        html,
-        body {
+        html, body {
             margin: 0;
             padding: 0;
             width: 86mm;
@@ -98,12 +96,34 @@
             page-break-after: always;
         }
 
+        /* Foto Kucing di Halaman 1 (Tepat di atas nomor kode kucing) */
+        .front-photo-container {
+            position: absolute;
+            left: 4.5mm;
+            bottom: 9.5mm;
+            width: 17mm;
+            height: 17mm;
+            border-radius: 3px;
+            border: 1.2px solid #ffffff;
+            overflow: hidden;
+            background-color: #0f172a;
+            box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.45);
+            z-index: 20;
+        }
+
+        .front-cat-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
         .front-unique-code {
             position: absolute;
             left: 4.5mm;
-            bottom: 3.5mm;
+            bottom: 3.2mm;
             font-family: 'Finger Paint', cursive, sans-serif;
-            font-size: 11pt;
+            font-size: 10.5pt;
             font-weight: 400;
             color: #ffffff;
             letter-spacing: 0.8px;
@@ -153,7 +173,6 @@
             width: 23.5%;
             height: 6.6%;
         }
-
         .box-namaku .back-val-inner {
             font-size: 8pt;
             color: #082440;
@@ -165,7 +184,6 @@
             width: 30.03%;
             height: 6.6%;
         }
-
         .box-dob .back-val-inner {
             font-size: 8pt;
         }
@@ -176,7 +194,6 @@
             width: 30.03%;
             height: 9.1%;
         }
-
         .box-breed .back-val-inner {
             font-size: 7pt;
         }
@@ -187,7 +204,6 @@
             width: 30.03%;
             height: 10.3%;
         }
-
         .box-color .back-val-inner {
             font-size: 7pt;
         }
@@ -198,7 +214,6 @@
             width: 30.03%;
             height: 5.5%;
         }
-
         .box-nikumu .back-val-inner {
             font-family: 'Courier New', Courier, monospace;
             font-size: 7pt;
@@ -213,7 +228,6 @@
             width: 30.03%;
             height: 13.4%;
         }
-
         .box-owner-name .back-val-inner {
             font-size: 7.2pt;
             line-height: 1.15;
@@ -225,7 +239,6 @@
             width: 30.03%;
             height: 13.4%;
         }
-
         .box-owner-nbm .back-val-inner {
             font-size: 7pt;
         }
@@ -236,7 +249,6 @@
             width: 30.03%;
             height: 13.4%;
         }
-
         .box-owner-phone .back-val-inner {
             font-size: 7pt;
         }
@@ -269,8 +281,8 @@
         }
 
         .paw-qr-img {
-            width: 12.5mm;
-            height: 12.5mm;
+            width: 13mm;
+            height: 13mm;
             display: block;
             margin: 0 auto;
         }
@@ -302,13 +314,23 @@
         }
     </style>
 </head>
-
 <body>
 
     <!-- HALAMAN 1: TAMPAK DEPAN (FRONT) -->
     <div class="card-page card-front">
         @if(isset($isDraft) && $isDraft)
             <div class="draft-watermark">DRAFT KUCINGMU</div>
+        @endif
+
+        <!-- Foto Kucing (Pojok Kiri Bawah, Tepat di Atas Nomor Kode Kucing) -->
+        @if($photoData)
+            <div class="front-photo-container">
+                <img class="front-cat-img" src="{{ $photoData }}" alt="{{ $cat->name }}">
+            </div>
+        @elseif($pawPhotoData)
+            <div class="front-photo-container">
+                <img class="front-cat-img" src="{{ $pawPhotoData }}" alt="{{ $cat->name }}">
+            </div>
         @endif
 
         <!-- Kode Unik Kucing (Pojok Kiri Bawah) dengan Font Finger Paint Putih -->
@@ -394,17 +416,6 @@
                             @endif
                             <div class="paw-tag">Scan QR</div>
                         </td>
-                    @elseif($photoData)
-                        <td width="50%" align="center" valign="middle">
-                            <img class="paw-slot-img" src="{{ $photoData }}" alt="Foto">
-                            <div class="paw-tag">Foto Resmi</div>
-                        </td>
-                        <td width="50%" align="center" valign="middle">
-                            @if(isset($card->qr_code_payload) && $card->qr_code_payload)
-                                <img class="paw-qr-img" src="{{ $card->qr_code_payload }}" alt="QR">
-                            @endif
-                            <div class="paw-tag">Scan QR</div>
-                        </td>
                     @else
                         <td align="center" valign="middle">
                             @if(isset($card->qr_code_payload) && $card->qr_code_payload)
@@ -420,5 +431,4 @@
     </div>
 
 </body>
-
 </html>
