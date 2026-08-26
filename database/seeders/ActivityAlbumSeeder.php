@@ -412,12 +412,24 @@ class ActivityAlbumSeeder extends Seeder
                     'caption' => $caption,
                     'category' => $category,
                     'activity_date' => now()->subDays(max(1, 300 - ($order * 2)))->toDateString(),
-                    'order' => $order,
-                    'is_active' => true,
+                    'order' => 0,
+                    'is_active' => false,
                 ]
             );
 
             $order++;
+        }
+
+        // Set all to inactive first
+        ActivityAlbum::query()->update(['is_active' => false, 'order' => 0]);
+
+        // Pick 10 random photos to be active on the homepage slider
+        $randomActive = ActivityAlbum::inRandomOrder()->take(10)->get();
+        $slideOrder = 1;
+        foreach ($randomActive as $album) {
+            $album->is_active = true;
+            $album->order = $slideOrder++;
+            $album->save();
         }
     }
 }
