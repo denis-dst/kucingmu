@@ -47,6 +47,10 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
     Route::post('/sync-offline-legacy', [DashboardController::class, 'syncOffline'])->name('sync-offline');
 
     // Sensus Kucing PTMA
+    Route::get('/sensus-kucing/scan', [PtmaCatCensusController::class, 'scan'])->name('volunteer.census.scan');
+    Route::post('/sensus-kucing/match', [PtmaCatCensusController::class, 'match'])->name('volunteer.census.match');
+    Route::get('/sensus-kucing/missing-embeddings', [PtmaCatCensusController::class, 'getMissingEmbeddings'])->name('volunteer.census.missing-embeddings');
+    Route::post('/sensus-kucing/sync-embeddings', [PtmaCatCensusController::class, 'syncEmbeddings'])->name('volunteer.census.sync-embeddings');
     Route::get('/sensus-kucing/next-id', [PtmaCatCensusController::class, 'nextId'])->name('volunteer.census.next-id');
     Route::get('/sensus-kucing/export-csv', [PtmaCatCensusController::class, 'exportCsv'])->name('volunteer.census.export');
     Route::resource('/sensus-kucing', PtmaCatCensusController::class, [

@@ -29,6 +29,8 @@ class PtmaCatCensus extends Model
         'foto_atas',
         'foto_samping_kiri',
         'foto_opsional',
+        'foto_wajah_embedding',
+        'color_fingerprint',
         'bcs',
         'kondisi_klinis',
         'panjang_badan_cm',
@@ -43,6 +45,8 @@ class PtmaCatCensus extends Model
 
     protected $casts = [
         'kondisi_klinis' => 'array',
+        'foto_wajah_embedding' => 'array',
+        'color_fingerprint' => 'array',
         'latitude' => 'float',
         'longitude' => 'float',
         'panjang_badan_cm' => 'float',
@@ -146,5 +150,82 @@ class PtmaCatCensus extends Model
             return $this->ancaman_custom;
         }
         return $this->ancaman;
+    }
+
+    /**
+     * Calculate cosine similarity between two float arrays.
+     *
+     * @param array $vecA
+     * @param array $vecB
+     * @return float 0.0 - 1.0
+     */
+    public static function cosineSimilarity(array $vecA, array $vecB): float
+    {
+        $count = min(count($vecA), count($vecB));
+        if ($count === 0) return 0.0;
+
+        $dotProduct = 0.0;
+        $normA = 0.0;
+        $normB = 0.0;
+
+        for ($i = 0; $i < $count; $i++) {
+            $a = (float) $vecA[$i];
+            $b = (float) $vecB[$i];
+            $dotProduct += ($a * $b);
+            $normA += ($a * $a);
+            $normB += ($b * $b);
+        }
+
+        if ($normA <= 0.0 || $normB <= 0.0) return 0.0;
+
+        $similarity = $dotProduct / (sqrt($normA) * sqrt($normB));
+        return max(0.0, min(1.0, (float) $similarity));
+    }
+
+    /**
+     * Extract a 64-bin RGB color histogram fingerprint from an image binary string.
+     *
+     * @param string $binaryData
+     * @return array|null
+     */
+    public static function extractColorFingerprint(string $binaryData): ?array
+    {
+        $im = @imagecreatefromstring($binaryData);
+        if (!$im) return null;
+
+        $w = imagesx($im);
+        $h = imagesy($im);
+
+        // Resize to small 64x64 grid for quick sampling
+        $thumb = imagecreatetruecolor(64, 64);
+        imagecopyresampled($thumb, $im, 0, 0, 0, 0, 64, 64, $w, $h);
+
+        // 4 bins per channel -> 4x4x4 = 64 bins
+        $bins = array_fill(0, 64, 0);
+        $totalPixels = 64 * 64;
+
+        for ($x = 0; $x < 64; $x++) {
+            for ($y = 0; $y < 64; $y++) {
+                $rgb = imagecolorat($thumb, $x, $y);
+                $r = ($rgb >> 16) & 0xFF;
+                $g = ($rgb >> 8) & 0xFF;
+                $b = $rgb & 0xFF;
+
+                $rBin = min(3, (int) floor($r / 64));
+                $gBin = min(3, (int) floor($g / 64));
+                $bBin = min(3, (int) floor($b / 64));
+
+                $binIndex = ($rBin * 16) + ($gBin * 4) + $bBin;
+                $bins[$binIndex]++;
+            }
+        }
+
+        imagedestroy($thumb);
+        imagedestroy($im);
+
+        // Normalize
+        return array_map(function ($val) use ($totalPixels) {
+            return round($val / $totalPixels, 5);
+        }, $bins);
     }
 }

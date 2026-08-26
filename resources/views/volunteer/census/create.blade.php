@@ -37,6 +37,22 @@
                 </div>
             @endif
 
+            <!-- Scanner Shortcut Banner -->
+            <div class="bg-gradient-to-r from-teal-50 to-sky-50 border border-teal-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center text-xl shrink-0">
+                        🔍
+                    </div>
+                    <div>
+                        <h3 class="font-outfit text-xs font-bold text-slate-900">Ingin Memastikan Kucing Ini Belum Pernah Didata?</h3>
+                        <p class="text-[11px] text-slate-600">Gunakan fitur pemindai biometrik visual untuk mencocokkan kemiripan wajah kucing dengan arsip sensus.</p>
+                    </div>
+                </div>
+                <a href="{{ route('volunteer.census.scan') }}" class="button-secondary text-xs font-semibold px-3.5 py-2 min-h-[36px] inline-flex items-center gap-1.5 bg-white shrink-0 shadow-xs hover:border-teal-400">
+                    <span>📸</span> Buka Scanner Kucing ➔
+                </a>
+            </div>
+
             <!-- Main Form Card -->
             <form action="{{ route('volunteer.census.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6" @submit="isSubmitting = true">
                 @csrf
@@ -302,6 +318,7 @@
                                         <input type="file" name="foto_wajah" accept="image/*" class="hidden" @change="handleFileSelect($event, 'wajah')">
                                     </label>
                                     <input type="hidden" name="foto_wajah_cam" x-model="photos.wajah.base64">
+                                    <input type="hidden" name="foto_wajah_embedding" x-model="fotoWajahEmbedding">
                                 </div>
                             </div>
 
@@ -652,6 +669,7 @@
                 klinisEarTip: false,
 
                 isSubmitting: false,
+                fotoWajahEmbedding: '',
 
                 // Photos state
                 photos: {
@@ -671,6 +689,41 @@
                 init() {
                     this.fetchNextId();
                     this.getGpsLocation(false);
+                    this.checkScannerPrefill();
+                },
+
+                // Check prefill data passed from scanner page
+                checkScannerPrefill() {
+                    try {
+                        const scannedPhoto = sessionStorage.getItem('kucingmu_scanned_photo_wajah');
+                        const scannedEmb = sessionStorage.getItem('kucingmu_scanned_embedding');
+                        const scannedKampus = sessionStorage.getItem('kucingmu_scanned_kampus');
+                        const scannedWarna = sessionStorage.getItem('kucingmu_scanned_warna');
+
+                        if (scannedPhoto) {
+                            this.photos.wajah.preview = scannedPhoto;
+                            this.photos.wajah.base64 = scannedPhoto;
+                            sessionStorage.removeItem('kucingmu_scanned_photo_wajah');
+                        }
+
+                        if (scannedEmb) {
+                            this.fotoWajahEmbedding = scannedEmb;
+                            sessionStorage.removeItem('kucingmu_scanned_embedding');
+                        }
+
+                        if (scannedKampus) {
+                            this.kampus = scannedKampus;
+                            this.fetchNextId();
+                            sessionStorage.removeItem('kucingmu_scanned_kampus');
+                        }
+
+                        if (scannedWarna) {
+                            this.warna = scannedWarna;
+                            sessionStorage.removeItem('kucingmu_scanned_warna');
+                        }
+                    } catch (e) {
+                        console.warn('Gagal membaca prefill scanner:', e);
+                    }
                 },
 
                 // Auto Tagging GPS
