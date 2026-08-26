@@ -233,11 +233,11 @@
                                     <!-- Foto Master Database -->
                                     <div class="bg-white p-2.5 rounded-xl border border-emerald-200 space-y-1.5">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Foto Master Sensus</span>
+                                            <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block" x-text="matchResult.best_match.source_label || 'Foto Master'"></span>
                                             <span class="text-[10px] font-mono font-bold text-teal-800" x-text="matchResult.best_match.id_kucing"></span>
                                         </div>
                                         <div class="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
-                                            <img :src="matchResult.best_match.foto_wajah_url || matchResult.best_match.foto_atas_url || '/images/cat-placeholder.png'" 
+                                            <img :src="matchResult.best_match.foto_wajah_url || '/images/cat-placeholder.png'" 
                                                  alt="Foto Master" class="w-full h-full object-cover">
                                         </div>
                                     </div>
@@ -246,11 +246,11 @@
                                 <!-- Identity & Morphometry Info -->
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-white p-3 rounded-xl border border-slate-200 text-xs">
                                     <div>
-                                        <span class="text-[10px] text-slate-400 font-semibold block">Kampus / Lokasi</span>
+                                        <span class="text-[10px] text-slate-400 font-semibold block">Asal Data & Lokasi</span>
                                         <span class="font-bold text-slate-800" x-text="matchResult.best_match.display_kampus"></span>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-slate-400 font-semibold block">Zona Lapangan</span>
+                                        <span class="text-[10px] text-slate-400 font-semibold block">Zona / Kategori</span>
                                         <span class="font-bold text-slate-800 truncate block" x-text="matchResult.best_match.zona"></span>
                                     </div>
                                     <div>
@@ -258,16 +258,16 @@
                                         <span class="font-bold text-slate-800" x-text="`${matchResult.best_match.display_warna} (${matchResult.best_match.usia})`"></span>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-slate-400 font-semibold block">Tanggal Sensus</span>
+                                        <span class="text-[10px] text-slate-400 font-semibold block">Tanggal Terdaftar</span>
                                         <span class="font-semibold text-slate-600" x-text="matchResult.best_match.created_at_formatted"></span>
                                     </div>
                                 </div>
 
                                 <!-- Action Buttons -->
                                 <div class="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
-                                    <a :href="`/sensus-kucing/${matchResult.best_match.id}`" target="_blank" 
+                                    <a :href="matchResult.best_match.detail_url || `/sensus-kucing/${matchResult.best_match.id}`" target="_blank" 
                                        class="w-full sm:w-auto button-primary px-4 py-2 text-xs font-bold inline-flex items-center justify-center gap-1.5 shadow">
-                                        <span>📋</span> Buka Detail Sensus Kucing Ini ↗
+                                        <span>📋</span> Buka Detail Data Kucing Ini ↗
                                     </a>
                                     <button type="button" @click="proceedToCreateWithPhoto()" 
                                             class="w-full sm:w-auto button-secondary px-4 py-2 text-xs font-semibold inline-flex items-center justify-center gap-1.5 bg-white">
@@ -341,7 +341,7 @@
                                                     <span class="font-semibold text-[11px] text-teal-700 font-mono" x-text="`${cand.similarity_percent}%`"></span>
                                                 </div>
                                                 <p class="text-[11px] text-slate-500 truncate" x-text="`${cand.display_kampus} • ${cand.display_warna}`"></p>
-                                                <a :href="`/sensus-kucing/${cand.id}`" target="_blank" class="text-[10px] text-teal-700 hover:underline font-semibold block mt-0.5">
+                                                <a :href="cand.detail_url || `/sensus-kucing/${cand.id}`" target="_blank" class="text-[10px] text-teal-700 hover:underline font-semibold block mt-0.5">
                                                     Lihat Data ↗
                                                 </a>
                                             </div>

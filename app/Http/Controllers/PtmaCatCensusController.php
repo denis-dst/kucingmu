@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\PtmaCatCensus;
+use App\Models\Cat;
+use App\Models\StrayCatSurvey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -64,14 +66,14 @@ class PtmaCatCensusController extends Controller
         $dbZones = PtmaCatCensus::whereNotNull('zona')->pluck('zona')->toArray();
         $zones = array_values(array_unique(array_filter(array_merge($defaultZones, $dbZones))));
 
-        $totalRegistered = PtmaCatCensus::count();
+        $totalRegistered = PtmaCatCensus::count() + Cat::count() + StrayCatSurvey::whereNotNull('photo_path')->count();
         $campuses = ['UMY', 'UAD', 'UMP', 'UMS'];
 
         return view('volunteer.census.scan', compact('zones', 'totalRegistered', 'campuses'));
     }
 
     /**
-     * Match a scanned cat embedding / photo against master records in database.
+     * Match a scanned cat embedding / photo against master records across all cat modules.
      */
     public function match(Request $request)
     {
@@ -106,23 +108,21 @@ class PtmaCatCensusController extends Controller
         if (empty($queryEmbedding) && empty($queryColorFingerprint)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Foto atau data embedding visual wajib disertakan untuk pemindaian.',
+                'message' => 'Foto atau data visual wajib disertakan untuk pemindaian.',
             ], 422);
         }
 
-        $query = PtmaCatCensus::query();
-        if ($request->filled('kampus') && $request->kampus !== 'Semua') {
-            $query->where('kampus', $request->kampus);
-        }
-
-        $censuses = $query->where(function ($q) {
-            $q->whereNotNull('foto_wajah')
-              ->orWhereNotNull('foto_wajah_embedding')
-              ->orWhereNotNull('color_fingerprint');
-        })->get();
-
-        $minThreshold = (float) $request->input('threshold', 0.45);
+        $minThreshold = (float) $request->input('threshold', 0.40);
         $candidates = [];
+        $totalCompared = 0;
+
+        // 1. Match with PTMA Cat Census (ptma_cat_censuses)
+        $censusQuery = PtmaCatCensus::query();
+        if ($request->filled('kampus') && $request->kampus !== 'Semua') {
+            $censusQuery->where('kampus', $request->kampus);
+        }
+        $censuses = $censusQuery->get();
+        $totalCompared += $censuses->count();
 
         foreach ($censuses as $census) {
             $embeddingSim = null;
@@ -132,30 +132,38 @@ class PtmaCatCensusController extends Controller
                 $embeddingSim = PtmaCatCensus::cosineSimilarity($queryEmbedding, $census->foto_wajah_embedding);
             }
 
-            if (!empty($queryColorFingerprint) && !empty($census->color_fingerprint)) {
-                $colorSim = PtmaCatCensus::cosineSimilarity($queryColorFingerprint, $census->color_fingerprint);
+            $censusColorFp = $census->color_fingerprint;
+            if (!$censusColorFp && $census->foto_wajah) {
+                $fullPath = storage_path('app/public/' . $census->foto_wajah);
+                if (file_exists($fullPath)) {
+                    $censusColorFp = PtmaCatCensus::extractColorFingerprint(file_get_contents($fullPath));
+                    if ($censusColorFp) {
+                        $census->color_fingerprint = $censusColorFp;
+                        $census->saveQuietly();
+                    }
+                }
+            }
+
+            if (!empty($queryColorFingerprint) && !empty($censusColorFp)) {
+                $colorSim = PtmaCatCensus::cosineSimilarity($queryColorFingerprint, $censusColorFp);
             }
 
             if ($embeddingSim === null && $colorSim === null) {
                 continue;
             }
 
-            // Calculate hybrid visual score (75% deep features, 25% color distribution)
-            if ($embeddingSim !== null && $colorSim !== null) {
-                $finalScore = ($embeddingSim * 0.75) + ($colorSim * 0.25);
-            } elseif ($embeddingSim !== null) {
-                $finalScore = $embeddingSim;
-            } else {
-                $finalScore = $colorSim;
-            }
+            $finalScore = ($embeddingSim !== null && $colorSim !== null) 
+                ? (($embeddingSim * 0.75) + ($colorSim * 0.25))
+                : ($embeddingSim ?? $colorSim);
 
-            // Slight boost if color category matches
             if ($request->filled('warna') && $request->warna !== 'Lainnya' && $census->warna === $request->warna) {
                 $finalScore = min(1.0, $finalScore + 0.04);
             }
 
             if ($finalScore >= $minThreshold) {
                 $candidates[] = [
+                    'source_type'           => 'census',
+                    'source_label'          => 'Sensus PTMA',
                     'id'                    => $census->id,
                     'id_kucing'             => $census->id_kucing,
                     'kampus'                => $census->kampus,
@@ -167,12 +175,85 @@ class PtmaCatCensusController extends Controller
                     'display_warna'         => $census->display_warna,
                     'bcs'                   => $census->bcs,
                     'foto_wajah_url'        => $census->foto_wajah_url,
-                    'foto_atas_url'         => $census->foto_atas_url,
-                    'foto_samping_kiri_url' => $census->foto_samping_kiri_url,
+                    'detail_url'            => route('volunteer.census.show', $census->id),
                     'created_at_formatted'  => $census->created_at ? $census->created_at->format('d M Y, H:i') : '-',
                     'similarity'            => round($finalScore, 4),
                     'similarity_percent'    => round($finalScore * 100, 1),
                 ];
+            }
+        }
+
+        // 2. Match with Member Cats / KTAM (cats table)
+        if (!$request->filled('kampus') || $request->kampus === 'Semua') {
+            $memberCats = Cat::with('owner')->whereNotNull('photo_path')->get();
+            $totalCompared += $memberCats->count();
+
+            foreach ($memberCats as $cat) {
+                $catFullPath = storage_path('app/public/' . $cat->photo_path);
+                if (!file_exists($catFullPath)) continue;
+
+                $catColorFp = PtmaCatCensus::extractColorFingerprint(file_get_contents($catFullPath));
+                if (!$catColorFp) continue;
+
+                $colorSim = $queryColorFingerprint ? PtmaCatCensus::cosineSimilarity($queryColorFingerprint, $catColorFp) : 0.0;
+                
+                if ($colorSim >= $minThreshold) {
+                    $candidates[] = [
+                        'source_type'           => 'member_cat',
+                        'source_label'          => 'Kucing Member KTAM',
+                        'id'                    => $cat->id,
+                        'id_kucing'             => $cat->name . ' (KTAM)',
+                        'kampus'                => 'KTAM',
+                        'display_kampus'        => 'Kucing Member (' . ($cat->owner ? $cat->owner->name : 'Member') . ')',
+                        'zona'                  => 'Ras: ' . ($cat->breed ?: 'Domestik'),
+                        'usia'                  => $cat->date_of_birth ? ($cat->date_of_birth->age . ' thn') : 'Dewasa',
+                        'gender'                => ($cat->gender === 'male' ? 'Jantan' : ($cat->gender === 'female' ? 'Betina' : '-')),
+                        'warna'                 => $cat->breed ?: 'Kucing Ras/Domestik',
+                        'display_warna'         => $cat->breed ?: 'Kucing Ras/Domestik',
+                        'bcs'                   => 'Terawat',
+                        'foto_wajah_url'        => $cat->primary_photo_url,
+                        'detail_url'            => route('cat.edit', $cat->id),
+                        'created_at_formatted'  => $cat->created_at ? $cat->created_at->format('d M Y, H:i') : '-',
+                        'similarity'            => round($colorSim, 4),
+                        'similarity_percent'    => round($colorSim * 100, 1),
+                    ];
+                }
+            }
+
+            // 3. Match with Stray Cat Surveys (stray_cat_surveys table)
+            $surveys = StrayCatSurvey::whereNotNull('photo_path')->get();
+            $totalCompared += $surveys->count();
+
+            foreach ($surveys as $srv) {
+                $srvFullPath = storage_path('app/public/' . $srv->photo_path);
+                if (!file_exists($srvFullPath)) continue;
+
+                $srvColorFp = PtmaCatCensus::extractColorFingerprint(file_get_contents($srvFullPath));
+                if (!$srvColorFp) continue;
+
+                $colorSim = $queryColorFingerprint ? PtmaCatCensus::cosineSimilarity($queryColorFingerprint, $srvColorFp) : 0.0;
+
+                if ($colorSim >= $minThreshold) {
+                    $candidates[] = [
+                        'source_type'           => 'survey',
+                        'source_label'          => 'Surveilans Lapangan',
+                        'id'                    => $srv->id,
+                        'id_kucing'             => 'SRV-' . str_pad($srv->id, 3, '0', STR_PAD_LEFT),
+                        'kampus'                => $srv->campus_location ?: 'PTMA',
+                        'display_kampus'        => $srv->campus_location ?: 'PTMA',
+                        'zona'                  => $srv->zone ?: 'Zona Survei',
+                        'usia'                  => 'Liar',
+                        'gender'                => '-',
+                        'warna'                 => 'Surveilans',
+                        'display_warna'         => 'Kucing Liar',
+                        'bcs'                   => '-',
+                        'foto_wajah_url'        => asset('storage/' . $srv->photo_path),
+                        'detail_url'            => route('volunteer.surveillance.index'),
+                        'created_at_formatted'  => $srv->created_at ? $srv->created_at->format('d M Y, H:i') : '-',
+                        'similarity'            => round($colorSim, 4),
+                        'similarity_percent'    => round($colorSim * 100, 1),
+                    ];
+                }
             }
         }
 
@@ -187,7 +268,7 @@ class PtmaCatCensusController extends Controller
 
         return response()->json([
             'success'        => true,
-            'total_compared' => $censuses->count(),
+            'total_compared' => $totalCompared,
             'match_count'    => count($topCandidates),
             'is_likely_match'=> $isLikelyMatch,
             'best_match'     => $bestMatch,
