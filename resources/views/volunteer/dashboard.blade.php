@@ -122,8 +122,8 @@
                                             <input type="text" name="owner_phone" required class="form-input text-xs" placeholder="Contoh: 0812345678">
                                         </div>
                                         <div>
-                                            <label class="form-label text-xs">NBM Muhammadiyah <span class="text-slate-500 font-normal">(Opsional)</span></label>
-                                            <input type="text" name="owner_nbm" class="form-input text-xs" placeholder="Contoh: 2026-NBM-123">
+                                            <label class="form-label text-xs">NBM Muhammadiyah <span class="text-slate-500 font-normal">(Opsional - 7 Digit)</span></label>
+                                            <input type="text" name="owner_nbm" class="form-input text-xs font-mono" placeholder="Contoh: 1.234.567" maxlength="11">
                                         </div>
                                     </div>
 

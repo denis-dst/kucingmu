@@ -26,24 +26,31 @@
     }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
-            <!-- Hero Header Panel -->
-            <div class="bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <!-- Hero Panel -->
+            <div class="hero-card">
                 <div>
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-700/60 border border-teal-500/30 text-teal-200 text-xs font-bold uppercase tracking-wider mb-3">
-                        <span>🏛️</span> Superadmin Wilayah Management
-                    </div>
-                    <h1 class="font-outfit text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                    <span class="card-kicker">Superadmin Wilayah Management</span>
+                    <h1 class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
                         Master Wilayah (PWM Muhammadiyah)
                     </h1>
-                    <p class="text-teal-100 text-sm max-w-2xl mt-1 leading-relaxed">
-                        Kelola data master kode wilayah, singkatan PWM, dan format generator penomoran unik KTAM (<code class="bg-teal-950/60 px-1.5 py-0.5 rounded text-amber-300 font-mono text-xs">kode_wilayah.kcg.xxxx</code>).
+                    <p class="card-copy max-w-2xl">
+                        Kelola data master kode wilayah, singkatan PWM, dan format generator penomoran unik KTAM (<span class="font-mono font-bold text-teal-800 bg-teal-100/70 px-1.5 py-0.5 rounded text-xs">kode_wilayah.kcg.xxxx</span>) se-Indonesia.
                     </p>
+
+                    <div class="mt-4 flex flex-wrap items-center gap-3">
+                        <button type="button" @click="openCreateModal = true" class="button-primary px-5 py-2.5 inline-flex items-center gap-2 text-xs font-bold shadow-md bg-teal-800 hover:bg-teal-900">
+                            <span>➕</span> Tambah Wilayah Baru
+                        </button>
+                        <form method="POST" action="{{ route('superadmin.wilayah.seed-default') }}" class="inline-block" onsubmit="return confirm('Apakah Anda ingin memuat / memperbarui data wilayah default (35 PWM se-Indonesia)?')">
+                            @csrf
+                            <button type="submit" class="button-secondary px-4 py-2.5 inline-flex items-center gap-2 text-xs font-semibold bg-white shadow-xs hover:bg-slate-50 border border-slate-200 text-slate-700">
+                                <span>📥</span> Muat Data Default (35 PWM)
+                            </button>
+                        </form>
+                    </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button type="button" @click="openCreateModal = true" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-outfit font-bold text-sm shadow-lg hover:shadow-amber-400/20 transition active:scale-95">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        <span>Tambah Wilayah Baru</span>
-                    </button>
+                <div class="hidden md:block text-5xl">
+                    🏛️
                 </div>
             </div>
 
@@ -230,9 +237,23 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="py-12 text-center text-slate-400 font-medium">
-                                        <div class="text-3xl mb-2">🗺️</div>
-                                        <div>Belum ada data wilayah yang sesuai dengan filter pencarian.</div>
+                                    <td colspan="7" class="py-12 text-center text-slate-500 font-medium">
+                                        <div class="text-4xl mb-3">🗺️</div>
+                                        <div class="text-base font-bold text-slate-800 mb-1">Belum Ada Data Master Wilayah</div>
+                                        <p class="text-xs text-slate-500 max-w-md mx-auto mb-4">
+                                            Data wilayah belum dimuat atau tidak ditemukan sesuai filter pencarian. Anda dapat memuat data default 35 PWM se-Indonesia atau menambahkan wilayah baru.
+                                        </p>
+                                        <div class="flex items-center justify-center gap-3">
+                                            <button type="button" @click="openCreateModal = true" class="button-primary px-4 py-2 text-xs font-bold shadow-sm">
+                                                <span>➕</span> Tambah Wilayah
+                                            </button>
+                                            <form method="POST" action="{{ route('superadmin.wilayah.seed-default') }}" class="inline-block" onsubmit="return confirm('Apakah Anda ingin memuat / memperbarui data wilayah default (35 PWM se-Indonesia)?')">
+                                                @csrf
+                                                <button type="submit" class="button-secondary px-4 py-2 text-xs font-semibold bg-white border border-slate-200 hover:bg-slate-50">
+                                                    <span>📥</span> Muat Data Default (35 PWM)
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse

@@ -110,7 +110,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-12 lg:grid-cols-12 items-center">
                 <div class="lg:col-span-7 space-y-6">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-100 text-xs font-semibold uppercase tracking-wider backdrop-blur">
-                        Inisiatif Majelis Lingkungan Hidup PP Muhammadiyah
+                        Inisiatif Bidang Kesehatan DPD IMM DIY
                     </span>
                     <h1 class="font-outfit text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
                         {{ $app_settings['app_name'] ?? 'KucingMu' }}
@@ -127,37 +127,143 @@
                         </a>
                     </div>
                 </div>
-                
-                <!-- Preview Card Representation -->
-                <div class="lg:col-span-5 flex justify-center">
-                    <div class="w-full max-w-sm rounded-3xl border border-white/20 bg-white/10 backdrop-blur-md p-6 shadow-xl text-white">
-                        <div class="flex justify-between items-start border-b border-white/15 pb-3 mb-4">
-                            <div>
-                                <span class="text-xs font-bold text-teal-200 uppercase tracking-wide">Kartu Keanggotaan</span>
-                                <h3 class="font-outfit text-lg font-bold text-white mt-0.5">KTAM KucingMu</h3>
-                            </div>
-                            <span class="bg-white/20 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-white/30">Resmi Terverifikasi</span>
+                <!-- Preview Slide Foto Kegiatan -->
+                <div class="lg:col-span-5" x-data="{
+                    activeIndex: 0,
+                    autoplay: true,
+                    interval: null,
+                    totalSlides: {{ (isset($activityAlbums) && count($activityAlbums) > 0) ? count($activityAlbums) : 3 }},
+                    init() {
+                        this.startAutoplay();
+                    },
+                    startAutoplay() {
+                        this.interval = setInterval(() => {
+                            if (this.autoplay && this.totalSlides > 1) {
+                                this.next();
+                            }
+                        }, 4500);
+                    },
+                    stopAutoplay() {
+                        if (this.interval) clearInterval(this.interval);
+                    },
+                    next() {
+                        this.activeIndex = (this.activeIndex + 1) % this.totalSlides;
+                    },
+                    prev() {
+                        this.activeIndex = (this.activeIndex - 1 + this.totalSlides) % this.totalSlides;
+                    }
+                }" @mouseenter="autoplay = false" @mouseleave="autoplay = true">
+                    
+                    <!-- Carousel Container -->
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 aspect-[4/3] sm:aspect-[16/11] group">
+                        
+                        <!-- Top Header Pill -->
+                        <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-bold shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>Album Kegiatan</span>
+                            </span>
                         </div>
 
-                        <div class="space-y-2.5 text-xs text-teal-100">
-                            <div class="flex justify-between border-b border-white/10 pb-1.5">
-                                <span class="text-teal-200">Nama Kucing:</span>
-                                <strong class="text-white">Mochi</strong>
+                        @if(isset($activityAlbums) && count($activityAlbums) > 0)
+                            @foreach($activityAlbums as $index => $album)
+                                <div x-show="activeIndex === {{ $index }}"
+                                     x-transition:enter="transition ease-out duration-700"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-300"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute inset-0 w-full h-full">
+                                    
+                                    <img src="{{ $album->image_url }}" alt="{{ $album->title }}" class="w-full h-full object-cover">
+                                    
+                                    <!-- Gradient Overlay -->
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+
+                                    <!-- Category Badge Top Right -->
+                                    <div class="absolute top-4 right-4 z-20">
+                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-500/80 backdrop-blur-md text-white border border-teal-300/30">
+                                            {{ $album->category }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Content Overlay Bottom -->
+                                    <div class="absolute bottom-0 inset-x-0 p-5 sm:p-6 z-20 text-white space-y-1.5">
+                                        <div class="text-[11px] font-semibold text-teal-300 flex items-center gap-1.5">
+                                            <span>📅</span> {{ $album->activity_date ? $album->activity_date->translatedFormat('d F Y') : 'Dokumentasi Program' }}
+                                        </div>
+                                        <h3 class="font-outfit text-base sm:text-lg font-bold leading-snug line-clamp-2 text-white">
+                                            {{ $album->title }}
+                                        </h3>
+                                        @if($album->caption)
+                                            <p class="text-xs text-teal-100/80 line-clamp-2 leading-relaxed">
+                                                {{ $album->caption }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <!-- Fallback Demo Slide 1 -->
+                            <div x-show="activeIndex === 0" x-transition:enter="transition ease-out duration-700" class="absolute inset-0 w-full h-full bg-gradient-to-br from-teal-800 to-slate-900 flex flex-col justify-between p-6 text-white">
+                                <div class="flex justify-between items-start">
+                                    <div></div>
+                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-500/80 text-white">Pemeriksaan</span>
+                                </div>
+                                <div class="text-center py-6">
+                                    <div class="text-5xl mb-2">🩺</div>
+                                    <h4 class="font-outfit text-lg font-bold text-white">Pemeriksaan Medis Dokter Hewan</h4>
+                                    <p class="text-xs text-teal-100 mt-1">Layanan cek fisik, telinga, mata, dan pemberian vitamin kucing gratis mitra DPD IMM DIY.</p>
+                                </div>
+                                <div class="text-[11px] text-teal-300 font-semibold">📅 Pelayanan Berkala Komunitas</div>
                             </div>
-                            <div class="flex justify-between border-b border-white/10 pb-1.5">
-                                <span class="text-teal-200">Ras / Jenis:</span>
-                                <strong class="text-white">Domestik Campuran</strong>
+
+                            <!-- Fallback Demo Slide 2 -->
+                            <div x-show="activeIndex === 1" x-transition:enter="transition ease-out duration-700" class="absolute inset-0 w-full h-full bg-gradient-to-br from-sky-900 to-indigo-950 flex flex-col justify-between p-6 text-white">
+                                <div class="flex justify-between items-start">
+                                    <div></div>
+                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/80 text-white">Sensus PTMA</span>
+                                </div>
+                                <div class="text-center py-6">
+                                    <div class="text-5xl mb-2">📊</div>
+                                    <h4 class="font-outfit text-lg font-bold text-white">Sensus & Surveilans Kucing Liar</h4>
+                                    <p class="text-xs text-sky-100 mt-1">Pendataan populasi stray cat berbasis klaster kampus PTMA dan pemantauan Body Condition Score.</p>
+                                </div>
+                                <div class="text-[11px] text-sky-300 font-semibold">📅 Klaster Kampus PTMA</div>
                             </div>
-                            <div class="flex justify-between border-b border-white/10 pb-1.5">
-                                <span class="text-teal-200">Nomor Registrasi:</span>
-                                <strong class="text-white font-mono">KM-20260707-0001</strong>
+
+                            <!-- Fallback Demo Slide 3 -->
+                            <div x-show="activeIndex === 2" x-transition:enter="transition ease-out duration-700" class="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-900 to-slate-950 flex flex-col justify-between p-6 text-white">
+                                <div class="flex justify-between items-start">
+                                    <div></div>
+                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/80 text-white">Identitas Digital</span>
+                                </div>
+                                <div class="text-center py-6">
+                                    <div class="text-5xl mb-2">🪪</div>
+                                    <h4 class="font-outfit text-lg font-bold text-white">Penerbitan Kartu KTAM Digital</h4>
+                                    <p class="text-xs text-emerald-100 mt-1">Kartu Tanda Anggota Muhammadiyah Kucing dilengkapi kode unik wilayah dan QR code verifikasi instan.</p>
+                                </div>
+                                <div class="text-[11px] text-emerald-300 font-semibold">📅 Kartu Terverifikasi Digital</div>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-teal-200">Pemilik Terdaftar:</span>
-                                <strong class="text-white">Siti Rahma (NBM Terverifikasi)</strong>
-                            </div>
+                        @endif
+
+                        <!-- Navigation Arrows -->
+                        <button type="button" @click.stop="prev()" aria-label="Slide sebelumnya" class="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button type="button" @click.stop="next()" aria-label="Slide berikutnya" class="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+
+                        <!-- Indicators Dots -->
+                        <div class="absolute bottom-3 right-5 z-30 flex items-center gap-1.5">
+                            <template x-for="i in totalSlides" :key="i">
+                                <button type="button" @click.stop="activeIndex = i - 1" :aria-label="'Buka slide ' + i" :class="activeIndex === (i - 1) ? 'w-6 bg-amber-400' : 'w-2 bg-white/40 hover:bg-white/70'" class="h-2 rounded-full transition-all duration-300 shadow-xs"></button>
+                            </template>
                         </div>
                     </div>
+
                 </div>
             </div>
         </section>

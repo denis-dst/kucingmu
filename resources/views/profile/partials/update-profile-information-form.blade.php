@@ -47,6 +47,19 @@
             @endif
         </div>
 
+        <div>
+            <x-input-label for="phone" :value="__('Nomor WhatsApp / HP')" />
+            <x-text-input id="phone" name="phone" type="text" class="mt-1 block w-full" :value="old('phone', $user->phone)" placeholder="081234567890" autocomplete="tel" />
+            <x-input-error class="mt-2" :messages="$errors->get('phone')" />
+        </div>
+
+        <div>
+            <x-input-label for="muhammadiyah_id" :value="__('Nomor Baku Muhammadiyah (NBM)')" />
+            <x-text-input id="muhammadiyah_id" name="muhammadiyah_id" type="text" class="mt-1 block w-full font-mono" :value="old('muhammadiyah_id', $user->formatted_nbm ?? $user->muhammadiyah_id)" placeholder="Contoh: 1.234.567" maxlength="11" />
+            <p class="text-xs text-slate-500 mt-1">Format NBM resmi: 7 digit angka (<code class="font-mono text-teal-800 font-bold">x.xxx.xxx</code>, contoh: <code class="font-mono">1.234.567</code>).</p>
+            <x-input-error class="mt-2" :messages="$errors->get('muhammadiyah_id')" />
+        </div>
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

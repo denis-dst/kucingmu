@@ -64,4 +64,48 @@ class User extends Authenticatable
     {
         return $this->hasMany(MedicalRecord::class, 'vet_id');
     }
+
+    /**
+     * Format any NBM input into 7-digit formatted string "x.xxx.xxx".
+     * E.g. "1234567" -> "1.234.567", "1.234.567" -> "1.234.567".
+     */
+    public static function formatNbm(?string $nbm): ?string
+    {
+        if ($nbm === null || trim($nbm) === '') {
+            return null;
+        }
+
+        // Extract only numeric digits
+        $digits = preg_replace('/\D/', '', $nbm);
+
+        if (empty($digits)) {
+            return $nbm;
+        }
+
+        // If fewer than 7 digits, pad with leading zeros to 7 digits
+        if (strlen($digits) < 7) {
+            $digits = str_pad($digits, 7, '0', STR_PAD_LEFT);
+        } elseif (strlen($digits) > 7) {
+            $digits = substr($digits, 0, 7);
+        }
+
+        // Format as x.xxx.xxx (1 digit . 3 digits . 3 digits)
+        return substr($digits, 0, 1) . '.' . substr($digits, 1, 3) . '.' . substr($digits, 4, 3);
+    }
+
+    /**
+     * Accessor for formatted NBM.
+     */
+    public function getFormattedNbmAttribute(): ?string
+    {
+        return self::formatNbm($this->muhammadiyah_id);
+    }
+
+    /**
+     * Mutator to ensure NBM is formatted as x.xxx.xxx upon saving.
+     */
+    public function setMuhammadiyahIdAttribute($value)
+    {
+        $this->attributes['muhammadiyah_id'] = self::formatNbm($value);
+    }
 }

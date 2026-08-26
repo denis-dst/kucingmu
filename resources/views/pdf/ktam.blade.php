@@ -410,7 +410,7 @@
         <!-- 7. NBM OWNER -->
         <div class="back-val box-owner-nbm">
             <div class="back-val-inner">
-                {{ $cat->owner->muhammadiyah_id ?: '-' }}
+                {{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?: '-') }}
             </div>
         </div>
 

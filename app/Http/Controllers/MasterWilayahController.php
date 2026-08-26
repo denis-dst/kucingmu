@@ -121,4 +121,16 @@ class MasterWilayahController extends Controller
         return redirect()->route('superadmin.wilayah.index')
             ->with('success', "Status Wilayah [{$wilayah->kode}] {$wilayah->nama} berhasil {$statusText}.");
     }
+
+    /**
+     * Seed default 35 PWM Wilayahs.
+     */
+    public function seedDefault()
+    {
+        $seeder = new \Database\Seeders\MasterWilayahSeeder();
+        $seeder->run();
+
+        return redirect()->route('superadmin.wilayah.index')
+            ->with('success', 'Data Master Wilayah default (35 PWM Muhammadiyah se-Indonesia) berhasil dimuat.');
+    }
 }

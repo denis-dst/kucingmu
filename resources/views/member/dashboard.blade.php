@@ -14,7 +14,7 @@
                     </p>
                     @if(Auth::user()->muhammadiyah_id)
                         <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-md bg-teal-800 border border-teal-700 text-teal-100 text-xs font-medium">
-                            <span>Nomor Baku Muhammadiyah (NBM): {{ Auth::user()->muhammadiyah_id }}</span>
+                            <span>Nomor Baku Muhammadiyah (NBM): <strong class="font-mono">{{ Auth::user()->formatted_nbm ?? Auth::user()->muhammadiyah_id }}</strong></span>
                         </div>
                     @endif
                 </div>

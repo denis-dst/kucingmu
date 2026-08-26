@@ -60,7 +60,7 @@
                                                     </span>
                                                 </div>
                                                 <p class="text-xs text-slate-500 mt-0.5">Ras: {{ $app->cat->breed }} &bull; Kelamin: {{ $app->cat->gender == 'male' ? 'Jantan' : 'Betina' }}</p>
-                                                <p class="text-xs text-slate-500 mt-0.5">Pemilik: <span class="font-semibold text-slate-700">{{ $app->cat->owner->name }}</span> (NBM: {{ $app->cat->owner->muhammadiyah_id ?? '-' }})</p>
+                                                <p class="text-xs text-slate-500 mt-0.5">Pemilik: <span class="font-semibold text-slate-700">{{ $app->cat->owner->name }}</span> (NBM: <span class="font-mono font-medium">{{ $app->cat->owner->formatted_nbm ?? ($app->cat->owner->muhammadiyah_id ?? '-') }}</span>)</p>
                                                 @if($app->notes)
                                                     <p class="text-xs text-slate-400 mt-2 bg-white p-2 rounded border border-slate-100 italic">"{{ $app->notes }}"</p>
                                                 @endif

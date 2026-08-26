@@ -116,7 +116,7 @@
                         </div>
                         <div class="col-span-2">
                             <span class="text-slate-500 block font-medium">Nomor NBM Pemilik</span>
-                            <span class="font-bold text-slate-900">{{ $cat->owner->muhammadiyah_id ?? '-' }}</span>
+                            <span class="font-bold font-mono text-slate-900">{{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-') }}</span>
                         </div>
                     </div>
                 </div>
