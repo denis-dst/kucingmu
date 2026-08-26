@@ -22,10 +22,16 @@ class Cat extends Model
         'biometric_type',
         'biometric_photo_path',
         'biometric_code',
+        'photo_embedding',
+        'color_fingerprint',
+        'spatial_fingerprint',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
+        'photo_embedding' => 'array',
+        'color_fingerprint' => 'array',
+        'spatial_fingerprint' => 'array',
     ];
 
     public function owner()

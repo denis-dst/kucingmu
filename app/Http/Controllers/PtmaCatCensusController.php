@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\PtmaCatCensus;
 use App\Models\Cat;
+use App\Models\CatPhoto;
 use App\Models\StrayCatSurvey;
+use App\Services\CatBiometricService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -100,23 +102,35 @@ class PtmaCatCensusController extends Controller
             $rawBinary = base64_decode($b64) ?: null;
         }
 
-        $queryColorFingerprint = null;
+        $querySpatial = null;
+        $queryColor = null;
+        $queryHash = null;
+
         if ($rawBinary) {
-            $queryColorFingerprint = PtmaCatCensus::extractColorFingerprint($rawBinary);
+            $querySpatial = CatBiometricService::extractSpatialFingerprint($rawBinary);
+            $queryColor = CatBiometricService::extractColorFingerprint($rawBinary);
+            $queryHash = CatBiometricService::extractDHash($rawBinary);
         }
 
-        if (empty($queryEmbedding) && empty($queryColorFingerprint)) {
+        if (empty($queryEmbedding) && empty($querySpatial) && empty($queryColor)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Foto atau data visual wajib disertakan untuk pemindaian.',
+                'message' => 'Foto atau data visual biometrik wajib disertakan untuk pemindaian.',
             ], 422);
         }
+
+        $queryBiometrics = [
+            'embedding' => $queryEmbedding,
+            'spatial'   => $querySpatial,
+            'color'     => $queryColor,
+            'hash'      => $queryHash,
+        ];
 
         $minThreshold = (float) $request->input('threshold', 0.40);
         $candidates = [];
         $totalCompared = 0;
 
-        // 1. Match with PTMA Cat Census (ptma_cat_censuses)
+        // 1. Match with PTMA Cat Census (ptma_cat_censuses) - Multi-Angle Matching
         $censusQuery = PtmaCatCensus::query();
         if ($request->filled('kampus') && $request->kampus !== 'Semua') {
             $censusQuery->where('kampus', $request->kampus);
@@ -125,79 +139,159 @@ class PtmaCatCensusController extends Controller
         $totalCompared += $censuses->count();
 
         foreach ($censuses as $census) {
-            $embeddingSim = null;
-            $colorSim = null;
+            $slots = [
+                'wajah'    => ['path' => $census->foto_wajah, 'label' => 'Foto Wajah', 'emb' => $census->foto_wajah_embedding ?? ($census->multi_embeddings['wajah'] ?? null)],
+                'atas'     => ['path' => $census->foto_atas, 'label' => 'Tampak Atas / Punggung', 'emb' => $census->multi_embeddings['atas'] ?? null],
+                'samping'  => ['path' => $census->foto_samping_kiri, 'label' => 'Samping Kiri', 'emb' => $census->multi_embeddings['samping'] ?? null],
+                'opsional' => ['path' => $census->foto_opsional, 'label' => 'Ciri Unik / Tambahan', 'emb' => $census->multi_embeddings['opsional'] ?? null],
+            ];
 
-            if (!empty($queryEmbedding) && !empty($census->foto_wajah_embedding)) {
-                $embeddingSim = PtmaCatCensus::cosineSimilarity($queryEmbedding, $census->foto_wajah_embedding);
-            }
+            $spatialFp = is_array($census->spatial_fingerprint) ? $census->spatial_fingerprint : [];
+            $bestSlotEval = null;
+            $bestSlotKey = 'wajah';
+            $bestSlotScore = 0.0;
 
-            $censusColorFp = $census->color_fingerprint;
-            if (!$censusColorFp && $census->foto_wajah) {
-                $fullPath = storage_path('app/public/' . $census->foto_wajah);
-                if (file_exists($fullPath)) {
-                    $censusColorFp = PtmaCatCensus::extractColorFingerprint(file_get_contents($fullPath));
-                    if ($censusColorFp) {
-                        $census->color_fingerprint = $censusColorFp;
-                        $census->saveQuietly();
+            foreach ($slots as $slotKey => $slotData) {
+                if (empty($slotData['path'])) continue;
+
+                // Load or extract target fingerprints
+                $targetFps = $spatialFp[$slotKey] ?? null;
+                if (!$targetFps) {
+                    $targetFps = CatBiometricService::getOrGenerateFingerprints($slotData['path']);
+                    if ($targetFps) {
+                        $spatialFp[$slotKey] = $targetFps;
                     }
+                }
+
+                $targetBiometrics = [
+                    'embedding' => $slotData['emb'],
+                    'spatial'   => $targetFps['spatial'] ?? null,
+                    'color'     => $targetFps['color'] ?? ($slotKey === 'wajah' ? $census->color_fingerprint : null),
+                    'hash'      => $targetFps['hash'] ?? null,
+                ];
+
+                $eval = CatBiometricService::evaluateMatchScore($queryBiometrics, $targetBiometrics);
+                if ($eval['final_score'] > $bestSlotScore) {
+                    $bestSlotScore = $eval['final_score'];
+                    $bestSlotEval = $eval;
+                    $bestSlotKey = $slotKey;
                 }
             }
 
-            if (!empty($queryColorFingerprint) && !empty($censusColorFp)) {
-                $colorSim = PtmaCatCensus::cosineSimilarity($queryColorFingerprint, $censusColorFp);
+            // Save back cached fingerprints if newly generated
+            if ($spatialFp !== $census->spatial_fingerprint) {
+                $census->spatial_fingerprint = $spatialFp;
+                $census->saveQuietly();
             }
 
-            if ($embeddingSim === null && $colorSim === null) {
+            if (!$bestSlotEval || $bestSlotScore < $minThreshold) {
                 continue;
             }
 
-            $finalScore = ($embeddingSim !== null && $colorSim !== null) 
-                ? (($embeddingSim * 0.75) + ($colorSim * 0.25))
-                : ($embeddingSim ?? $colorSim);
-
+            // Contextual adjustments
+            $finalScore = $bestSlotScore;
             if ($request->filled('warna') && $request->warna !== 'Lainnya' && $census->warna === $request->warna) {
                 $finalScore = min(1.0, $finalScore + 0.04);
             }
-
-            if ($finalScore >= $minThreshold) {
-                $candidates[] = [
-                    'source_type'           => 'census',
-                    'source_label'          => 'Sensus PTMA',
-                    'id'                    => $census->id,
-                    'id_kucing'             => $census->id_kucing,
-                    'kampus'                => $census->kampus,
-                    'display_kampus'        => $census->display_kampus,
-                    'zona'                  => $census->zona,
-                    'usia'                  => $census->usia,
-                    'gender'                => $census->gender,
-                    'warna'                 => $census->warna,
-                    'display_warna'         => $census->display_warna,
-                    'bcs'                   => $census->bcs,
-                    'foto_wajah_url'        => $census->foto_wajah_url,
-                    'detail_url'            => route('volunteer.census.show', $census->id),
-                    'created_at_formatted'  => $census->created_at ? $census->created_at->format('d M Y, H:i') : '-',
-                    'similarity'            => round($finalScore, 4),
-                    'similarity_percent'    => round($finalScore * 100, 1),
-                ];
+            if ($request->filled('kampus') && $request->kampus !== 'Semua' && $census->kampus === $request->kampus) {
+                $finalScore = min(1.0, $finalScore + 0.02);
             }
+
+            $matchedPhotoUrl = match($bestSlotKey) {
+                'atas'     => $census->foto_atas_url,
+                'samping'  => $census->foto_samping_kiri_url,
+                'opsional' => $census->foto_opsional_url,
+                default    => $census->foto_wajah_url,
+            } ?: $census->foto_wajah_url;
+
+            $candidates[] = [
+                'source_type'           => 'census',
+                'source_label'          => 'Sensus PTMA',
+                'id'                    => $census->id,
+                'id_kucing'             => $census->id_kucing,
+                'kampus'                => $census->kampus,
+                'display_kampus'        => $census->display_kampus,
+                'zona'                  => $census->zona,
+                'usia'                  => $census->usia,
+                'gender'                => $census->gender,
+                'warna'                 => $census->warna,
+                'display_warna'         => $census->display_warna,
+                'bcs'                   => $census->bcs,
+                'foto_wajah_url'        => $matchedPhotoUrl,
+                'matched_angle'         => $slots[$bestSlotKey]['label'] ?? 'Foto Wajah',
+                'detail_url'            => route('volunteer.census.show', $census->id),
+                'created_at_formatted'  => $census->created_at ? $census->created_at->format('d M Y, H:i') : '-',
+                'similarity'            => round($finalScore, 4),
+                'similarity_percent'    => round($finalScore * 100, 1),
+                'metrics'               => [
+                    'deep'    => $bestSlotEval['deep_score'],
+                    'spatial' => $bestSlotEval['spatial_score'],
+                    'color'   => $bestSlotEval['color_score'],
+                    'hash'    => $bestSlotEval['hash_score'],
+                ],
+            ];
         }
 
-        // 2. Match with Member Cats / KTAM (cats table)
+        // 2. Match with Member Cats / KTAM (cats & cat_photos table)
         if (!$request->filled('kampus') || $request->kampus === 'Semua') {
-            $memberCats = Cat::with('owner')->whereNotNull('photo_path')->get();
+            $memberCats = Cat::with(['owner', 'photos'])->whereNotNull('photo_path')->get();
             $totalCompared += $memberCats->count();
 
             foreach ($memberCats as $cat) {
-                $catFullPath = storage_path('app/public/' . $cat->photo_path);
-                if (!file_exists($catFullPath)) continue;
+                $bestCatEval = null;
+                $bestCatScore = 0.0;
+                $bestPhotoUrl = $cat->primary_photo_url;
+                $bestPhotoLabel = 'Foto Profil KTAM';
 
-                $catColorFp = PtmaCatCensus::extractColorFingerprint(file_get_contents($catFullPath));
-                if (!$catColorFp) continue;
+                // Check primary photo
+                $primaryFps = $cat->spatial_fingerprint ?: CatBiometricService::getOrGenerateFingerprints($cat->photo_path);
+                if ($primaryFps && empty($cat->spatial_fingerprint)) {
+                    $cat->spatial_fingerprint = $primaryFps;
+                    $cat->color_fingerprint = $primaryFps['color'];
+                    $cat->saveQuietly();
+                }
 
-                $colorSim = $queryColorFingerprint ? PtmaCatCensus::cosineSimilarity($queryColorFingerprint, $catColorFp) : 0.0;
-                
-                if ($colorSim >= $minThreshold) {
+                if ($primaryFps) {
+                    $eval = CatBiometricService::evaluateMatchScore($queryBiometrics, [
+                        'embedding' => $cat->photo_embedding,
+                        'spatial'   => $primaryFps['spatial'] ?? null,
+                        'color'     => $primaryFps['color'] ?? $cat->color_fingerprint,
+                        'hash'      => $primaryFps['hash'] ?? null,
+                    ]);
+                    if ($eval['final_score'] > $bestCatScore) {
+                        $bestCatScore = $eval['final_score'];
+                        $bestCatEval = $eval;
+                    }
+                }
+
+                // Check gallery photos (CatPhoto)
+                if ($cat->photos) {
+                    foreach ($cat->photos as $cp) {
+                        if (empty($cp->photo_path)) continue;
+                        $cpFps = $cp->spatial_fingerprint ?: CatBiometricService::getOrGenerateFingerprints($cp->photo_path);
+                        if ($cpFps && empty($cp->spatial_fingerprint)) {
+                            $cp->spatial_fingerprint = $cpFps;
+                            $cp->color_fingerprint = $cpFps['color'];
+                            $cp->saveQuietly();
+                        }
+                        if ($cpFps) {
+                            $eval = CatBiometricService::evaluateMatchScore($queryBiometrics, [
+                                'embedding' => $cp->photo_embedding,
+                                'spatial'   => $cpFps['spatial'] ?? null,
+                                'color'     => $cpFps['color'] ?? $cp->color_fingerprint,
+                                'hash'      => $cpFps['hash'] ?? null,
+                            ]);
+                            if ($eval['final_score'] > $bestCatScore) {
+                                $bestCatScore = $eval['final_score'];
+                                $bestCatEval = $eval;
+                                $bestPhotoUrl = asset('storage/' . $cp->photo_path);
+                                $bestPhotoLabel = $cp->label ?: 'Galeri KTAM';
+                            }
+                        }
+                    }
+                }
+
+                if ($bestCatEval && $bestCatScore >= $minThreshold) {
                     $candidates[] = [
                         'source_type'           => 'member_cat',
                         'source_label'          => 'Kucing Member KTAM',
@@ -211,11 +305,18 @@ class PtmaCatCensusController extends Controller
                         'warna'                 => $cat->breed ?: 'Kucing Ras/Domestik',
                         'display_warna'         => $cat->breed ?: 'Kucing Ras/Domestik',
                         'bcs'                   => 'Terawat',
-                        'foto_wajah_url'        => $cat->primary_photo_url,
+                        'foto_wajah_url'        => $bestPhotoUrl,
+                        'matched_angle'         => $bestPhotoLabel,
                         'detail_url'            => route('cat.edit', $cat->id),
                         'created_at_formatted'  => $cat->created_at ? $cat->created_at->format('d M Y, H:i') : '-',
-                        'similarity'            => round($colorSim, 4),
-                        'similarity_percent'    => round($colorSim * 100, 1),
+                        'similarity'            => round($bestCatScore, 4),
+                        'similarity_percent'    => round($bestCatScore * 100, 1),
+                        'metrics'               => [
+                            'deep'    => $bestCatEval['deep_score'],
+                            'spatial' => $bestCatEval['spatial_score'],
+                            'color'   => $bestCatEval['color_score'],
+                            'hash'    => $bestCatEval['hash_score'],
+                        ],
                     ];
                 }
             }
@@ -225,15 +326,23 @@ class PtmaCatCensusController extends Controller
             $totalCompared += $surveys->count();
 
             foreach ($surveys as $srv) {
-                $srvFullPath = storage_path('app/public/' . $srv->photo_path);
-                if (!file_exists($srvFullPath)) continue;
+                $srvFps = $srv->spatial_fingerprint ?: CatBiometricService::getOrGenerateFingerprints($srv->photo_path);
+                if ($srvFps && empty($srv->spatial_fingerprint)) {
+                    $srv->spatial_fingerprint = $srvFps;
+                    $srv->color_fingerprint = $srvFps['color'];
+                    $srv->saveQuietly();
+                }
 
-                $srvColorFp = PtmaCatCensus::extractColorFingerprint(file_get_contents($srvFullPath));
-                if (!$srvColorFp) continue;
+                if (!$srvFps) continue;
 
-                $colorSim = $queryColorFingerprint ? PtmaCatCensus::cosineSimilarity($queryColorFingerprint, $srvColorFp) : 0.0;
+                $eval = CatBiometricService::evaluateMatchScore($queryBiometrics, [
+                    'embedding' => $srv->photo_embedding,
+                    'spatial'   => $srvFps['spatial'] ?? null,
+                    'color'     => $srvFps['color'] ?? $srv->color_fingerprint,
+                    'hash'      => $srvFps['hash'] ?? null,
+                ]);
 
-                if ($colorSim >= $minThreshold) {
+                if ($eval['final_score'] >= $minThreshold) {
                     $candidates[] = [
                         'source_type'           => 'survey',
                         'source_label'          => 'Surveilans Lapangan',
@@ -248,10 +357,17 @@ class PtmaCatCensusController extends Controller
                         'display_warna'         => 'Kucing Liar',
                         'bcs'                   => '-',
                         'foto_wajah_url'        => asset('storage/' . $srv->photo_path),
+                        'matched_angle'         => 'Foto Dokumentasi Surveilans',
                         'detail_url'            => route('volunteer.surveillance.index'),
                         'created_at_formatted'  => $srv->created_at ? $srv->created_at->format('d M Y, H:i') : '-',
-                        'similarity'            => round($colorSim, 4),
-                        'similarity_percent'    => round($colorSim * 100, 1),
+                        'similarity'            => round($eval['final_score'], 4),
+                        'similarity_percent'    => round($eval['final_score'] * 100, 1),
+                        'metrics'               => [
+                            'deep'    => $eval['deep_score'],
+                            'spatial' => $eval['spatial_score'],
+                            'color'   => $eval['color_score'],
+                            'hash'    => $eval['hash_score'],
+                        ],
                     ];
                 }
             }
@@ -262,9 +378,12 @@ class PtmaCatCensusController extends Controller
             return $b['similarity'] <=> $a['similarity'];
         });
 
-        $topCandidates = array_slice($candidates, 0, 6);
+        $topCandidates = array_slice($candidates, 0, 8);
         $bestMatch = !empty($topCandidates) ? $topCandidates[0] : null;
-        $isLikelyMatch = $bestMatch && ($bestMatch['similarity_percent'] >= 72.0);
+        $isLikelyMatch = $bestMatch && (
+            $bestMatch['similarity_percent'] >= 68.0 ||
+            (!empty($bestMatch['metrics']['deep']) && $bestMatch['metrics']['deep'] >= 72.0)
+        );
 
         return response()->json([
             'success'        => true,
@@ -277,48 +396,125 @@ class PtmaCatCensusController extends Controller
     }
 
     /**
-     * Get records with photos that are missing visual embeddings.
+     * Get records across all cat tables that are missing visual deep embeddings.
      */
     public function getMissingEmbeddings(Request $request)
     {
-        $records = PtmaCatCensus::whereNotNull('foto_wajah')
-            ->whereNull('foto_wajah_embedding')
-            ->select(['id', 'id_kucing', 'foto_wajah'])
-            ->limit(20)
-            ->get()
-            ->map(function ($c) {
-                return [
-                    'id'             => $c->id,
-                    'id_kucing'      => $c->id_kucing,
-                    'foto_wajah_url' => $c->foto_wajah_url,
-                ];
+        $records = [];
+
+        // 1. PTMA Census missing embeddings (all 4 slots)
+        $censuses = PtmaCatCensus::where(function ($q) {
+            $q->where(function ($q2) {
+                $q2->whereNotNull('foto_wajah')->whereNull('foto_wajah_embedding');
+            })->orWhere(function ($q2) {
+                $q2->whereNotNull('foto_atas')->whereNull('multi_embeddings');
+            })->orWhere(function ($q2) {
+                $q2->whereNotNull('foto_samping_kiri')->whereNull('multi_embeddings');
             });
+        })->limit(15)->get();
+
+        foreach ($censuses as $c) {
+            $slots = [
+                'wajah'   => $c->foto_wajah_url,
+                'atas'    => $c->foto_atas_url,
+                'samping' => $c->foto_samping_kiri_url,
+                'opsional'=> $c->foto_opsional_url,
+            ];
+            $multi = is_array($c->multi_embeddings) ? $c->multi_embeddings : [];
+
+            foreach ($slots as $slotKey => $url) {
+                if ($url && ($slotKey === 'wajah' ? empty($c->foto_wajah_embedding) : empty($multi[$slotKey]))) {
+                    $records[] = [
+                        'type'     => 'census',
+                        'id'       => $c->id,
+                        'id_label' => $c->id_kucing . ' (' . ucfirst($slotKey) . ')',
+                        'slot'     => $slotKey,
+                        'photo_url'=> $url,
+                    ];
+                }
+            }
+        }
+
+        // 2. Member cats
+        if (count($records) < 15) {
+            $cats = Cat::whereNotNull('photo_path')->whereNull('photo_embedding')->limit(10)->get();
+            foreach ($cats as $cat) {
+                $records[] = [
+                    'type'     => 'cat',
+                    'id'       => $cat->id,
+                    'id_label' => $cat->name . ' (KTAM)',
+                    'slot'     => 'primary',
+                    'photo_url'=> $cat->primary_photo_url,
+                ];
+            }
+        }
+
+        // 3. Surveys
+        if (count($records) < 15) {
+            $surveys = StrayCatSurvey::whereNotNull('photo_path')->whereNull('photo_embedding')->limit(10)->get();
+            foreach ($surveys as $srv) {
+                $records[] = [
+                    'type'     => 'survey',
+                    'id'       => $srv->id,
+                    'id_label' => 'Surveilans #' . $srv->id,
+                    'slot'     => 'primary',
+                    'photo_url'=> asset('storage/' . $srv->photo_path),
+                ];
+            }
+        }
 
         return response()->json([
             'success'         => true,
-            'records'         => $records,
-            'remaining_count' => PtmaCatCensus::whereNotNull('foto_wajah')->whereNull('foto_wajah_embedding')->count(),
+            'records'         => array_slice($records, 0, 15),
+            'remaining_count' => count($records),
         ]);
     }
 
     /**
-     * Sync computed embeddings from client.
+     * Sync computed embeddings from client across modules.
      */
     public function syncEmbeddings(Request $request)
     {
         $request->validate([
             'items'             => 'required|array',
-            'items.*.id'        => 'required|integer|exists:ptma_cat_censuses,id',
+            'items.*.id'        => 'required|integer',
             'items.*.embedding' => 'required|array',
+            'items.*.type'      => 'nullable|string',
+            'items.*.slot'      => 'nullable|string',
         ]);
 
         $updated = 0;
         foreach ($request->items as $item) {
-            $census = PtmaCatCensus::find($item['id']);
-            if ($census) {
-                $census->foto_wajah_embedding = $item['embedding'];
-                $census->save();
-                $updated++;
+            $type = $item['type'] ?? 'census';
+            $slot = $item['slot'] ?? 'wajah';
+            $emb = $item['embedding'];
+
+            if ($type === 'census') {
+                $census = PtmaCatCensus::find($item['id']);
+                if ($census) {
+                    $multi = is_array($census->multi_embeddings) ? $census->multi_embeddings : [];
+                    $multi[$slot] = $emb;
+                    $census->multi_embeddings = $multi;
+                    if ($slot === 'wajah') {
+                        $census->foto_wajah_embedding = $emb;
+                    }
+                    $census->saveQuietly();
+                    $updated++;
+                }
+            } elseif ($type === 'cat') {
+                $cat = Cat::find($item['id']);
+                if ($cat) {
+                    $cat->photo_embedding = $emb;
+                    $cat->saveQuietly();
+                    $updated++;
+                }
+            } elseif ($type === 'survey') {
+                $srv = StrayCatSurvey::find($item['id']);
+                if ($srv) {
+                    $srv->photo_embedding = $emb;
+                    $srv->saveQuietly();
+                    $updated++;
+                }
             }
         }
 
@@ -404,19 +600,49 @@ class PtmaCatCensusController extends Controller
             'foto_wajah_embedding'  => 'nullable',
         ]);
 
-        // Process photos & fingerprints
+        // Process photos & biometrics
+        $multiSpatial = [];
+
         $binaryWajah = $this->getPhotoBinary($request, 'foto_wajah', 'foto_wajah_cam');
         $fotoWajah = $binaryWajah ? $this->compressAndSaveImage($binaryWajah) : null;
-        $colorFingerprint = $binaryWajah ? PtmaCatCensus::extractColorFingerprint($binaryWajah) : null;
+        $colorFingerprint = $binaryWajah ? CatBiometricService::extractColorFingerprint($binaryWajah) : null;
+        if ($binaryWajah) {
+            $multiSpatial['wajah'] = [
+                'spatial' => CatBiometricService::extractSpatialFingerprint($binaryWajah),
+                'color'   => $colorFingerprint,
+                'hash'    => CatBiometricService::extractDHash($binaryWajah),
+            ];
+        }
 
         $binaryAtas = $this->getPhotoBinary($request, 'foto_atas', 'foto_atas_cam');
         $fotoAtas = $binaryAtas ? $this->compressAndSaveImage($binaryAtas) : null;
+        if ($binaryAtas) {
+            $multiSpatial['atas'] = [
+                'spatial' => CatBiometricService::extractSpatialFingerprint($binaryAtas),
+                'color'   => CatBiometricService::extractColorFingerprint($binaryAtas),
+                'hash'    => CatBiometricService::extractDHash($binaryAtas),
+            ];
+        }
 
         $binarySamping = $this->getPhotoBinary($request, 'foto_samping_kiri', 'foto_samping_kiri_cam');
         $fotoSampingKiri = $binarySamping ? $this->compressAndSaveImage($binarySamping) : null;
+        if ($binarySamping) {
+            $multiSpatial['samping'] = [
+                'spatial' => CatBiometricService::extractSpatialFingerprint($binarySamping),
+                'color'   => CatBiometricService::extractColorFingerprint($binarySamping),
+                'hash'    => CatBiometricService::extractDHash($binarySamping),
+            ];
+        }
 
         $binaryOpsional = $this->getPhotoBinary($request, 'foto_opsional', 'foto_opsional_cam');
         $fotoOpsional = $binaryOpsional ? $this->compressAndSaveImage($binaryOpsional) : null;
+        if ($binaryOpsional) {
+            $multiSpatial['opsional'] = [
+                'spatial' => CatBiometricService::extractSpatialFingerprint($binaryOpsional),
+                'color'   => CatBiometricService::extractColorFingerprint($binaryOpsional),
+                'hash'    => CatBiometricService::extractDHash($binaryOpsional),
+            ];
+        }
 
         // Embedding from client if provided
         $embeddingWajah = null;
@@ -459,6 +685,7 @@ class PtmaCatCensusController extends Controller
             'foto_opsional'        => $fotoOpsional,
             'foto_wajah_embedding' => $embeddingWajah,
             'color_fingerprint'    => $colorFingerprint,
+            'spatial_fingerprint'  => $multiSpatial,
             'bcs'                  => $request->bcs,
             'kondisi_klinis'       => array_values(array_unique($kondisiKlinis)),
             'panjang_badan_cm'     => $request->panjang_badan_cm,
@@ -577,11 +804,18 @@ class PtmaCatCensusController extends Controller
         ];
 
         // Process updated photos if provided
+        $spatialFp = is_array($census->spatial_fingerprint) ? $census->spatial_fingerprint : [];
+
         $binaryWajah = $this->getPhotoBinary($request, 'foto_wajah', 'foto_wajah_cam');
         if ($binaryWajah) {
             if ($census->foto_wajah) Storage::disk('public')->delete($census->foto_wajah);
             $data['foto_wajah'] = $this->compressAndSaveImage($binaryWajah);
-            $data['color_fingerprint'] = PtmaCatCensus::extractColorFingerprint($binaryWajah);
+            $data['color_fingerprint'] = CatBiometricService::extractColorFingerprint($binaryWajah);
+            $spatialFp['wajah'] = [
+                'spatial' => CatBiometricService::extractSpatialFingerprint($binaryWajah),
+                'color'   => $data['color_fingerprint'],
+                'hash'    => CatBiometricService::extractDHash($binaryWajah),
+            ];
         }
 
         if ($request->filled('foto_wajah_embedding')) {
@@ -593,19 +827,36 @@ class PtmaCatCensusController extends Controller
         if ($binaryAtas) {
             if ($census->foto_atas) Storage::disk('public')->delete($census->foto_atas);
             $data['foto_atas'] = $this->compressAndSaveImage($binaryAtas);
+            $spatialFp['atas'] = [
+                'spatial' => CatBiometricService::extractSpatialFingerprint($binaryAtas),
+                'color'   => CatBiometricService::extractColorFingerprint($binaryAtas),
+                'hash'    => CatBiometricService::extractDHash($binaryAtas),
+            ];
         }
 
         $binarySamping = $this->getPhotoBinary($request, 'foto_samping_kiri', 'foto_samping_kiri_cam');
         if ($binarySamping) {
             if ($census->foto_samping_kiri) Storage::disk('public')->delete($census->foto_samping_kiri);
             $data['foto_samping_kiri'] = $this->compressAndSaveImage($binarySamping);
+            $spatialFp['samping'] = [
+                'spatial' => CatBiometricService::extractSpatialFingerprint($binarySamping),
+                'color'   => CatBiometricService::extractColorFingerprint($binarySamping),
+                'hash'    => CatBiometricService::extractDHash($binarySamping),
+            ];
         }
 
         $binaryOpsional = $this->getPhotoBinary($request, 'foto_opsional', 'foto_opsional_cam');
         if ($binaryOpsional) {
             if ($census->foto_opsional) Storage::disk('public')->delete($census->foto_opsional);
             $data['foto_opsional'] = $this->compressAndSaveImage($binaryOpsional);
+            $spatialFp['opsional'] = [
+                'spatial' => CatBiometricService::extractSpatialFingerprint($binaryOpsional),
+                'color'   => CatBiometricService::extractColorFingerprint($binaryOpsional),
+                'hash'    => CatBiometricService::extractDHash($binaryOpsional),
+            ];
         }
+
+        $data['spatial_fingerprint'] = $spatialFp;
 
         $census->update($data);
 
