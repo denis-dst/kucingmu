@@ -44,6 +44,7 @@
 @endphp
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>KTAM KucingMu - {{ $cat->name }}</title>
@@ -53,7 +54,7 @@
             font-style: normal;
             font-weight: 400;
             @if($fontBase64)
-            src: url('data:font/truetype;charset=utf-8;base64,{{ $fontBase64 }}') format('truetype');
+                src: url('data:font/truetype;charset=utf-8;base64,{{ $fontBase64 }}') format('truetype');
             @endif
         }
 
@@ -68,7 +69,8 @@
             -webkit-print-color-adjust: exact;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             width: 86mm;
@@ -151,6 +153,7 @@
             width: 23.5%;
             height: 6.6%;
         }
+
         .box-namaku .back-val-inner {
             font-size: 8pt;
             color: #082440;
@@ -162,6 +165,7 @@
             width: 30.03%;
             height: 6.6%;
         }
+
         .box-dob .back-val-inner {
             font-size: 8pt;
         }
@@ -172,8 +176,9 @@
             width: 30.03%;
             height: 9.1%;
         }
+
         .box-breed .back-val-inner {
-            font-size: 7.5pt;
+            font-size: 7pt;
         }
 
         .box-color {
@@ -182,8 +187,9 @@
             width: 30.03%;
             height: 10.3%;
         }
+
         .box-color .back-val-inner {
-            font-size: 7.5pt;
+            font-size: 7pt;
         }
 
         .box-nikumu {
@@ -192,9 +198,10 @@
             width: 30.03%;
             height: 5.5%;
         }
+
         .box-nikumu .back-val-inner {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 7.5pt;
+            font-size: 7pt;
             font-weight: 800;
             color: #0f4c3a;
         }
@@ -206,6 +213,7 @@
             width: 30.03%;
             height: 13.4%;
         }
+
         .box-owner-name .back-val-inner {
             font-size: 7.2pt;
             line-height: 1.15;
@@ -217,8 +225,9 @@
             width: 30.03%;
             height: 13.4%;
         }
+
         .box-owner-nbm .back-val-inner {
-            font-size: 7.5pt;
+            font-size: 7pt;
         }
 
         .box-owner-phone {
@@ -227,8 +236,9 @@
             width: 30.03%;
             height: 13.4%;
         }
+
         .box-owner-phone .back-val-inner {
-            font-size: 7.5pt;
+            font-size: 7pt;
         }
 
         /* Paw & Verification Box (bottom right) */
@@ -292,6 +302,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- HALAMAN 1: TAMPAK DEPAN (FRONT) -->
@@ -409,4 +420,5 @@
     </div>
 
 </body>
+
 </html>
