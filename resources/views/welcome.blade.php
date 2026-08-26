@@ -128,7 +128,7 @@
                     </div>
                 </div>
                 <!-- Preview Slide Foto Kegiatan -->
-                <div class="lg:col-span-5" x-data="{
+                <div class="lg:col-span-5 w-full" x-data="{
                     activeIndex: 0,
                     autoplay: true,
                     interval: null,
@@ -154,8 +154,8 @@
                     }
                 }" @mouseenter="autoplay = false" @mouseleave="autoplay = true">
                     
-                    <!-- Carousel Container -->
-                    <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 aspect-[4/3] sm:aspect-[16/11] group">
+                    <!-- Carousel Container with Guaranteed Height -->
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 h-[320px] sm:h-[380px] md:h-[400px] w-full group" style="min-height: 320px;">
                         
                         <!-- Top Header Pill -->
                         <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
@@ -174,9 +174,10 @@
                                      x-transition:leave="transition ease-in duration-300"
                                      x-transition:leave-start="opacity-100 scale-100"
                                      x-transition:leave-end="opacity-0 scale-95"
-                                     class="absolute inset-0 w-full h-full">
+                                     class="absolute inset-0 w-full h-full"
+                                     style="{{ $index === 0 ? '' : 'display: none;' }}">
                                     
-                                    <img src="{{ $album->image_url }}" alt="{{ $album->title }}" class="w-full h-full object-cover">
+                                    <img src="{{ $album->image_url }}" alt="{{ $album->title }}" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='{{ asset('images/logo-muhammadiyah.svg') }}';">
                                     
                                     <!-- Gradient Overlay -->
                                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
@@ -206,7 +207,7 @@
                             @endforeach
                         @else
                             <!-- Fallback Demo Slide 1 -->
-                            <div x-show="activeIndex === 0" x-transition:enter="transition ease-out duration-700" class="absolute inset-0 w-full h-full bg-gradient-to-br from-teal-800 to-slate-900 flex flex-col justify-between p-6 text-white">
+                            <div x-show="activeIndex === 0" class="absolute inset-0 w-full h-full bg-gradient-to-br from-teal-800 to-slate-900 flex flex-col justify-between p-6 text-white">
                                 <div class="flex justify-between items-start">
                                     <div></div>
                                     <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-500/80 text-white">Pemeriksaan</span>
@@ -220,7 +221,7 @@
                             </div>
 
                             <!-- Fallback Demo Slide 2 -->
-                            <div x-show="activeIndex === 1" x-transition:enter="transition ease-out duration-700" class="absolute inset-0 w-full h-full bg-gradient-to-br from-sky-900 to-indigo-950 flex flex-col justify-between p-6 text-white">
+                            <div x-show="activeIndex === 1" class="absolute inset-0 w-full h-full bg-gradient-to-br from-sky-900 to-indigo-950 flex flex-col justify-between p-6 text-white" style="display: none;">
                                 <div class="flex justify-between items-start">
                                     <div></div>
                                     <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/80 text-white">Sensus PTMA</span>
@@ -234,7 +235,7 @@
                             </div>
 
                             <!-- Fallback Demo Slide 3 -->
-                            <div x-show="activeIndex === 2" x-transition:enter="transition ease-out duration-700" class="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-900 to-slate-950 flex flex-col justify-between p-6 text-white">
+                            <div x-show="activeIndex === 2" class="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-900 to-slate-950 flex flex-col justify-between p-6 text-white" style="display: none;">
                                 <div class="flex justify-between items-start">
                                     <div></div>
                                     <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/80 text-white">Identitas Digital</span>
@@ -250,10 +251,10 @@
 
                         <!-- Navigation Arrows -->
                         <button type="button" @click.stop="prev()" aria-label="Slide sebelumnya" class="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                            <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                         </button>
                         <button type="button" @click.stop="next()" aria-label="Slide berikutnya" class="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                            <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                         </button>
 
                         <!-- Indicators Dots -->

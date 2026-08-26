@@ -176,78 +176,79 @@
             </div>
 
             <!-- Albums Card Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 items-stretch">
                 @forelse($albums as $album)
-                    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col group hover:shadow-md hover:border-teal-200 transition duration-200">
-                        <!-- Image Preview -->
-                        <div class="relative aspect-[4/3] bg-slate-900 overflow-hidden">
-                            <img src="{{ $album->image_url }}" alt="{{ $album->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy">
-                            
-                            <!-- Badges Overlay -->
-                            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-900/80 backdrop-blur-xs text-white border border-white/20">
-                                    {{ $album->category }}
-                                </span>
-                            </div>
-
-                            <div class="absolute top-3 right-3">
-                                <form method="POST" action="{{ route('superadmin.albums.toggle-status', $album) }}">
-                                    @csrf
-                                    @if($album->is_active)
-                                        <button type="submit" title="Klik untuk menyembunyikan dari slide beranda" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-md hover:bg-emerald-600 transition flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> Tampil
-                                        </button>
-                                    @else
-                                        <button type="submit" title="Klik untuk menampilkan di slide beranda" class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-700/90 text-slate-300 hover:bg-slate-800 transition">
-                                            Nonaktif
-                                        </button>
-                                    @endif
-                                </form>
-                            </div>
-
-                            @if($album->order > 0)
-                                <div class="absolute bottom-2 left-3">
-                                    <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-xs text-[10px] font-mono text-amber-300 font-bold">
-                                        Urutan: #{{ $album->order }}
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md hover:border-teal-300 transition duration-200">
+                        <!-- Top Half: Image & Badges -->
+                        <div>
+                            <!-- Image Preview with Fixed Height -->
+                            <div class="relative w-full bg-slate-900 overflow-hidden" style="height: 180px;">
+                                <img src="{{ $album->image_url }}" alt="{{ $album->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('images/logo-muhammadiyah.svg') }}';">
+                                
+                                <!-- Badges Overlay -->
+                                <div class="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-900/85 backdrop-blur-xs text-white border border-white/20">
+                                        {{ $album->category }}
                                     </span>
                                 </div>
-                            @endif
-                        </div>
 
-                        <!-- Card Body -->
-                        <div class="p-4 flex-1 flex flex-col justify-between space-y-3">
-                            <div>
-                                <div class="text-[11px] font-semibold text-teal-700 mb-1 flex items-center gap-1">
+                                <div class="absolute top-2.5 right-2.5">
+                                    <form method="POST" action="{{ route('superadmin.albums.toggle-status', $album) }}">
+                                        @csrf
+                                        @if($album->is_active)
+                                            <button type="submit" title="Klik untuk menyembunyikan dari slide beranda" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-xs hover:bg-emerald-600 transition flex items-center gap-1">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> Tampil
+                                            </button>
+                                        @else
+                                            <button type="submit" title="Klik untuk menampilkan di slide beranda" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800/85 text-slate-300 hover:bg-slate-900 transition">
+                                                Nonaktif
+                                            </button>
+                                        @endif
+                                    </form>
+                                </div>
+
+                                @if($album->order > 0)
+                                    <div class="absolute bottom-2 left-2.5">
+                                        <span class="px-2 py-0.5 rounded bg-black/70 backdrop-blur-xs text-[10px] font-mono text-amber-300 font-bold">
+                                            Slide: #{{ $album->order }}
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Card Text Content -->
+                            <div class="p-4 space-y-1.5">
+                                <div class="text-[11px] font-semibold text-teal-700 flex items-center gap-1">
                                     <span>📅</span> {{ $album->activity_date ? $album->activity_date->translatedFormat('d M Y') : '-' }}
                                 </div>
                                 <h3 class="font-outfit font-bold text-slate-900 text-sm leading-snug line-clamp-2" title="{{ $album->title }}">
                                     {{ $album->title }}
                                 </h3>
                                 @if($album->caption)
-                                    <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                    <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">
                                         {{ $album->caption }}
                                     </p>
                                 @endif
-                                <div class="mt-2 text-[10px] font-mono text-slate-400 truncate" title="{{ $album->image_path }}">
+                                <div class="pt-1 text-[10px] font-mono text-slate-400 truncate" title="{{ $album->image_path }}">
                                     📂 {{ $album->image_path }}
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Actions Footer -->
-                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                                <button type="button" @click="openEdit({{ json_encode($album) }}, '{{ route('superadmin.albums.update', $album) }}', '{{ $album->image_url }}')" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    <span>Edit</span>
+                        <!-- Actions Footer -->
+                        <div class="p-3 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <button type="button" @click="openEdit({{ json_encode($album) }}, '{{ route('superadmin.albums.update', $album) }}', '{{ $album->image_url }}')" class="flex-1 py-1.5 px-3 rounded-lg bg-white hover:bg-teal-50 border border-slate-200 text-slate-700 hover:text-teal-800 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-2xs">
+                                <svg width="14" height="14" style="width: 14px; height: 14px; min-width: 14px; max-width: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                <span>Edit</span>
+                            </button>
+
+                            <form method="POST" action="{{ route('superadmin.albums.destroy', $album) }}" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus foto kegiatan \"{{ $album->title }}\"?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition" title="Hapus Foto">
+                                    <svg width="14" height="14" style="width: 14px; height: 14px; min-width: 14px; max-width: 14px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                 </button>
-
-                                <form method="POST" action="{{ route('superadmin.albums.destroy', $album) }}" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus foto kegiatan \"{{ $album->title }}\"?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Foto">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </form>
-                            </div>
+                            </form>
                         </div>
                     </div>
                 @empty
@@ -278,7 +279,7 @@
                 <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                     <h3 class="font-outfit font-bold text-slate-900 text-base">Tambah Foto Kegiatan Baru</h3>
                     <button type="button" @click="openCreateModal = false" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
@@ -397,7 +398,7 @@
                 <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                     <h3 class="font-outfit font-bold text-slate-900 text-base">Edit Foto Kegiatan</h3>
                     <button type="button" @click="openEditModal = false" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
 
