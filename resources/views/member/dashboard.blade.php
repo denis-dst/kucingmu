@@ -207,9 +207,29 @@
                                 <label for="cat_name" class="form-label text-xs">Nama Kucing</label>
                                 <input type="text" id="cat_name" name="name" required class="form-input text-xs" placeholder="Contoh: Mochi">
                             </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="cat_breed" class="form-label text-xs">Ras / Jenis</label>
+                                    <input type="text" id="cat_breed" name="breed" required class="form-input text-xs" placeholder="Contoh: Domestik / Persia">
+                                </div>
+                                <div>
+                                    <label for="cat_color" class="form-label text-xs">Warna / Pola Bulu</label>
+                                    <input type="text" id="cat_color" name="color" class="form-input text-xs" placeholder="Contoh: Calico / Tabby / Oranye">
+                                </div>
+                            </div>
                             <div>
-                                <label for="cat_breed" class="form-label text-xs">Ras / Jenis</label>
-                                <input type="text" id="cat_breed" name="breed" required class="form-input text-xs" placeholder="Contoh: Domestik / Persia">
+                                <label for="cat_wilayah" class="form-label text-xs">Wilayah Muhammadiyah (Master Wilayah)</label>
+                                <select id="cat_wilayah" name="wilayah_code" class="form-input text-xs">
+                                    @if(isset($masterWilayahs))
+                                        @foreach($masterWilayahs as $wil)
+                                            <option value="{{ $wil->kode }}" {{ $wil->kode === '34' ? 'selected' : '' }}>
+                                                {{ $wil->kode }} - {{ $wil->nama }}
+                                            </option>
+                                        @endforeach
+                                    @else
+                                        <option value="34">34 - D.I. Yogyakarta (PWM DIY)</option>
+                                    @endif
+                                </select>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
@@ -318,16 +338,19 @@
         </div>
 
         <!-- Draft Modal -->
-        <div x-show="openDraftModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="draft-modal-title" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-            <div @click.away="openDraftModal = false" class="bg-white rounded-xl shadow-xl overflow-hidden flex flex-col w-full max-w-sm max-h-[90vh]">
-                <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                    <h3 id="draft-modal-title" class="font-bold text-slate-900 text-sm">Pratinjau Draft Kartu KTAM</h3>
-                    <button type="button" @click="openDraftModal = false" aria-label="Tutup pratinjau draft" class="p-1 rounded-md text-slate-500 hover:text-slate-800 hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-teal-700">
+        <div x-show="openDraftModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="draft-modal-title" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
+            <div @click.away="openDraftModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full max-w-lg max-h-[92vh] border border-slate-200">
+                <div class="px-5 py-3.5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                    <div>
+                        <h3 id="draft-modal-title" class="font-outfit font-bold text-slate-900 text-sm">Pratinjau Kartu KTAM (Front & Back)</h3>
+                        <p class="text-[11px] text-slate-500">Tampilan tampak depan & belakang kartu KTAM resmi.</p>
+                    </div>
+                    <button type="button" @click="openDraftModal = false" aria-label="Tutup pratinjau draft" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                <div class="flex-1 bg-slate-950 flex items-center justify-center p-2 min-h-[260px]">
-                    <iframe :src="draftUrl" title="Pratinjau Kartu KTAM" class="w-full h-[240px] border-0" scrolling="no"></iframe>
+                <div class="flex-1 bg-slate-950 flex items-center justify-center p-3 overflow-y-auto">
+                    <iframe :src="draftUrl" title="Pratinjau Kartu KTAM" class="w-full h-[460px] border-0 rounded-lg" scrolling="yes"></iframe>
                 </div>
             </div>
         </div>

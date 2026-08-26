@@ -209,7 +209,8 @@
                                                     @endif
                                                 </td>
                                                 <td class="py-3.5 px-3 font-mono text-[11px] font-semibold text-slate-800 whitespace-nowrap">
-                                                    {{ $cat->ktamCard ? $cat->ktamCard->ktam_number : '-' }}
+                                                    <div class="font-bold text-teal-900">{{ $cat->formatted_unique_code }}</div>
+                                                    <div class="text-[10px] text-slate-400 font-sans">{{ $cat->wilayah ? $cat->wilayah->singkatan : 'DIY' }} &bull; {{ $cat->ktamCard ? $cat->ktamCard->ktam_number : 'Draft' }}</div>
                                                 </td>
                                                 <td class="py-3.5 px-3">
                                                     @if($cat->ktamCard)

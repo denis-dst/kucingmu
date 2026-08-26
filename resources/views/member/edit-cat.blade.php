@@ -37,6 +37,35 @@
                     </div>
 
                     <div class="grid gap-6 sm:grid-cols-2">
+                        <!-- Warna / Pola Bulu -->
+                        <div>
+                            <label for="cat_color" class="form-label font-semibold text-slate-700">Warna / Pola Bulu</label>
+                            <input type="text" id="cat_color" name="color" value="{{ old('color', $cat->color) }}" class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm" placeholder="e.g. Calico / Tabby / Hitam Putih">
+                            <x-input-error :messages="$errors->get('color')" class="mt-1" />
+                        </div>
+
+                        <!-- Wilayah Muhammadiyah (Master Wilayah) -->
+                        <div>
+                            <label for="cat_wilayah" class="form-label font-semibold text-slate-700">Wilayah Muhammadiyah (Master Wilayah)</label>
+                            <select id="cat_wilayah" name="wilayah_code" class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm py-2">
+                                @if(isset($masterWilayahs))
+                                    @foreach($masterWilayahs as $wil)
+                                        <option value="{{ $wil->kode }}" {{ old('wilayah_code', $cat->wilayah_code) == $wil->kode ? 'selected' : '' }}>
+                                            {{ $wil->kode }} - {{ $wil->nama }}
+                                        </option>
+                                    @endforeach
+                                @else
+                                    <option value="34" selected>34 - D.I. Yogyakarta (PWM DIY)</option>
+                                @endif
+                            </select>
+                            <span class="text-[11px] text-slate-500 mt-1 block">
+                                Kode Unik KTAM: <strong class="font-mono text-teal-800">{{ $cat->formatted_unique_code }}</strong>
+                            </span>
+                            <x-input-error :messages="$errors->get('wilayah_code')" class="mt-1" />
+                        </div>
+                    </div>
+
+                    <div class="grid gap-6 sm:grid-cols-2">
                         <!-- Jenis Kelamin -->
                         <div>
                             <label for="cat_gender" class="form-label font-semibold text-slate-700">Jenis Kelamin</label>
