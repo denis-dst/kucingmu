@@ -338,19 +338,16 @@
         </div>
 
         <!-- Draft Modal -->
-        <div x-show="openDraftModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="draft-modal-title" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4">
-            <div @click.away="openDraftModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full max-w-lg max-h-[92vh] border border-slate-200">
-                <div class="px-5 py-3.5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                    <div>
-                        <h3 id="draft-modal-title" class="font-outfit font-bold text-slate-900 text-sm">Pratinjau Kartu KTAM (Front & Back)</h3>
-                        <p class="text-[11px] text-slate-500">Tampilan tampak depan & belakang kartu KTAM resmi.</p>
-                    </div>
-                    <button type="button" @click="openDraftModal = false" aria-label="Tutup pratinjau draft" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition">
+        <div x-show="openDraftModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="draft-modal-title" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/75 backdrop-blur-xs p-3">
+            <div @click.away="openDraftModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full max-w-md max-h-[92vh] border border-slate-200">
+                <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                    <h3 id="draft-modal-title" class="font-outfit font-bold text-slate-900 text-sm">Pratinjau Kartu KTAM</h3>
+                    <button type="button" @click="openDraftModal = false" aria-label="Tutup pratinjau" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                <div class="flex-1 bg-slate-950 flex items-center justify-center p-3 overflow-y-auto">
-                    <iframe :src="draftUrl" title="Pratinjau Kartu KTAM" class="w-full h-[460px] border-0 rounded-lg" scrolling="yes"></iframe>
+                <div class="flex-1 bg-slate-950 flex items-center justify-center p-0 overflow-y-auto">
+                    <iframe :src="draftUrl" title="Pratinjau Kartu KTAM" class="w-full h-[520px] border-0" scrolling="auto"></iframe>
                 </div>
             </div>
         </div>

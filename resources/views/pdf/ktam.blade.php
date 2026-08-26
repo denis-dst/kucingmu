@@ -1,5 +1,5 @@
 @php
-    // Inline Base64 Templates for reliable DomPDF and browser rendering
+    // Inline Base64 Templates for 100% reliable DomPDF and browser rendering
     $frontTemplatePath = public_path('reference/ktamu-front.png');
     $backTemplatePath = public_path('reference/ktamu-back.png');
     $fontPath = public_path('fonts/FingerPaint-Regular.ttf');
@@ -43,7 +43,7 @@
     $uniqueCode = $cat->formatted_unique_code ?? ($cat->wilayah_code ?? '34') . '.kcg.' . str_pad($cat->id ?? 1, 4, '0', STR_PAD_LEFT);
 @endphp
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>KTAM KucingMu - {{ $cat->name }}</title>
@@ -72,73 +72,30 @@
             -webkit-print-color-adjust: exact;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        html, body {
             margin: 0;
             padding: 0;
-            width: 86mm;
-            background-color: #f1f5f9;
+            font-family: 'Plus Jakarta Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #0b1120;
         }
 
+        /* CARD CONTAINER */
         .card-page {
             position: relative;
             width: 86mm;
             height: 54mm;
+            max-width: 100%;
             overflow: hidden;
-            background-size: 86mm 54mm;
+            background-size: 100% 100%;
             background-position: center;
             background-repeat: no-repeat;
             page-break-after: always;
             box-sizing: border-box;
+            margin: 0 auto;
         }
 
         .card-page:last-child {
             page-break-after: avoid;
-        }
-
-        @media screen {
-            body {
-                background: #090d16;
-                padding: 24px 16px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 20px;
-                min-height: 100vh;
-                width: 100%;
-                box-sizing: border-box;
-            }
-            .card-page {
-                border-radius: 14px;
-                box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.12);
-                flex-shrink: 0;
-            }
-            .screen-label {
-                display: block;
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                font-size: 11px;
-                font-weight: 700;
-                color: #94a3b8;
-                text-transform: uppercase;
-                letter-spacing: 1.5px;
-                margin-bottom: 8px;
-                text-align: center;
-            }
-            .card-wrapper {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-        }
-
-        @media print {
-            body {
-                background-color: transparent;
-                width: 86mm;
-            }
-            .screen-label {
-                display: none;
-            }
         }
 
         /* FRONT SIDE */
@@ -149,8 +106,8 @@
 
         .front-unique-code {
             position: absolute;
-            left: 5.5mm;
-            bottom: 4.5mm;
+            left: 5%;
+            bottom: 6.5%;
             font-family: 'Finger Paint', cursive, sans-serif;
             font-size: 11pt;
             font-weight: 400;
@@ -159,7 +116,7 @@
             text-transform: lowercase;
             line-height: 1;
             z-index: 20;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
         }
 
         /* BACK SIDE */
@@ -168,7 +125,7 @@
             background-color: #0d2b78;
         }
 
-        /* Value capsules overlaying the white boxes */
+        /* Value capsules overlaying the white boxes precisely with percentage coords */
         .back-val {
             position: absolute;
             display: table;
@@ -184,18 +141,18 @@
         .back-val-inner {
             display: table-cell;
             vertical-align: middle;
-            padding: 0 2mm;
+            padding: 0 1.5mm;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        /* Exact White Box Placements (left column) */
+        /* Left column boxes */
         .box-namaku {
-            top: 7.2mm;
-            left: 15.2mm;
-            width: 25.8mm;
-            height: 3.8mm;
+            top: 13.43%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 6.57%;
         }
         .box-namaku .back-val-inner {
             font-size: 7pt;
@@ -212,31 +169,31 @@
         .gender-female { color: #db2777; }
 
         .box-dob {
-            top: 12.0mm;
-            left: 15.2mm;
-            width: 25.8mm;
-            height: 3.8mm;
+            top: 22.29%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 6.57%;
         }
 
         .box-breed {
-            top: 16.8mm;
-            left: 15.2mm;
-            width: 25.8mm;
-            height: 4.8mm;
+            top: 31.14%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 9.14%;
         }
 
         .box-color {
-            top: 21.6mm;
-            left: 15.2mm;
-            width: 25.8mm;
-            height: 5.2mm;
+            top: 40.00%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 10.29%;
         }
 
         .box-nikumu {
-            top: 26.8mm;
-            left: 15.2mm;
-            width: 25.8mm;
-            height: 3.5mm;
+            top: 50.00%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 5.43%;
         }
         .box-nikumu .back-val-inner {
             font-family: 'Courier New', Courier, monospace;
@@ -245,35 +202,35 @@
             color: #0f4c3a;
         }
 
-        /* Exact White Box Placements (right column) */
+        /* Right column boxes */
         .box-owner-name {
-            top: 7.4mm;
-            left: 57.3mm;
-            width: 25.8mm;
-            height: 7.2mm;
+            top: 13.71%;
+            left: 66.72%;
+            width: 30.03%;
+            height: 13.43%;
         }
 
         .box-owner-nbm {
-            top: 15.7mm;
-            left: 57.3mm;
-            width: 25.8mm;
-            height: 7.2mm;
+            top: 29.14%;
+            left: 66.72%;
+            width: 30.03%;
+            height: 13.43%;
         }
 
         .box-owner-phone {
-            top: 24.2mm;
-            left: 57.3mm;
-            width: 25.8mm;
-            height: 7.2mm;
+            top: 44.86%;
+            left: 66.72%;
+            width: 30.03%;
+            height: 13.43%;
         }
 
         /* Paw & Verification Box (bottom right) */
         .box-paw-container {
             position: absolute;
-            top: 34.0mm;
-            left: 44.0mm;
-            width: 39.1mm;
-            height: 16.3mm;
+            top: 63.14%;
+            left: 51.19%;
+            width: 45.56%;
+            height: 30.29%;
             z-index: 10;
             padding: 1mm;
         }
@@ -285,26 +242,28 @@
         }
 
         .paw-slot-img {
-            width: 13.5mm;
-            height: 13.5mm;
+            width: 13mm;
+            height: 13mm;
             object-fit: cover;
             border-radius: 2px;
             border: 0.5px solid #cbd5e1;
         }
 
         .paw-qr-img {
-            width: 13.5mm;
-            height: 13.5mm;
+            width: 13mm;
+            height: 13mm;
             display: block;
+            margin: 0 auto;
         }
 
         .paw-tag {
-            font-size: 4.2pt;
+            font-size: 4pt;
             font-weight: 800;
             color: #047857;
             text-transform: uppercase;
             letter-spacing: 0.3px;
             line-height: 1.1;
+            margin-top: 0.5mm;
         }
 
         .draft-watermark {
@@ -322,133 +281,164 @@
             z-index: 100;
             white-space: nowrap;
         }
+
+        /* Browser & Screen Preview Styling: Centered & Clean without extra text */
+        @media screen {
+            body {
+                background: #090d16;
+                padding: 16px 12px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                gap: 16px;
+                min-height: 100vh;
+                box-sizing: border-box;
+            }
+            .card-page {
+                border-radius: 12px;
+                box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+                flex-shrink: 0;
+            }
+        }
+
+        /* Print & DomPDF Styling: Edge-to-edge exact card size */
+        @media print {
+            body {
+                background-color: transparent;
+                width: 86mm;
+                height: 54mm;
+                padding: 0;
+                margin: 0;
+            }
+            .card-page {
+                border-radius: 0;
+                box-shadow: none;
+                margin: 0;
+                padding: 0;
+            }
+        }
     </style>
 </head>
 <body>
 
     <!-- HALAMAN 1: TAMPAK DEPAN (FRONT) -->
-    <div class="card-wrapper">
-        <div class="screen-label">Tampak Depan (Front)</div>
-        <div class="card-page card-front">
-            @if(isset($isDraft) && $isDraft)
-                <div class="draft-watermark">DRAFT KUCINGMU</div>
-            @endif
+    <div class="card-page card-front">
+        @if(isset($isDraft) && $isDraft)
+            <div class="draft-watermark">DRAFT KUCINGMU</div>
+        @endif
 
-            <!-- Kode Unik Kucing (Pojok Kiri Bawah) dengan Font Finger Paint Putih -->
-            <div class="front-unique-code">
-                {{ $uniqueCode }}
-            </div>
+        <!-- Kode Unik Kucing (Pojok Kiri Bawah) dengan Font Finger Paint Putih -->
+        <div class="front-unique-code">
+            {{ $uniqueCode }}
         </div>
     </div>
 
     <!-- HALAMAN 2: TAMPAK BELAKANG (BACK) -->
-    <div class="card-wrapper">
-        <div class="screen-label">Tampak Belakang (Back)</div>
-        <div class="card-page card-back">
-            @if(isset($isDraft) && $isDraft)
-                <div class="draft-watermark">DRAFT KUCINGMU</div>
-            @endif
+    <div class="card-page card-back">
+        @if(isset($isDraft) && $isDraft)
+            <div class="draft-watermark">DRAFT KUCINGMU</div>
+        @endif
 
-            <!-- 1. NAMAKu -->
-            <div class="back-val box-namaku">
-                <div class="back-val-inner">
-                    {{ $cat->name }}
-                    @if($cat->gender === 'male')
-                        <span class="gender-badge gender-male">♂</span>
-                    @else
-                        <span class="gender-badge gender-female">♀</span>
-                    @endif
-                </div>
+        <!-- 1. NAMAKu -->
+        <div class="back-val box-namaku">
+            <div class="back-val-inner">
+                {{ $cat->name }}
+                @if($cat->gender === 'male')
+                    <span class="gender-badge gender-male">♂</span>
+                @else
+                    <span class="gender-badge gender-female">♀</span>
+                @endif
             </div>
-
-            <!-- 2. DOB -->
-            <div class="back-val box-dob">
-                <div class="back-val-inner">
-                    {{ $cat->date_of_birth ? $cat->date_of_birth->format('d-m-Y') : '-' }}
-                </div>
-            </div>
-
-            <!-- 3. BREED -->
-            <div class="back-val box-breed">
-                <div class="back-val-inner">
-                    {{ $cat->breed ?: 'Domestik' }}
-                </div>
-            </div>
-
-            <!-- 4. COLOR -->
-            <div class="back-val box-color">
-                <div class="back-val-inner">
-                    {{ $cat->color ?: 'Campuran / Ras' }}
-                </div>
-            </div>
-
-            <!-- 5. NIKuMu -->
-            <div class="back-val box-nikumu">
-                <div class="back-val-inner">
-                    {{ $uniqueCode }}
-                </div>
-            </div>
-
-            <!-- 6. NAMA OWNER -->
-            <div class="back-val box-owner-name">
-                <div class="back-val-inner">
-                    {{ $cat->owner->name ?? 'Pemilik Kucing' }}
-                </div>
-            </div>
-
-            <!-- 7. NBM OWNER -->
-            <div class="back-val box-owner-nbm">
-                <div class="back-val-inner">
-                    {{ $cat->owner->muhammadiyah_id ?: '-' }}
-                </div>
-            </div>
-
-            <!-- 8. KONTAK OWNER -->
-            <div class="back-val box-owner-phone">
-                <div class="back-val-inner">
-                    {{ $cat->owner->phone ?: '-' }}
-                </div>
-            </div>
-
-            <!-- 9. TANDA PAW KUCING & QR VERIFIKASI -->
-            <div class="box-paw-container">
-                <table class="paw-content-table">
-                    <tr>
-                        @if($pawPhotoData)
-                            <td width="50%" align="center" valign="middle">
-                                <img class="paw-slot-img" src="{{ $pawPhotoData }}" alt="Paw Biometrik">
-                                <div class="paw-tag">Biometrik Paw</div>
-                            </td>
-                            <td width="50%" align="center" valign="middle">
-                                @if(isset($card->qr_code_payload) && $card->qr_code_payload)
-                                    <img class="paw-qr-img" src="{{ $card->qr_code_payload }}" alt="QR">
-                                @endif
-                                <div class="paw-tag">Scan QR</div>
-                            </td>
-                        @elseif($photoData)
-                            <td width="50%" align="center" valign="middle">
-                                <img class="paw-slot-img" src="{{ $photoData }}" alt="Foto Kucing">
-                                <div class="paw-tag">Foto Resmi</div>
-                            </td>
-                            <td width="50%" align="center" valign="middle">
-                                @if(isset($card->qr_code_payload) && $card->qr_code_payload)
-                                    <img class="paw-qr-img" src="{{ $card->qr_code_payload }}" alt="QR">
-                                @endif
-                                <div class="paw-tag">Scan QR</div>
-                            </td>
-                        @else
-                            <td align="center" valign="middle">
-                                @if(isset($card->qr_code_payload) && $card->qr_code_payload)
-                                    <img class="paw-qr-img" style="margin: 0 auto;" src="{{ $card->qr_code_payload }}" alt="QR">
-                                @endif
-                                <div class="paw-tag">Scan Verifikasi Resmi</div>
-                            </td>
-                        @endif
-                    </tr>
-                </table>
-            </div>
-
         </div>
+
+        <!-- 2. DOB -->
+        <div class="back-val box-dob">
+            <div class="back-val-inner">
+                {{ $cat->date_of_birth ? $cat->date_of_birth->format('d-m-Y') : '-' }}
+            </div>
+        </div>
+
+        <!-- 3. BREED -->
+        <div class="back-val box-breed">
+            <div class="back-val-inner">
+                {{ $cat->breed ?: 'Domestik' }}
+            </div>
+        </div>
+
+        <!-- 4. COLOR -->
+        <div class="back-val box-color">
+            <div class="back-val-inner">
+                {{ $cat->color ?: 'Campuran / Ras' }}
+            </div>
+        </div>
+
+        <!-- 5. NIKuMu -->
+        <div class="back-val box-nikumu">
+            <div class="back-val-inner">
+                {{ $uniqueCode }}
+            </div>
+        </div>
+
+        <!-- 6. NAMA OWNER -->
+        <div class="back-val box-owner-name">
+            <div class="back-val-inner">
+                {{ $cat->owner->name ?? 'Pemilik Kucing' }}
+            </div>
+        </div>
+
+        <!-- 7. NBM OWNER -->
+        <div class="back-val box-owner-nbm">
+            <div class="back-val-inner">
+                {{ $cat->owner->muhammadiyah_id ?: '-' }}
+            </div>
+        </div>
+
+        <!-- 8. KONTAK OWNER -->
+        <div class="back-val box-owner-phone">
+            <div class="back-val-inner">
+                {{ $cat->owner->phone ?: '-' }}
+            </div>
+        </div>
+
+        <!-- 9. TANDA PAW KUCING & QR VERIFIKASI -->
+        <div class="box-paw-container">
+            <table class="paw-content-table">
+                <tr>
+                    @if($pawPhotoData)
+                        <td width="50%" align="center" valign="middle">
+                            <img class="paw-slot-img" src="{{ $pawPhotoData }}" alt="Paw Biometrik">
+                            <div class="paw-tag">Biometrik Paw</div>
+                        </td>
+                        <td width="50%" align="center" valign="middle">
+                            @if(isset($card->qr_code_payload) && $card->qr_code_payload)
+                                <img class="paw-qr-img" src="{{ $card->qr_code_payload }}" alt="QR">
+                            @endif
+                            <div class="paw-tag">Scan QR</div>
+                        </td>
+                    @elseif($photoData)
+                        <td width="50%" align="center" valign="middle">
+                            <img class="paw-slot-img" src="{{ $photoData }}" alt="Foto Kucing">
+                            <div class="paw-tag">Foto Resmi</div>
+                        </td>
+                        <td width="50%" align="center" valign="middle">
+                            @if(isset($card->qr_code_payload) && $card->qr_code_payload)
+                                <img class="paw-qr-img" src="{{ $card->qr_code_payload }}" alt="QR">
+                            @endif
+                            <div class="paw-tag">Scan QR</div>
+                        </td>
+                    @else
+                        <td align="center" valign="middle">
+                            @if(isset($card->qr_code_payload) && $card->qr_code_payload)
+                                <img class="paw-qr-img" src="{{ $card->qr_code_payload }}" alt="QR">
+                            @endif
+                            <div class="paw-tag">Scan Verifikasi Resmi</div>
+                        </td>
+                    @endif
+                </tr>
+            </table>
+        </div>
+
     </div>
 
 </body>
