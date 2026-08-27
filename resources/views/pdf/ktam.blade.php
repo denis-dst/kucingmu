@@ -55,7 +55,7 @@
         $catNameLineHeight = '1.25';
     } else {
         $catNameFontSize = '7.8pt';
-        $catNameLineHeight = '1.35';
+        $catNameLineHeight = '2';
     }
 
     // Auto font sizing for NAMA OWNER (Right capsule)
@@ -71,7 +71,7 @@
         $ownerNameLineHeight = '1.35';
     } else {
         $ownerNameFontSize = '7.5pt';
-        $ownerNameLineHeight = '1.45';
+        $ownerNameLineHeight = '2';
     }
 @endphp
 <!DOCTYPE html>
