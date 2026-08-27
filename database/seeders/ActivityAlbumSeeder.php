@@ -232,19 +232,19 @@ class ActivityAlbumSeeder extends Seeder
         foreach ($files as $filename) {
             if (str_starts_with($filename, 'IMG_28')) {
                 $category = 'Pemeriksaan Kesehatan';
-                $title = "Pemeriksaan Medis & Vaksinasi Kucing (#{$filename})";
+                $title = "Pemeriksaan Medis & Vaksinasi Kucing";
                 $caption = "Pemeriksaan klinis komprehensif, pembersihan telinga, dan pemberian vitamin oleh dokter hewan mitra KucingMu.";
             } elseif (str_starts_with($filename, 'IMG_31')) {
                 $category = 'Surveilans & Morfometri';
-                $title = "Surveilans Lapangan & Identifikasi (#{$filename})";
+                $title = "Surveilans Lapangan & Identifikasi";
                 $caption = "Pencatatan morfometri, identifikasi pola warna/bulu, dan pemantauan kesehatan kucing di lingkungan kampus.";
             } elseif (str_starts_with($filename, 'IMG_74')) {
                 $category = 'Edukasi & Komunitas';
-                $title = "Kegiatan Edukasi & Sosialisasi KucingMu (#{$filename})";
+                $title = "Kegiatan Edukasi & Sosialisasi KucingMu";
                 $caption = "Sosialisasi kesejahteraan hewan dan penerbitan Kartu Tanda Anggota Muhammadiyah (KTAM) Kucing bersama relawan.";
             } else {
                 $category = 'Layanan Dokter Hewan';
-                $title = "Pelayanan Kesehatan Kucing Komunitas (#{$filename})";
+                $title = "Pelayanan Kesehatan Kucing Komunitas";
                 $caption = "Dokumentasi tindakan dokter hewan, pemeriksaan fisik dasar, dan konsultasi kesehatan kucing peliharaan.";
             }
 
