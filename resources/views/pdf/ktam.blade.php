@@ -41,6 +41,38 @@
 
     // Unique Code formatting: "kode_wilayah.kcg.xxxx"
     $uniqueCode = $cat->formatted_unique_code ?? ($cat->wilayah_code ?? '34') . '.kcg.' . str_pad($cat->id ?? 1, 4, '0', STR_PAD_LEFT);
+
+    // Auto font sizing for NAMAKu (Left narrow capsule)
+    $catName = trim($cat->name);
+    $catNameLen = strlen($catName);
+    $catNameWordCount = count(preg_split('/\s+/', $catName));
+
+    if ($catNameLen > 14 || $catNameWordCount > 2) {
+        $catNameFontSize = '5.0pt';
+        $catNameLineHeight = '0.95';
+    } elseif ($catNameLen > 7 || $catNameWordCount > 1) {
+        $catNameFontSize = '6.0pt';
+        $catNameLineHeight = '1.02';
+    } else {
+        $catNameFontSize = '7.8pt';
+        $catNameLineHeight = '1.15';
+    }
+
+    // Auto font sizing for NAMA OWNER (Right capsule)
+    $ownerName = trim($cat->owner->name ?? 'Pemilik Kucing');
+    $ownerNameLen = strlen($ownerName);
+    $ownerNameWordCount = count(preg_split('/\s+/', $ownerName));
+
+    if ($ownerNameLen > 22 || $ownerNameWordCount > 3) {
+        $ownerNameFontSize = '5.2pt';
+        $ownerNameLineHeight = '0.95';
+    } elseif ($ownerNameLen > 13 || $ownerNameWordCount > 1) {
+        $ownerNameFontSize = '6.2pt';
+        $ownerNameLineHeight = '1.05';
+    } else {
+        $ownerNameFontSize = '7.5pt';
+        $ownerNameLineHeight = '1.15';
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -94,26 +126,6 @@
             background-image: url('{{ $frontBase64 }}');
             background-color: #0d2b78;
             page-break-after: always;
-        }
-
-        /* QR Code di Halaman 1 (Pojok Kanan Atas) */
-        .front-qr-container {
-            position: absolute;
-            top: 4.5mm;
-            right: 4.5mm;
-            width: 14.5mm;
-            height: 14.5mm;
-            background-color: #ffffff;
-            border-radius: 2.5px;
-            padding: 0.8mm;
-            box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.45);
-            z-index: 20;
-        }
-
-        .front-qr-img {
-            width: 100%;
-            height: 100%;
-            display: block;
         }
 
         /* Foto Kucing di Halaman 1 (Pojok Kiri Bawah, Tepat di Atas Nomor Kode Kucing) */
@@ -194,7 +206,6 @@
             height: 6.6%;
         }
         .box-namaku .back-val-inner {
-            font-size: 8pt;
             color: #082440;
         }
 
@@ -205,7 +216,7 @@
             height: 6.6%;
         }
         .box-dob .back-val-inner {
-            font-size: 8pt;
+            font-size: 7.8pt;
         }
 
         .box-breed {
@@ -248,10 +259,6 @@
             width: 30.03%;
             height: 13.4%;
         }
-        .box-owner-name .back-val-inner {
-            font-size: 7.2pt;
-            line-height: 1.15;
-        }
 
         .box-owner-nbm {
             top: 29.1%;
@@ -273,18 +280,19 @@
             font-size: 7pt;
         }
 
-        /* Paw Box on Back (bottom right) */
-        .box-paw-container {
+        /* QR Code & Paw Box on Back Side (Bottom Right below Kontak Owner - Center) */
+        .box-qr-bottom-right {
             position: absolute;
-            top: 63.14%;
+            top: 62.5%;
             left: 51.19%;
             width: 45.0%;
-            height: 30.0%;
-            z-index: 10;
-            padding: 0.5mm;
+            height: 31.0%;
+            z-index: 15;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .paw-table {
+        .qr-bottom-table {
             width: 100%;
             height: 100%;
             border-collapse: collapse;
@@ -292,16 +300,26 @@
             padding: 0;
         }
 
-        .paw-slot-img {
+        .back-qr-img {
             width: 14mm;
             height: 14mm;
+            display: inline-block;
+            background-color: #ffffff;
+            border-radius: 2px;
+            padding: 0.4mm;
+        }
+
+        .paw-slot-img {
+            width: 13mm;
+            height: 13mm;
             object-fit: cover;
             border-radius: 2px;
             border: 0.5px solid #cbd5e1;
+            display: inline-block;
         }
 
-        .paw-tag {
-            font-size: 3.8pt;
+        .slot-tag {
+            font-size: 3.5pt;
             font-weight: 800;
             color: #047857;
             text-transform: uppercase;
@@ -335,13 +353,6 @@
             <div class="draft-watermark">DRAFT KUCINGMU</div>
         @endif
 
-        <!-- QR Code Verifikasi (Pojok Kanan Atas) -->
-        @if(isset($card->qr_code_payload) && $card->qr_code_payload)
-            <div class="front-qr-container">
-                <img class="front-qr-img" src="{{ $card->qr_code_payload }}" alt="QR Verifikasi">
-            </div>
-        @endif
-
         <!-- Foto Kucing (Pojok Kiri Bawah, Tepat di Atas Nomor Kode Kucing) -->
         @if($photoData)
             <div class="front-photo-container">
@@ -365,10 +376,10 @@
             <div class="draft-watermark">DRAFT KUCINGMU</div>
         @endif
 
-        <!-- 1. NAMAKu -->
+        <!-- 1. NAMAKu (Auto-scaled for multiple words) -->
         <div class="back-val box-namaku">
-            <div class="back-val-inner">
-                {{ $cat->name }}
+            <div class="back-val-inner" style="font-size: {{ $catNameFontSize }}; line-height: {{ $catNameLineHeight }};">
+                {{ $catName }}
             </div>
         </div>
 
@@ -400,10 +411,10 @@
             </div>
         </div>
 
-        <!-- 6. NAMA OWNER -->
+        <!-- 6. NAMA OWNER (Auto-scaled for long / multiple words names) -->
         <div class="back-val box-owner-name">
-            <div class="back-val-inner">
-                {{ $cat->owner->name ?? 'Pemilik Kucing' }}
+            <div class="back-val-inner" style="font-size: {{ $ownerNameFontSize }}; line-height: {{ $ownerNameLineHeight }};">
+                {{ $ownerName }}
             </div>
         </div>
 
@@ -421,18 +432,32 @@
             </div>
         </div>
 
-        <!-- 9. TANDA PAW KUCING (Halaman 2) -->
-        <div class="box-paw-container">
-            @if($pawPhotoData)
-                <table class="paw-table">
-                    <tr>
-                        <td align="center" valign="middle">
+        <!-- 9. QR CODE & TANDA PAW KUCING (Halaman 2 - Pojok Kanan Bawah Center) -->
+        <div class="box-qr-bottom-right">
+            <table class="qr-bottom-table">
+                <tr>
+                    @if($pawPhotoData && isset($card->qr_code_payload) && $card->qr_code_payload)
+                        <td align="center" valign="middle" style="width: 50%;">
                             <img class="paw-slot-img" src="{{ $pawPhotoData }}" alt="Paw Biometrik">
-                            <div class="paw-tag">Biometrik Paw</div>
+                            <div class="slot-tag">Paw</div>
                         </td>
-                    </tr>
-                </table>
-            @endif
+                        <td align="center" valign="middle" style="width: 50%;">
+                            <img class="back-qr-img" src="{{ $card->qr_code_payload }}" alt="QR Verifikasi">
+                            <div class="slot-tag">QR Verifikasi</div>
+                        </td>
+                    @elseif(isset($card->qr_code_payload) && $card->qr_code_payload)
+                        <td align="center" valign="middle">
+                            <img class="back-qr-img" src="{{ $card->qr_code_payload }}" alt="QR Verifikasi" style="width: 14.5mm; height: 14.5mm;">
+                            <div class="slot-tag" style="font-size: 3.8pt; margin-top: 0.4mm;">Scan Verifikasi KTAM</div>
+                        </td>
+                    @elseif($pawPhotoData)
+                        <td align="center" valign="middle">
+                            <img class="paw-slot-img" src="{{ $pawPhotoData }}" alt="Paw Biometrik" style="width: 14mm; height: 14mm;">
+                            <div class="slot-tag">Biometrik Paw</div>
+                        </td>
+                    @endif
+                </tr>
+            </table>
         </div>
 
     </div>
