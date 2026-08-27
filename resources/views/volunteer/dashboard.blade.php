@@ -134,9 +134,20 @@
                                             <label class="form-label text-xs">Nama Kucing</label>
                                             <input type="text" name="cat_name" required class="form-input text-xs" placeholder="Contoh: Milo">
                                         </div>
-                                        <div>
-                                            <label class="form-label text-xs">Ras / Jenis Kucing</label>
-                                            <input type="text" name="cat_breed" required class="form-input text-xs" placeholder="Contoh: Domestik / Campuran">
+                                        <div x-data="{ selectedBreed: 'Domestik' }" class="space-y-2">
+                                            <label class="form-label text-xs">Ras / Jenis Kucing <span class="text-rose-500">*</span></label>
+                                            <select name="cat_breed" x-model="selectedBreed" required class="form-input text-xs">
+                                                @php
+                                                    $breedList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
+                                                @endphp
+                                                @foreach($breedList as $b)
+                                                    <option value="{{ $b }}">{{ $b }}</option>
+                                                @endforeach
+                                                <option value="Lainnya">➕ Lainnya (Input Sendiri)</option>
+                                            </select>
+                                            <div x-show="selectedBreed === 'Lainnya'" x-transition class="bg-amber-50/80 p-2 rounded-lg border border-amber-200">
+                                                <input type="text" name="cat_breed_custom" placeholder="Tuliskan nama ras baru..." class="form-input text-xs bg-white w-full">
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="form-label text-xs">Jenis Kelamin</label>
@@ -192,9 +203,20 @@
                                             <label class="form-label text-xs">Nama Kucing</label>
                                             <input type="text" x-model="offlineForm.cat_name" required class="form-input text-xs" placeholder="Nama kucing">
                                         </div>
-                                        <div>
-                                            <label class="form-label text-xs">Ras Kucing</label>
-                                            <input type="text" x-model="offlineForm.cat_breed" required class="form-input text-xs" placeholder="Ras / jenis">
+                                        <div x-data="{ offlineBreedMode: 'Domestik' }" class="space-y-2">
+                                            <label class="form-label text-xs">Ras Kucing <span class="text-rose-500">*</span></label>
+                                            <select x-model="offlineBreedMode" @change="offlineForm.cat_breed = (offlineBreedMode === 'Lainnya' ? '' : offlineBreedMode)" class="form-input text-xs">
+                                                @php
+                                                    $breedList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
+                                                @endphp
+                                                @foreach($breedList as $b)
+                                                    <option value="{{ $b }}">{{ $b }}</option>
+                                                @endforeach
+                                                <option value="Lainnya">➕ Lainnya (Input Sendiri)</option>
+                                            </select>
+                                            <div x-show="offlineBreedMode === 'Lainnya'" x-transition class="bg-amber-50/80 p-2 rounded-lg border border-amber-200">
+                                                <input type="text" x-model="offlineForm.cat_breed" placeholder="Tuliskan nama ras baru..." class="form-input text-xs bg-white w-full">
+                                            </div>
                                         </div>
                                         <div>
                                             <label class="form-label text-xs">Jenis Kelamin</label>

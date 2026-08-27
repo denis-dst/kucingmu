@@ -204,17 +204,38 @@
                         <form method="POST" action="{{ route('cat.store') }}" enctype="multipart/form-data" class="space-y-3.5">
                             @csrf
                             <div>
-                                <label for="cat_name" class="form-label text-xs">Nama Kucing</label>
-                                <input type="text" id="cat_name" name="name" required class="form-input text-xs" placeholder="Contoh: Mochi">
+                                <label for="cat_name" class="form-label text-xs">Nama Kucing <span class="text-rose-500">*</span></label>
+                                <input type="text" id="cat_name" name="name" required class="form-input text-xs" placeholder="Contoh: Mochi" value="{{ old('name') }}">
                             </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label for="cat_breed" class="form-label text-xs">Ras / Jenis</label>
-                                    <input type="text" id="cat_breed" name="breed" required class="form-input text-xs" placeholder="Contoh: Domestik / Persia">
+
+                            <!-- Master Ras & Warna Kucing -->
+                            <div x-data="{ selectedBreed: '{{ old('breed', 'Domestik') }}' }" class="space-y-2.5">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label for="cat_breed" class="form-label text-xs">Ras / Jenis Kucing <span class="text-rose-500">*</span></label>
+                                        <select id="cat_breed" name="breed" x-model="selectedBreed" required class="form-input text-xs">
+                                            @php
+                                                $breedList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
+                                            @endphp
+                                            @foreach($breedList as $b)
+                                                <option value="{{ $b }}" {{ old('breed', 'Domestik') === $b ? 'selected' : '' }}>{{ $b }}</option>
+                                            @endforeach
+                                            <option value="Lainnya" {{ old('breed') === 'Lainnya' ? 'selected' : '' }}>➕ Lainnya (Input Sendiri)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="cat_color" class="form-label text-xs">Warna / Pola Bulu</label>
+                                        <input type="text" id="cat_color" name="color" class="form-input text-xs" placeholder="Contoh: Calico / Tabby / Oranye" value="{{ old('color') }}">
+                                    </div>
                                 </div>
-                                <div>
-                                    <label for="cat_color" class="form-label text-xs">Warna / Pola Bulu</label>
-                                    <input type="text" id="cat_color" name="color" class="form-input text-xs" placeholder="Contoh: Calico / Tabby / Oranye">
+
+                                <!-- Input Kustom Ras Baru jika pilih Lainnya -->
+                                <div x-show="selectedBreed === 'Lainnya'" x-transition class="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200">
+                                    <label for="breed_custom" class="form-label text-[11px] text-amber-900 mb-1">
+                                        Tuliskan Nama Ras Kucing Baru <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="text" id="breed_custom" name="breed_custom" placeholder="Contoh: Munchkin / Balinese" class="form-input text-xs bg-white w-full" value="{{ old('breed_custom') }}">
+                                    <p class="text-[10px] text-amber-700 mt-1">Ras baru ini otomatis tersimpan ke master dan menjadi pilihan ke depannya.</p>
                                 </div>
                             </div>
                             <div>

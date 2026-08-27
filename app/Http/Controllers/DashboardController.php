@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\MedicalRecord;
 use App\Models\KtamCard;
 use App\Models\MasterWilayah;
+use App\Models\MasterBreed;
 use App\Models\User;
 use App\Services\KtamService;
 use Carbon\Carbon;
@@ -91,8 +92,9 @@ class DashboardController extends Controller
             ->whereDate('date', Carbon::today())
             ->orderBy('id', 'desc')
             ->get();
+        $masterBreeds = MasterBreed::getAllBreedNames();
 
-        return view('volunteer.dashboard', compact('todayAppointments'));
+        return view('volunteer.dashboard', compact('todayAppointments', 'masterBreeds'));
     }
 
     /**
@@ -108,8 +110,9 @@ class DashboardController extends Controller
 
         $activeEvents = \App\Models\Event::where('status', 'active')->orderBy('date', 'asc')->get();
         $masterWilayahs = MasterWilayah::getActiveList();
+        $masterBreeds = MasterBreed::getAllBreedNames();
 
-        return view('member.dashboard', compact('cats', 'appointments', 'activeEvents', 'masterWilayahs'));
+        return view('member.dashboard', compact('cats', 'appointments', 'activeEvents', 'masterWilayahs', 'masterBreeds'));
     }
 
     /**
@@ -120,6 +123,7 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'breed' => 'required|string|max:255',
+            'breed_custom' => 'nullable|string|max:255|required_if:breed,Lainnya',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
@@ -150,10 +154,14 @@ class DashboardController extends Controller
 
         $wilayahCode = $request->wilayah_code ?: '34';
 
+        // Process breed and auto-register if custom/new
+        $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : $request->breed);
+        MasterBreed::registerBreedIfNotExists($finalBreed);
+
         $cat = Cat::create([
             'user_id' => Auth::id(),
             'name' => $request->name,
-            'breed' => $request->breed,
+            'breed' => $finalBreed,
             'gender' => $request->gender,
             'date_of_birth' => $request->date_of_birth,
             'wilayah_code' => $wilayahCode,
@@ -214,8 +222,9 @@ class DashboardController extends Controller
 
         $cat->load(['photos', 'wilayah']);
         $masterWilayahs = MasterWilayah::getActiveList();
+        $masterBreeds = MasterBreed::getAllBreedNames();
 
-        return view('member.edit-cat', compact('cat', 'masterWilayahs'));
+        return view('member.edit-cat', compact('cat', 'masterWilayahs', 'masterBreeds'));
     }
 
     /**
@@ -230,6 +239,7 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'breed' => 'required|string|max:255',
+            'breed_custom' => 'nullable|string|max:255|required_if:breed,Lainnya',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
@@ -244,6 +254,9 @@ class DashboardController extends Controller
             'vaccine_history' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
+
+        $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : $request->breed);
+        MasterBreed::registerBreedIfNotExists($finalBreed);
 
         $photoPath = $cat->photo_path;
         if ($request->hasFile('photo')) {
@@ -281,7 +294,7 @@ class DashboardController extends Controller
 
         $cat->update([
             'name' => $request->name,
-            'breed' => $request->breed,
+            'breed' => $finalBreed,
             'gender' => $request->gender,
             'date_of_birth' => $request->date_of_birth,
             'wilayah_code' => $newWilayah,
@@ -553,6 +566,7 @@ class DashboardController extends Controller
             'owner_nbm' => 'nullable|string|max:255',
             'cat_name' => 'required|string|max:255',
             'cat_breed' => 'required|string|max:255',
+            'cat_breed_custom' => 'nullable|string|max:255|required_if:cat_breed,Lainnya',
             'cat_gender' => 'required|in:male,female',
             'cat_dob' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
@@ -562,6 +576,9 @@ class DashboardController extends Controller
             'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'biometric_code' => 'nullable|string|max:255',
         ]);
+
+        $finalBreed = trim($request->cat_breed === 'Lainnya' ? ($request->cat_breed_custom ?: 'Lainnya') : $request->cat_breed);
+        MasterBreed::registerBreedIfNotExists($finalBreed);
 
         $owner = User::create([
             'name' => $request->owner_name,
@@ -587,7 +604,7 @@ class DashboardController extends Controller
         $cat = Cat::create([
             'user_id' => $owner->id,
             'name' => $request->cat_name,
-            'breed' => $request->cat_breed,
+            'breed' => $finalBreed,
             'gender' => $request->cat_gender,
             'date_of_birth' => $request->cat_dob,
             'wilayah_code' => $request->wilayah_code ?: '34',
@@ -723,10 +740,13 @@ class DashboardController extends Controller
                 ]);
             }
 
+            $rawBreed = trim($entry['cat_breed'] ?? 'Domestik');
+            MasterBreed::registerBreedIfNotExists($rawBreed);
+
             $cat = Cat::create([
                 'user_id' => $owner->id,
                 'name' => $entry['cat_name'],
-                'breed' => $entry['cat_breed'],
+                'breed' => $rawBreed,
                 'gender' => $entry['cat_gender'],
                 'date_of_birth' => $entry['cat_dob'],
             ]);

@@ -29,10 +29,32 @@
                         </div>
 
                         <!-- Ras / Breed -->
-                        <div>
-                            <label for="cat_breed" class="form-label font-semibold text-slate-700">Ras / Breed</label>
-                            <input type="text" id="cat_breed" name="breed" value="{{ old('breed', $cat->breed) }}" required class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm" placeholder="e.g. Persia / Domestik">
+                        @php
+                            $breedList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
+                            $currentBreed = old('breed', $cat->breed);
+                            $isKnownBreed = in_array($currentBreed, $breedList);
+                            $initialSelection = $isKnownBreed ? $currentBreed : ($currentBreed ? 'Lainnya' : 'Domestik');
+                            $initialCustom = !$isKnownBreed ? $currentBreed : old('breed_custom', '');
+                        @endphp
+                        <div x-data="{ selectedBreed: '{{ $initialSelection }}' }" class="space-y-2">
+                            <label for="cat_breed" class="form-label font-semibold text-slate-700">Ras / Jenis Kucing <span class="text-rose-500">*</span></label>
+                            <select id="cat_breed" name="breed" x-model="selectedBreed" required class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm py-2">
+                                @foreach($breedList as $b)
+                                    <option value="{{ $b }}" {{ $initialSelection === $b ? 'selected' : '' }}>{{ $b }}</option>
+                                @endforeach
+                                <option value="Lainnya" {{ $initialSelection === 'Lainnya' ? 'selected' : '' }}>➕ Lainnya (Input Sendiri)</option>
+                            </select>
+
+                            <!-- Input Kustom jika pilih Lainnya -->
+                            <div x-show="selectedBreed === 'Lainnya'" x-transition class="bg-amber-50/80 p-2.5 rounded-xl border border-amber-200">
+                                <label for="breed_custom" class="form-label text-xs text-amber-900 mb-1">
+                                    Tuliskan Nama Ras Kucing Baru <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" id="breed_custom" name="breed_custom" value="{{ $initialCustom }}" placeholder="Contoh: Munchkin / Balinese" class="form-input text-xs bg-white w-full rounded-lg">
+                                <p class="text-[11px] text-amber-700 mt-1">Ras baru ini otomatis tersimpan ke master dan menjadi pilihan ke depannya.</p>
+                            </div>
                             <x-input-error :messages="$errors->get('breed')" class="mt-1" />
+                            <x-input-error :messages="$errors->get('breed_custom')" class="mt-1" />
                         </div>
                     </div>
 

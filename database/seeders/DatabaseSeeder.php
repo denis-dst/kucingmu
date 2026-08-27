@@ -58,6 +58,7 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call([
+            MasterBreedSeeder::class,
             MasterWilayahSeeder::class,
             ActivityAlbumSeeder::class,
             LegacyCatMembersSeeder::class,
