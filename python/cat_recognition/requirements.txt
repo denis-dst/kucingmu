@@ -1,0 +1,14 @@
+# Cat Face Recognition — Python dependencies
+# Install: pip install -r requirements.txt
+#
+# GPU (CUDA 12.x):
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# CPU-only:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+torch>=2.2.0
+torchvision>=0.17.0
+ultralytics>=8.2.0       # YOLOv8
+Pillow>=10.0.0
+numpy>=1.26.0
+pymysql>=1.1.0
