@@ -156,6 +156,15 @@ class StrayCatSurveyController extends Controller
             }
         }
 
+        // Auto register custom breeds from individual observations
+        if (!empty($data['cat_individuals']) && is_array($data['cat_individuals'])) {
+            foreach ($data['cat_individuals'] as $ind) {
+                if (!empty($ind['breed'])) {
+                    \App\Models\MasterBreed::registerBreedIfNotExists($ind['breed']);
+                }
+            }
+        }
+
         $data['volunteer_id'] = Auth::id();
 
         StrayCatSurvey::create($data);

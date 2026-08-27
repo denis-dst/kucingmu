@@ -182,10 +182,10 @@
                                             <span class="text-[11px] text-slate-500">{{ $item->zona }}</span>
                                         </td>
 
-                                        <!-- Usia & Gender -->
+                                        <!-- Usia, Gender & Ras -->
                                         <td class="py-3 px-3">
-                                            <span class="font-semibold text-slate-800 block">{{ $item->usia }}</span>
-                                            <span class="text-[11px] text-slate-500">{{ $item->gender }}</span>
+                                            <span class="font-semibold text-slate-800 block">{{ $item->usia }} &bull; {{ $item->gender }}</span>
+                                            <span class="text-[11px] text-teal-700 font-medium">{{ $item->display_breed }}</span>
                                         </td>
 
                                         <!-- Pola Warna -->

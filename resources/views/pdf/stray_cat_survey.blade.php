@@ -207,6 +207,7 @@
                     <th>ID</th>
                     <th>Nama / Label</th>
                     <th>Gender</th>
+                    <th>Ras</th>
                     <th>Usia</th>
                     <th>Warna & Pola</th>
                     <th>Ear-Tip</th>
@@ -220,6 +221,7 @@
                         <td><strong>{{ $cat['id'] ?? '-' }}</strong></td>
                         <td>{{ $cat['name'] ?? '-' }}</td>
                         <td>{{ $cat['gender'] ?? '-' }}</td>
+                        <td>{{ $cat['breed'] ?? 'Domestik' }}</td>
                         <td>{{ $cat['age'] ?? '-' }}</td>
                         <td>{{ $cat['color'] ?? '-' }} ({{ $cat['pattern'] ?? '-' }})</td>
                         <td>{{ $cat['eartip'] ?? '-' }}</td>

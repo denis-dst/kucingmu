@@ -335,6 +335,17 @@
                                                 <option>Jantan</option><option>Betina</option><option>Tidak Diketahui</option>
                                             </select>
                                         </div>
+                                        <div><label class="sur-label">Ras Kucing</label>
+                                            <select class="sur-select cat-breed">
+                                                @php
+                                                    $survBreeds = \App\Models\MasterBreed::getAllBreedNames();
+                                                @endphp
+                                                @foreach($survBreeds as $sb)
+                                                    <option value="{{ $sb }}">{{ $sb }}</option>
+                                                @endforeach
+                                                <option value="Lainnya">Lainnya</option>
+                                            </select>
+                                        </div>
                                         <div><label class="sur-label">Perkiraan Usia</label>
                                             <select class="sur-select cat-age">
                                                 <option>Kitten (&lt;4 bulan)</option><option>Remaja (4–12 bulan)</option><option>Dewasa (&gt;1 tahun)</option>
@@ -1173,6 +1184,14 @@ function surAddCat() {
             <div><label class="sur-label">Jenis Kelamin</label>
                 <select class="sur-select cat-gender"><option>Jantan</option><option>Betina</option><option>Tidak Diketahui</option></select>
             </div>
+            <div><label class="sur-label">Ras Kucing</label>
+                <select class="sur-select cat-breed">
+                    @foreach($survBreeds as $sb)
+                        <option value="{{ $sb }}">{{ $sb }}</option>
+                    @endforeach
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+            </div>
             <div><label class="sur-label">Perkiraan Usia</label>
                 <select class="sur-select cat-age"><option>Kitten (&lt;4 bulan)</option><option>Remaja (4–12 bulan)</option><option>Dewasa (&gt;1 tahun)</option></select>
             </div>
@@ -1213,6 +1232,7 @@ function surCollectJSON() {
             id: 'KUCING-' + String(n).padStart(3,'0'),
             name:    (entry.querySelector('.cat-name')   ||{}).value    || '',
             gender:  (entry.querySelector('.cat-gender') ||{}).value    || '',
+            breed:   (entry.querySelector('.cat-breed')  ||{}).value    || 'Domestik',
             age:     (entry.querySelector('.cat-age')    ||{}).value    || '',
             color:   (entry.querySelector('.cat-color')  ||{}).value    || '',
             pattern: (entry.querySelector('.cat-pattern')||{}).value    || '',

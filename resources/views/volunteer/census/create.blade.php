@@ -303,7 +303,7 @@
                         <span class="text-2xl" aria-hidden="true">🐱</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <!-- Estimasi Usia -->
                         <div class="min-w-0">
                             <label for="usia" class="form-label text-xs">
@@ -328,8 +328,29 @@
                             </select>
                         </div>
 
+                        <!-- Ras Kucing (Master Breeds) -->
+                        <div class="min-w-0" x-data="{ selectedBreed: '{{ old('breed', 'Domestik') }}' }">
+                            <label for="breed" class="form-label text-xs">
+                                Ras Kucing <span class="text-rose-500">*</span>
+                            </label>
+                            <select id="breed" name="breed" x-model="selectedBreed" required class="form-input text-xs w-full max-w-full truncate cursor-pointer">
+                                @php
+                                    $bList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
+                                @endphp
+                                @foreach($bList as $b)
+                                    <option value="{{ $b }}" {{ old('breed', 'Domestik') === $b ? 'selected' : '' }}>{{ $b }}</option>
+                                @endforeach
+                                <option value="Lainnya" {{ old('breed') === 'Lainnya' ? 'selected' : '' }}>➕ Lainnya (Input Sendiri)</option>
+                            </select>
+
+                            <!-- Input Kustom Ras Baru -->
+                            <div x-show="selectedBreed === 'Lainnya'" x-transition class="mt-2 bg-amber-50/80 p-2.5 rounded-xl border border-amber-200">
+                                <input type="text" id="breed_custom" name="breed_custom" placeholder="Tuliskan nama ras baru..." class="form-input text-xs bg-white w-full" value="{{ old('breed_custom') }}">
+                            </div>
+                        </div>
+
                         <!-- Pola Warna Bulu -->
-                        <div class="min-w-0 sm:col-span-2 lg:col-span-1">
+                        <div class="min-w-0">
                             <label for="warna" class="form-label text-xs">
                                 Pola Warna Bulu <span class="text-rose-500">*</span>
                             </label>

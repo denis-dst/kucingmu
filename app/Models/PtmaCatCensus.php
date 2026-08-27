@@ -23,6 +23,8 @@ class PtmaCatCensus extends Model
         'longitude',
         'usia',
         'gender',
+        'breed',
+        'breed_custom',
         'warna',
         'warna_custom',
         'foto_wajah',
@@ -130,6 +132,14 @@ class PtmaCatCensus extends Model
             return $this->kampus_custom;
         }
         return $this->kampus;
+    }
+
+    public function getDisplayBreedAttribute(): string
+    {
+        if ($this->breed === 'Lainnya' && !empty($this->breed_custom)) {
+            return $this->breed_custom;
+        }
+        return $this->breed ?: 'Domestik';
     }
 
     public function getDisplayWarnaAttribute(): string

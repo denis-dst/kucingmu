@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PtmaCatCensus;
 use App\Models\Cat;
 use App\Models\CatPhoto;
+use App\Models\MasterBreed;
 use App\Models\StrayCatSurvey;
 use App\Services\CatBiometricService;
 use Illuminate\Http\Request;
@@ -546,8 +547,9 @@ class PtmaCatCensusController extends Controller
         ];
         $dbZones = PtmaCatCensus::whereNotNull('zona')->pluck('zona')->toArray();
         $zones = array_values(array_unique(array_filter(array_merge($defaultZones, $dbZones))));
+        $masterBreeds = MasterBreed::getAllBreedNames();
 
-        return view('volunteer.census.create', compact('zones'));
+        return view('volunteer.census.create', compact('zones', 'masterBreeds'));
     }
 
     /**
@@ -582,6 +584,8 @@ class PtmaCatCensusController extends Controller
             'longitude'             => 'nullable|numeric|between:-180,180',
             'usia'                  => 'required|string|max:50',
             'gender'                => 'required|string|max:50',
+            'breed'                 => 'nullable|string|max:100',
+            'breed_custom'          => 'nullable|string|max:100|required_if:breed,Lainnya',
             'warna'                 => 'required|string|max:50',
             'warna_custom'          => 'nullable|string|max:100|required_if:warna,Lainnya',
             'bcs'                   => 'required|string|max:50',
@@ -675,6 +679,9 @@ class PtmaCatCensusController extends Controller
             $kondisiKlinis = ['Sehat'];
         }
 
+        $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : ($request->breed ?: 'Domestik'));
+        MasterBreed::registerBreedIfNotExists($finalBreed);
+
         $census = PtmaCatCensus::create([
             'volunteer_id'         => Auth::id(),
             'id_kucing'            => $idKucing,
@@ -686,6 +693,8 @@ class PtmaCatCensusController extends Controller
             'longitude'            => $request->longitude,
             'usia'                 => $request->usia,
             'gender'               => $request->gender,
+            'breed'                => $finalBreed,
+            'breed_custom'         => $request->breed === 'Lainnya' ? $request->breed_custom : null,
             'warna'                => $request->warna,
             'warna_custom'         => $request->warna === 'Lainnya' ? $request->warna_custom : null,
             'foto_wajah'           => $fotoWajah,
@@ -733,10 +742,12 @@ class PtmaCatCensusController extends Controller
         ];
         $dbZones = PtmaCatCensus::whereNotNull('zona')->pluck('zona')->toArray();
         $zones = array_values(array_unique(array_filter(array_merge($defaultZones, $dbZones))));
+        $masterBreeds = MasterBreed::getAllBreedNames();
 
         return view('volunteer.census.edit', [
-            'census' => $census,
-            'zones'  => $zones,
+            'census'       => $census,
+            'zones'        => $zones,
+            'masterBreeds' => $masterBreeds,
         ]);
     }
 
@@ -754,6 +765,8 @@ class PtmaCatCensusController extends Controller
             'longitude'             => 'nullable|numeric|between:-180,180',
             'usia'                  => 'required|string|max:50',
             'gender'                => 'required|string|max:50',
+            'breed'                 => 'nullable|string|max:100',
+            'breed_custom'          => 'nullable|string|max:100|required_if:breed,Lainnya',
             'warna'                 => 'required|string|max:50',
             'warna_custom'          => 'nullable|string|max:100|required_if:warna,Lainnya',
             'bcs'                   => 'required|string|max:50',
@@ -789,6 +802,9 @@ class PtmaCatCensusController extends Controller
             $kondisiKlinis = ['Sehat'];
         }
 
+        $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : ($request->breed ?: 'Domestik'));
+        MasterBreed::registerBreedIfNotExists($finalBreed);
+
         $data = [
             'id_kucing'           => trim($request->id_kucing),
             'kampus'              => $request->kampus,
@@ -798,6 +814,8 @@ class PtmaCatCensusController extends Controller
             'longitude'           => $request->longitude,
             'usia'                => $request->usia,
             'gender'              => $request->gender,
+            'breed'               => $finalBreed,
+            'breed_custom'        => $request->breed === 'Lainnya' ? $request->breed_custom : null,
             'warna'               => $request->warna,
             'warna_custom'        => $request->warna === 'Lainnya' ? $request->warna_custom : null,
             'bcs'                 => $request->bcs,

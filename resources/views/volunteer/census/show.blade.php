@@ -110,6 +110,10 @@
                                 <span class="font-semibold text-slate-900">{{ $census->gender }}</span>
                             </div>
                             <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-500">Ras Kucing:</span>
+                                <span class="font-semibold text-slate-900">{{ $census->display_breed }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
                                 <span class="text-slate-500">Pola Warna Bulu:</span>
                                 <span class="font-semibold text-slate-900">{{ $census->display_warna }}</span>
                             </div>
