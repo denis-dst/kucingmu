@@ -25,3 +25,11 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Python — cat_recognition
+/python/cat_recognition/.venv/
+/python/cat_recognition/__pycache__/
+/python/cat_recognition/*.pyc
+/python/cat_recognition/*.pt
+/python/cat_recognition/*.pth
+/python.zip
