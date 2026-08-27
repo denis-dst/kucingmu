@@ -195,7 +195,7 @@
                 
                 <!-- Left Section: Cat Registry & Status -->
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="content-card" style="box-sizing: border-box; overflow: hidden; width: 100%;">
+                    <div id="cat-registry-table" class="content-card" style="box-sizing: border-box; overflow: hidden; width: 100%; scroll-margin-top: 24px;">
                         <div style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 16px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                 <div>
@@ -205,7 +205,7 @@
                                 
                                 <!-- Clean Server-side Search Form for Cat Registry Table -->
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <form method="GET" action="{{ route('dashboard') }}" style="display: flex; align-items: center; gap: 6px;">
+                                    <form method="GET" action="{{ route('dashboard') }}#cat-registry-table" style="display: flex; align-items: center; gap: 6px;">
                                         <div style="position: relative; width: 220px;">
                                             <span style="position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px; pointer-events: none;">🔍</span>
                                             <input type="text" 
@@ -214,7 +214,7 @@
                                                    placeholder="Cari kucing, KTAM, pemilik..." 
                                                    style="width: 100%; box-sizing: border-box; font-size: 12px; padding: 6px 26px 6px 26px; border-radius: 10px; border: 1px solid #cbd5e1; background-color: #f8fafc; outline: none;">
                                             @if(request('search'))
-                                                <a href="{{ route('dashboard') }}" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px; font-weight: bold; text-decoration: none;" title="Hapus pencarian">✕</a>
+                                                <a href="{{ route('dashboard') }}#cat-registry-table" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px; font-weight: bold; text-decoration: none;" title="Hapus pencarian">✕</a>
                                             @endif
                                         </div>
                                         <button type="submit" class="button-primary text-xs font-semibold" style="padding: 6px 14px; min-height: 32px; border-radius: 10px;">
@@ -310,9 +310,22 @@
                                 </table>
                             </div>
                             <div class="mt-4 border-t border-slate-100 pt-3">
-                                {{ $cats->links() }}
+                                {{ $cats->fragment('cat-registry-table')->links() }}
                             </div>
                         @endif
+                    </div>
+                </div>
+
+                @if(request()->has('search') || request()->has('page'))
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const tableEl = document.getElementById('cat-registry-table');
+                            if (tableEl) {
+                                tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        });
+                    </script>
+                @endif
                     </div>
                 </div>
 
