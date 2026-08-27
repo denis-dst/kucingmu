@@ -65,13 +65,13 @@
 
     if ($ownerNameLen > 22 || $ownerNameWordCount > 3) {
         $ownerNameFontSize = '5.2pt';
-        $ownerNameLineHeight = '1.15';
+        $ownerNameLineHeight = '1.25';
     } elseif ($ownerNameLen > 13 || $ownerNameWordCount > 1) {
         $ownerNameFontSize = '6.2pt';
-        $ownerNameLineHeight = '1.25';
+        $ownerNameLineHeight = '1.35';
     } else {
         $ownerNameFontSize = '7.5pt';
-        $ownerNameLineHeight = '1.35';
+        $ownerNameLineHeight = '1.45';
     }
 @endphp
 <!DOCTYPE html>
