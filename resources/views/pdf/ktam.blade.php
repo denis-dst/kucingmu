@@ -49,13 +49,13 @@
 
     if ($catNameLen > 14 || $catNameWordCount > 2) {
         $catNameFontSize = '5.0pt';
-        $catNameLineHeight = '1';
+        $catNameLineHeight = '1.15';
     } elseif ($catNameLen > 7 || $catNameWordCount > 1) {
         $catNameFontSize = '6.0pt';
-        $catNameLineHeight = '1.15';
+        $catNameLineHeight = '1.25';
     } else {
         $catNameFontSize = '7.8pt';
-        $catNameLineHeight = '1.25';
+        $catNameLineHeight = '1.35';
     }
 
     // Auto font sizing for NAMA OWNER (Right capsule)
@@ -65,13 +65,13 @@
 
     if ($ownerNameLen > 22 || $ownerNameWordCount > 3) {
         $ownerNameFontSize = '5.2pt';
-        $ownerNameLineHeight = '1';
+        $ownerNameLineHeight = '1.15';
     } elseif ($ownerNameLen > 13 || $ownerNameWordCount > 1) {
         $ownerNameFontSize = '6.2pt';
-        $ownerNameLineHeight = '1.15';
+        $ownerNameLineHeight = '1.25';
     } else {
         $ownerNameFontSize = '7.5pt';
-        $ownerNameLineHeight = '1.25';
+        $ownerNameLineHeight = '1.35';
     }
 @endphp
 <!DOCTYPE html>
