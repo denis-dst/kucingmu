@@ -327,14 +327,43 @@
             display: inline-block;
         }
 
-        .slot-tag {
-            font-size: 3.5pt;
-            font-weight: 800;
-            color: #047857;
-            text-transform: uppercase;
-            letter-spacing: 0.2px;
-            line-height: 1;
-            margin-top: 0.3mm;
+        /* Hadits Box on Back Side (Bottom Left next to QR Code) */
+        .box-hadits-bottom-left {
+            position: absolute;
+            top: 58.5%;
+            left: 3.8%;
+            width: 48.5%;
+            height: 35.0%;
+            z-index: 15;
+            display: table;
+            box-sizing: border-box;
+            padding: 0 1mm;
+        }
+
+        .hadits-inner {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: center;
+            color: #ffffff;
+            font-size: 4.4pt;
+            line-height: 1.28;
+            font-weight: 600;
+            text-shadow: 0 0.5px 2px rgba(0, 0, 0, 0.6);
+            font-family: 'Plus Jakarta Sans', Helvetica, Arial, sans-serif;
+        }
+
+        .hadits-quote {
+            font-style: italic;
+            letter-spacing: 0.1px;
+        }
+
+        .hadits-source {
+            font-size: 4.0pt;
+            font-weight: 700;
+            color: #fef08a;
+            margin-top: 1mm;
+            display: block;
+            font-style: normal;
         }
 
         .draft-watermark {
@@ -444,7 +473,15 @@
             </div>
         </div>
 
-        <!-- 9. QR CODE & TANDA PAW KUCING (Halaman 2 - Pojok Kanan Bawah Center) -->
+        <!-- 9. HADITS PENYAYANG (Halaman 2 - Pojok Kiri Bawah) -->
+        <div class="box-hadits-bottom-left">
+            <div class="hadits-inner">
+                <span class="hadits-quote">"Orang-orang yang penyayang akan disayangi oleh Allah Yang Maha Penyayang. Sayangilah apapun yang ada di bumi, niscaya yang ada di langit akan menyayangi kalian."</span>
+                <span class="hadits-source">(HR. Tirmidzi, no. 1924)</span>
+            </div>
+        </div>
+
+        <!-- 10. QR CODE & TANDA PAW KUCING (Halaman 2 - Pojok Kanan Bawah Center) -->
         <div class="box-qr-bottom-right">
             <table class="qr-bottom-table">
                 <tr>
@@ -473,7 +510,6 @@
                 </tr>
             </table>
         </div>
-
     </div>
 
 </body>
