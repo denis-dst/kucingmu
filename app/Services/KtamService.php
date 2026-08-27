@@ -23,7 +23,16 @@ class KtamService
             return $cat->ktamCard;
         }
 
-        $ktamNumber = $this->generateKtamNumber();
+        // Ensure wilayah_code and unique_code exist
+        if (empty($cat->wilayah_code)) {
+            $cat->wilayah_code = '34';
+        }
+        if (empty($cat->unique_code)) {
+            $cat->unique_code = Cat::generateUniqueCode($cat->wilayah_code, $cat->id);
+            $cat->saveQuietly();
+        }
+
+        $ktamNumber = $cat->unique_code;
         $verificationUrl = route('ktam.verify', ['number' => $ktamNumber]);
 
         // Generate QR code SVG content as base64 string
@@ -46,27 +55,16 @@ class KtamService
     }
 
     /**
-     * Generate a unique KTAM number: KM-YYYYMMDD-XXXX
+     * Generate a unique KTAM number for a cat based on wilayah and ID.
      *
+     * @param \App\Models\Cat|null $cat
      * @return string
      */
-    protected function generateKtamNumber(): string
+    public function generateKtamNumber(?Cat $cat = null): string
     {
-        $todayStr = Carbon::today()->format('Ymd');
-        $prefix = 'KM-' . $todayStr . '-';
-
-        // Find the latest card issued today to calculate next sequence
-        $latestCard = KtamCard::where('ktam_number', 'like', $prefix . '%')
-            ->orderBy('ktam_number', 'desc')
-            ->first();
-
-        if ($latestCard) {
-            $parts = explode('-', $latestCard->ktam_number);
-            $sequence = intval(end($parts)) + 1;
-        } else {
-            $sequence = 1;
+        if ($cat) {
+            return $cat->unique_code ?: Cat::generateUniqueCode($cat->wilayah_code ?: '34', $cat->id);
         }
-
-        return $prefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return '34.kcg.' . str_pad(Cat::count() + 1, 4, '0', STR_PAD_LEFT);
     }
 }

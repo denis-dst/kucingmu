@@ -39,27 +39,42 @@ class Cat extends Model
 
     protected static function booted()
     {
-        static::creating(function ($cat) {
-            if (empty($cat->wilayah_code)) {
-                $cat->wilayah_code = '34';
+        static::created(function ($cat) {
+            if (!empty($cat->wilayah_code) && empty($cat->unique_code)) {
+                $cat->unique_code = self::generateUniqueCode($cat->wilayah_code, $cat->id);
+                $cat->saveQuietly();
             }
         });
 
-        static::created(function ($cat) {
-            if (empty($cat->unique_code)) {
-                $cat->unique_code = self::generateUniqueCode($cat->wilayah_code ?? '34', $cat->id);
-                $cat->saveQuietly();
+        static::updating(function ($cat) {
+            if ($cat->isDirty('wilayah_code')) {
+                if (!empty($cat->wilayah_code)) {
+                    $cat->unique_code = self::generateUniqueCode($cat->wilayah_code, $cat->id);
+                } else {
+                    $cat->unique_code = null;
+                }
+
+                // Synchronize ktam_cards table if card exists
+                if ($cat->ktamCard) {
+                    if (!empty($cat->unique_code)) {
+                        $cat->ktamCard->update(['ktam_number' => $cat->unique_code]);
+                    }
+                }
             }
         });
     }
 
     /**
-     * Generate unique cat code with format: "kode_wilayah.kcg.xxxx"
+     * Generate unique cat code with format: "kode_wilayah.kcg.00xx"
      */
-    public static function generateUniqueCode(?string $wilayahCode = '34', ?int $sequence = null): string
+    public static function generateUniqueCode(?string $wilayahCode = null, ?int $id = null): ?string
     {
-        $kode = strtolower(trim($wilayahCode ?: '34'));
-        $seq = $sequence ?: (self::count() + 1);
+        if (empty($wilayahCode)) {
+            return null;
+        }
+
+        $kode = strtolower(trim($wilayahCode));
+        $seq = $id ?: 1;
         return $kode . '.kcg.' . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 
@@ -68,7 +83,10 @@ class Cat extends Model
         if (!empty($this->unique_code)) {
             return $this->unique_code;
         }
-        return self::generateUniqueCode($this->wilayah_code ?? '34', $this->id);
+        if (!empty($this->wilayah_code)) {
+            return self::generateUniqueCode($this->wilayah_code, $this->id);
+        }
+        return '-';
     }
 
     public function wilayah()
