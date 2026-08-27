@@ -60,6 +60,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             MasterWilayahSeeder::class,
             ActivityAlbumSeeder::class,
+            LegacyCatMembersSeeder::class,
         ]);
     }
 }
