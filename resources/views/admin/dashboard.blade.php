@@ -326,8 +326,6 @@
                         });
                     </script>
                 @endif
-                    </div>
-                </div>
 
                 <!-- Right Section: Verification Scanner Simulation -->
                 <div class="space-y-6">
