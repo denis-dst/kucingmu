@@ -246,7 +246,7 @@
         }
 
         .box-nikumu {
-            top: 50.0%;
+            top: 48.0%;
             left: 17.75%;
             width: 30.03%;
             height: 5.5%;
