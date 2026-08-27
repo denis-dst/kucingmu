@@ -49,13 +49,13 @@
 
     if ($catNameLen > 14 || $catNameWordCount > 2) {
         $catNameFontSize = '5.0pt';
-        $catNameLineHeight = '0.95';
+        $catNameLineHeight = '1';
     } elseif ($catNameLen > 7 || $catNameWordCount > 1) {
         $catNameFontSize = '6.0pt';
-        $catNameLineHeight = '1.02';
+        $catNameLineHeight = '1.15';
     } else {
         $catNameFontSize = '7.8pt';
-        $catNameLineHeight = '1.15';
+        $catNameLineHeight = '1.25';
     }
 
     // Auto font sizing for NAMA OWNER (Right capsule)
@@ -65,17 +65,18 @@
 
     if ($ownerNameLen > 22 || $ownerNameWordCount > 3) {
         $ownerNameFontSize = '5.2pt';
-        $ownerNameLineHeight = '0.95';
+        $ownerNameLineHeight = '1';
     } elseif ($ownerNameLen > 13 || $ownerNameWordCount > 1) {
         $ownerNameFontSize = '6.2pt';
-        $ownerNameLineHeight = '1.05';
+        $ownerNameLineHeight = '1.15';
     } else {
         $ownerNameFontSize = '7.5pt';
-        $ownerNameLineHeight = '1.15';
+        $ownerNameLineHeight = '1.25';
     }
 @endphp
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>KTAM KucingMu - {{ $cat->name }}</title>
@@ -85,7 +86,7 @@
             font-style: normal;
             font-weight: 400;
             @if($fontBase64)
-            src: url('data:font/truetype;charset=utf-8;base64,{{ $fontBase64 }}') format('truetype');
+                src: url('data:font/truetype;charset=utf-8;base64,{{ $fontBase64 }}') format('truetype');
             @endif
         }
 
@@ -100,7 +101,8 @@
             -webkit-print-color-adjust: exact;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             width: 86mm;
@@ -205,6 +207,7 @@
             width: 23.5%;
             height: 6.6%;
         }
+
         .box-namaku .back-val-inner {
             color: #082440;
         }
@@ -215,6 +218,7 @@
             width: 30.03%;
             height: 6.6%;
         }
+
         .box-dob .back-val-inner {
             font-size: 7.8pt;
         }
@@ -225,6 +229,7 @@
             width: 30.03%;
             height: 9.1%;
         }
+
         .box-breed .back-val-inner {
             font-size: 7pt;
         }
@@ -235,6 +240,7 @@
             width: 30.03%;
             height: 10.3%;
         }
+
         .box-color .back-val-inner {
             font-size: 7pt;
         }
@@ -245,6 +251,7 @@
             width: 30.03%;
             height: 5.5%;
         }
+
         .box-nikumu .back-val-inner {
             font-family: 'Courier New', Courier, monospace;
             font-size: 7pt;
@@ -266,6 +273,7 @@
             width: 30.03%;
             height: 13.4%;
         }
+
         .box-owner-nbm .back-val-inner {
             font-size: 7pt;
         }
@@ -276,6 +284,7 @@
             width: 30.03%;
             height: 13.4%;
         }
+
         .box-owner-phone .back-val-inner {
             font-size: 7pt;
         }
@@ -345,6 +354,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <!-- HALAMAN 1: TAMPAK DEPAN (FRONT) -->
@@ -378,7 +388,8 @@
 
         <!-- 1. NAMAKu (Auto-scaled for multiple words) -->
         <div class="back-val box-namaku">
-            <div class="back-val-inner" style="font-size: {{ $catNameFontSize }}; line-height: {{ $catNameLineHeight }};">
+            <div class="back-val-inner"
+                style="font-size: {{ $catNameFontSize }}; line-height: {{ $catNameLineHeight }};">
                 {{ $catName }}
             </div>
         </div>
@@ -413,7 +424,8 @@
 
         <!-- 6. NAMA OWNER (Auto-scaled for long / multiple words names) -->
         <div class="back-val box-owner-name">
-            <div class="back-val-inner" style="font-size: {{ $ownerNameFontSize }}; line-height: {{ $ownerNameLineHeight }};">
+            <div class="back-val-inner"
+                style="font-size: {{ $ownerNameFontSize }}; line-height: {{ $ownerNameLineHeight }};">
                 {{ $ownerName }}
             </div>
         </div>
@@ -447,12 +459,14 @@
                         </td>
                     @elseif(isset($card->qr_code_payload) && $card->qr_code_payload)
                         <td align="center" valign="middle">
-                            <img class="back-qr-img" src="{{ $card->qr_code_payload }}" alt="QR Verifikasi" style="width: 14.5mm; height: 14.5mm;">
+                            <img class="back-qr-img" src="{{ $card->qr_code_payload }}" alt="QR Verifikasi"
+                                style="width: 14.5mm; height: 14.5mm;">
                             <div class="slot-tag" style="font-size: 3.8pt; margin-top: 0.4mm;">Scan Verifikasi KTAM</div>
                         </td>
                     @elseif($pawPhotoData)
                         <td align="center" valign="middle">
-                            <img class="paw-slot-img" src="{{ $pawPhotoData }}" alt="Paw Biometrik" style="width: 14mm; height: 14mm;">
+                            <img class="paw-slot-img" src="{{ $pawPhotoData }}" alt="Paw Biometrik"
+                                style="width: 14mm; height: 14mm;">
                             <div class="slot-tag">Biometrik Paw</div>
                         </td>
                     @endif
@@ -463,4 +477,5 @@
     </div>
 
 </body>
+
 </html>
