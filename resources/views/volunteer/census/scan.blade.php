@@ -204,19 +204,24 @@
                             <div class="content-card border-2 border-emerald-300 bg-emerald-50/30 space-y-5 p-5">
                                 <div class="flex items-start justify-between gap-3 border-b border-emerald-100 pb-3">
                                     <div>
-                                        <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                                            <span>✓</span> Kucing Sudah Terdata
-                                        </span>
-                                        <h3 class="font-outfit text-lg font-bold text-slate-900 mt-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                                                <span>✓</span> Kucing Sudah Terdata
+                                            </span>
+                                            <template x-if="matchResult.best_match.matched_angle">
+                                                <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-800 bg-teal-100 px-2.5 py-0.5 rounded-full" x-text="`📐 Cocok: ${matchResult.best_match.matched_angle}`"></span>
+                                            </template>
+                                        </div>
+                                        <h3 class="font-outfit text-lg font-bold text-slate-900 mt-1.5">
                                             Ditemukan Kemiripan Sangat Tinggi
                                         </h3>
                                         <p class="text-xs text-slate-600">
-                                            Kucing ini terdeteksi memiliki kemiripan kuat dengan rekaman sensus <strong class="text-teal-900" x-text="matchResult.best_match.id_kucing"></strong>.
+                                            Kucing ini terdeteksi memiliki kemiripan biometrik kuat dengan data <strong class="text-teal-900" x-text="matchResult.best_match.id_kucing"></strong> (<span x-text="matchResult.best_match.source_label"></span>).
                                         </p>
                                     </div>
-                                    <div class="text-right">
+                                    <div class="text-right shrink-0">
                                         <span class="text-[10px] font-bold uppercase text-slate-400 block">Skor Kemiripan</span>
-                                        <span class="font-outfit text-2xl font-bold text-emerald-700" x-text="`${matchResult.best_match.similarity_percent}%`"></span>
+                                        <span class="font-outfit text-2xl font-extrabold text-emerald-700" x-text="`${matchResult.best_match.similarity_percent}%`"></span>
                                     </div>
                                 </div>
 
@@ -224,7 +229,10 @@
                                 <div class="grid grid-cols-2 gap-3 sm:gap-4">
                                     <!-- Foto Baru -->
                                     <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1.5">
-                                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Foto Hasil Scan</span>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Foto Hasil Scan</span>
+                                            <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-mono">Input</span>
+                                        </div>
                                         <div class="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
                                             <img :src="scannedImagePreview" alt="Foto Scan" class="w-full h-full object-cover">
                                         </div>
@@ -233,7 +241,7 @@
                                     <!-- Foto Master Database -->
                                     <div class="bg-white p-2.5 rounded-xl border border-emerald-200 space-y-1.5">
                                         <div class="flex items-center justify-between">
-                                            <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block" x-text="matchResult.best_match.source_label || 'Foto Master'"></span>
+                                            <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block truncate max-w-[120px]" x-text="matchResult.best_match.source_label || 'Foto Master'"></span>
                                             <span class="text-[10px] font-mono font-bold text-teal-800" x-text="matchResult.best_match.id_kucing"></span>
                                         </div>
                                         <div class="aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
@@ -242,6 +250,54 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- AI Biometric Metrics Breakdown -->
+                                <template x-if="matchResult.best_match.metrics">
+                                    <div class="bg-white/80 p-3 rounded-xl border border-emerald-100 space-y-2">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Indikator Biometrik Multidimensi</span>
+                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <span class="text-[10px] text-slate-500 font-semibold">🧠 Morfologi Deep AI</span>
+                                                    <span class="font-bold text-teal-800 font-mono text-[11px]" x-text="matchResult.best_match.metrics.deep ? `${matchResult.best_match.metrics.deep}%` : 'Auto'"></span>
+                                                </div>
+                                                <div class="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
+                                                    <div class="bg-teal-600 h-full rounded-full" :style="`width: ${matchResult.best_match.metrics.deep || 80}%`"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <span class="text-[10px] text-slate-500 font-semibold">🎨 Pola & Tekstur Belang</span>
+                                                    <span class="font-bold text-emerald-800 font-mono text-[11px]" x-text="matchResult.best_match.metrics.spatial ? `${matchResult.best_match.metrics.spatial}%` : 'Auto'"></span>
+                                                </div>
+                                                <div class="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
+                                                    <div class="bg-emerald-600 h-full rounded-full" :style="`width: ${matchResult.best_match.metrics.spatial || 80}%`"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <span class="text-[10px] text-slate-500 font-semibold">🌈 Distribusi Warna 3x3</span>
+                                                    <span class="font-bold text-cyan-800 font-mono text-[11px]" x-text="matchResult.best_match.metrics.color ? `${matchResult.best_match.metrics.color}%` : 'Auto'"></span>
+                                                </div>
+                                                <div class="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
+                                                    <div class="bg-cyan-600 h-full rounded-full" :style="`width: ${matchResult.best_match.metrics.color || 80}%`"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                                                <div class="flex items-center justify-between mb-1">
+                                                    <span class="text-[10px] text-slate-500 font-semibold">📐 Struktur Perseptual</span>
+                                                    <span class="font-bold text-indigo-800 font-mono text-[11px]" x-text="matchResult.best_match.metrics.hash ? `${matchResult.best_match.metrics.hash}%` : 'Auto'"></span>
+                                                </div>
+                                                <div class="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
+                                                    <div class="bg-indigo-600 h-full rounded-full" :style="`width: ${matchResult.best_match.metrics.hash || 80}%`"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
 
                                 <!-- Identity & Morphometry Info -->
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-white p-3 rounded-xl border border-slate-200 text-xs">
@@ -277,7 +333,7 @@
                             </div>
                         </template>
 
-                        <!-- Case 2: Kucing Baru / Tidak Ada Kemiripan Kuat (< 72%) -->
+                        <!-- Case 2: Kucing Baru / Tidak Ada Kemiripan Kuat (< 68%) -->
                         <template x-if="!matchResult || !matchResult.best_match || !matchResult.is_likely_match">
                             <div class="content-card border border-slate-200 bg-white space-y-5 p-5">
                                 <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
@@ -289,7 +345,7 @@
                                             Kandidat Kucing Baru Terkonfirmasi
                                         </h3>
                                         <p class="text-xs text-slate-600">
-                                            Tidak ditemukan arsip sensus yang memiliki pola visual serupa di database. Anda dapat langsung mendaftarkannya sebagai data sensus baru.
+                                            Tidak ditemukan arsip sensus yang memiliki kemiripan biometrik kuat di database lintas modul. Anda dapat langsung mendaftarkannya sebagai data sensus baru.
                                         </p>
                                     </div>
                                     <template x-if="matchResult && matchResult.best_match">
@@ -308,7 +364,7 @@
                                     <div class="space-y-2 text-center sm:text-left flex-1">
                                         <h4 class="font-outfit text-sm font-bold text-teal-950">Gunakan Foto Ini untuk Sensus Baru</h4>
                                         <p class="text-xs text-slate-600">
-                                            Foto wajah yang baru saja dipindai akan otomatis dipasang di Slot 1 (Foto Wajah) formulir sensus tanpa perlu foto ulang.
+                                            Foto visual yang baru saja dipindai akan otomatis dipasang di Slot 1 (Foto Wajah) formulir sensus beserta vektor embedding biometriknya.
                                         </p>
                                         <button type="button" @click="proceedToCreateWithPhoto()" 
                                                 class="button-primary px-5 py-2.5 text-xs font-bold shadow-md inline-flex items-center gap-2">
@@ -324,23 +380,28 @@
                             <div class="content-card space-y-3 bg-white p-4">
                                 <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                                     <h4 class="font-outfit text-xs font-bold uppercase tracking-wider text-slate-600">
-                                        Kandidat Pembanding Lainnya (<span x-text="matchResult.matches.length - 1"></span>)
+                                        Kandidat Pembanding Lintas Tabel (<span x-text="matchResult.matches.length - 1"></span>)
                                     </h4>
-                                    <span class="text-[11px] text-slate-400">Diurutkan berdasarkan kemiripan</span>
+                                    <span class="text-[11px] text-slate-400">Diurutkan berdasarkan skor ensemble biometrik</span>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                    <template x-for="(cand, idx) in matchResult.matches.slice(1, 5)" :key="cand.id">
+                                    <template x-for="(cand, idx) in matchResult.matches.slice(1, 6)" :key="cand.id">
                                         <div class="flex items-center gap-2.5 p-2 rounded-lg border border-slate-100 hover:border-teal-200 bg-slate-50/60 hover:bg-teal-50/30 transition-colors">
                                             <div class="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-white border border-slate-200">
-                                                <img :src="cand.foto_wajah_url || '/images/cat-placeholder.png'" alt="Foto Wajah" class="w-full h-full object-cover">
+                                                <img :src="cand.foto_wajah_url || '/images/cat-placeholder.png'" alt="Foto Kucing" class="w-full h-full object-cover">
                                             </div>
                                             <div class="min-w-0 flex-1 text-xs">
                                                 <div class="flex items-center justify-between">
                                                     <span class="font-bold text-slate-900 truncate" x-text="cand.id_kucing"></span>
                                                     <span class="font-semibold text-[11px] text-teal-700 font-mono" x-text="`${cand.similarity_percent}%`"></span>
                                                 </div>
-                                                <p class="text-[11px] text-slate-500 truncate" x-text="`${cand.display_kampus} • ${cand.display_warna}`"></p>
+                                                <div class="flex items-center gap-1.5 mt-0.5">
+                                                    <span class="text-[10px] text-slate-500 truncate" x-text="cand.source_label"></span>
+                                                    <template x-if="cand.matched_angle">
+                                                        <span class="text-[9px] bg-slate-200 text-slate-700 px-1 rounded truncate" x-text="cand.matched_angle"></span>
+                                                    </template>
+                                                </div>
                                                 <a :href="cand.detail_url || `/sensus-kucing/${cand.id}`" target="_blank" class="text-[10px] text-teal-700 hover:underline font-semibold block mt-0.5">
                                                     Lihat Data ↗
                                                 </a>
@@ -376,7 +437,7 @@
 
                 aiLoading: true,
                 aiReady: false,
-                aiStatusText: 'Memuat Model AI...',
+                aiStatusText: 'Memuat Model AI Neural...',
                 netModel: null,
 
                 isScanning: false,
@@ -396,22 +457,22 @@
                     this.backgroundCheckMissingEmbeddings();
                 },
 
-                // Load MobileNet Feature Extractor
+                // Load MobileNet Feature Extractor with L2 Normalization
                 async loadAIModel() {
                     this.aiLoading = true;
                     try {
                         if (window.mobilenet) {
                             this.netModel = await mobilenet.load({ version: 2, alpha: 1.0 });
                             this.aiReady = true;
-                            this.aiStatusText = 'Engine AI Siap';
+                            this.aiStatusText = 'Dual Engine: Neural AI + Spatial 3x3 Aktif';
                         } else {
                             this.aiReady = false;
-                            this.aiStatusText = 'Mode Pencocokan Warna Aktif';
+                            this.aiStatusText = 'Engine Spatial Biometrik Aktif';
                         }
                     } catch (e) {
-                        console.warn('Gagal memuat MobileNet CDN, beralih ke Color Fingerprint PHP:', e);
+                        console.warn('Gagal memuat CDN MobileNet, menggunakan Server Spatial Biometrics:', e);
                         this.aiReady = false;
-                        this.aiStatusText = 'Mode Warna Aktif';
+                        this.aiStatusText = 'Spatial Texture Engine Aktif';
                     } finally {
                         this.aiLoading = false;
                     }
@@ -488,57 +549,72 @@
                     }
                 },
 
-                // Capture Frame from Camera and Scan
+                // Capture Focused Reticle Frame from Camera
                 async captureAndScan() {
                     const video = document.getElementById('scannerVideo');
                     const canvas = document.getElementById('scannerCanvas');
                     if (!video || !canvas) return;
 
-                    canvas.width = video.videoWidth || 640;
-                    canvas.height = video.videoHeight || 480;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    const vw = video.videoWidth || 640;
+                    const vh = video.videoHeight || 480;
 
-                    this.scannedImagePreview = canvas.toDataURL('image/jpeg', 0.88);
+                    // Focus center crop according to viewfinder
+                    const cropSize = Math.min(vw, vh);
+                    const cropX = (vw - cropSize) / 2;
+                    const cropY = (vh - cropSize) / 2;
+
+                    canvas.width = 640;
+                    canvas.height = 640;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, cropX, cropY, cropSize, cropSize, 0, 0, 640, 640);
+
+                    this.scannedImagePreview = canvas.toDataURL('image/jpeg', 0.90);
                     await this.runScanOnPreview();
                 },
 
-                // Extract Embedding & Send Match Request
+                // Extract L2-Normalized Embedding & Send Match Request
                 async runScanOnPreview() {
                     if (!this.scannedImagePreview) return;
 
                     this.isScanning = true;
-                    this.scanProgressMessage = 'Mengekstrak Ciri Visual Kucing...';
+                    this.scanProgressMessage = 'Mengekstrak Fitur Morfologi & Biometrik Kucing...';
 
                     let embeddingVector = null;
 
-                    // 1. Run MobileNet Inference if loaded
+                    // 1. Run MobileNet Deep Feature Extraction with L2-normalization
                     if (this.netModel) {
                         try {
                             const img = new Image();
                             img.src = this.scannedImagePreview;
                             await img.decode();
 
-                            const activation = this.netModel.infer(img, true); // Extract 1024 or 1000 embedding vector
-                            const arrayData = await activation.data();
-                            embeddingVector = Array.from(arrayData);
+                            const activation = this.netModel.infer(img, true);
+                            const rawArr = await activation.data();
+
+                            let sumSq = 0;
+                            for (let i = 0; i < rawArr.length; i++) {
+                                sumSq += rawArr[i] * rawArr[i];
+                            }
+                            const norm = Math.sqrt(sumSq) || 1.0;
+                            embeddingVector = Array.from(rawArr).map(v => Math.round((v / norm) * 10000) / 10000);
+
                             activation.dispose();
                         } catch (e) {
-                            console.warn('Ekstraksi embedding browser error:', e);
+                            console.warn('Ekstraksi neural browser fallback:', e);
                         }
                     }
 
                     this.currentEmbedding = embeddingVector;
-                    this.scanProgressMessage = 'Membandingkan dengan Database Sensus PTMA...';
+                    this.scanProgressMessage = 'Menganalisis Pola Lintas Sudut & Basis Data Master...';
 
-                    // 2. Send to Laravel Backend
+                    // 2. Send to Laravel Backend Ensemble Engine
                     try {
                         const payload = {
                             embedding: embeddingVector,
                             image_base64: this.scannedImagePreview,
                             kampus: this.filterKampus !== 'Semua' ? this.filterKampus : null,
                             warna: this.filterWarna || null,
-                            threshold: 0.45
+                            threshold: 0.38
                         };
 
                         const res = await fetch(`{{ route('volunteer.census.match') }}`, {
@@ -584,7 +660,7 @@
                     window.location.href = `{{ route('volunteer.census.create') }}?from_scan=1`;
                 },
 
-                // Silently sync missing embeddings for older records in background
+                // Silently sync missing embeddings across all tables in background
                 async backgroundCheckMissingEmbeddings() {
                     if (!this.netModel) return;
                     try {
@@ -593,15 +669,28 @@
                         if (data.success && data.records && data.records.length > 0) {
                             const syncItems = [];
                             for (const rec of data.records) {
-                                if (!rec.foto_wajah_url) continue;
+                                if (!rec.photo_url) continue;
                                 try {
                                     const img = new Image();
                                     img.crossOrigin = 'anonymous';
-                                    img.src = rec.foto_wajah_url;
+                                    img.src = rec.photo_url;
                                     await img.decode();
                                     const act = this.netModel.infer(img, true);
-                                    const arr = await act.data();
-                                    syncItems.push({ id: rec.id, embedding: Array.from(arr) });
+                                    const rawArr = await act.data();
+
+                                    let sumSq = 0;
+                                    for (let i = 0; i < rawArr.length; i++) {
+                                        sumSq += rawArr[i] * rawArr[i];
+                                    }
+                                    const norm = Math.sqrt(sumSq) || 1.0;
+                                    const normVec = Array.from(rawArr).map(v => Math.round((v / norm) * 10000) / 10000);
+
+                                    syncItems.push({
+                                        id: rec.id,
+                                        type: rec.type,
+                                        slot: rec.slot,
+                                        embedding: normVec
+                                    });
                                     act.dispose();
                                 } catch (err) {
                                     // Ignore single image load error

@@ -7,6 +7,7 @@ use App\Models\CatPhoto;
 use App\Models\Appointment;
 use App\Models\MedicalRecord;
 use App\Models\KtamCard;
+use App\Models\MasterWilayah;
 use App\Models\User;
 use App\Services\KtamService;
 use Carbon\Carbon;
@@ -99,15 +100,16 @@ class DashboardController extends Controller
      */
     protected function memberDashboard()
     {
-        $cats = Auth::user()->cats()->with(['ktamCard', 'medicalRecords', 'photos'])->get();
+        $cats = Auth::user()->cats()->with(['ktamCard', 'medicalRecords', 'photos', 'wilayah'])->get();
         $appointments = Appointment::whereIn('cat_id', $cats->pluck('id'))
             ->with('cat')
             ->latest()
             ->get();
 
         $activeEvents = \App\Models\Event::where('status', 'active')->orderBy('date', 'asc')->get();
+        $masterWilayahs = MasterWilayah::getActiveList();
 
-        return view('member.dashboard', compact('cats', 'appointments', 'activeEvents'));
+        return view('member.dashboard', compact('cats', 'appointments', 'activeEvents', 'masterWilayahs'));
     }
 
     /**
@@ -120,6 +122,8 @@ class DashboardController extends Controller
             'breed' => 'required|string|max:255',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date',
+            'wilayah_code' => 'nullable|string|max:10',
+            'color' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'photo_labels.*' => 'nullable|string|max:255',
@@ -144,12 +148,16 @@ class DashboardController extends Controller
             $biometricPhotoPath = $this->compressAndStorePhoto($file, 'biometrics');
         }
 
+        $wilayahCode = $request->wilayah_code ?: '34';
+
         $cat = Cat::create([
             'user_id' => Auth::id(),
             'name' => $request->name,
             'breed' => $request->breed,
             'gender' => $request->gender,
             'date_of_birth' => $request->date_of_birth,
+            'wilayah_code' => $wilayahCode,
+            'color' => $request->color,
             'photo_path' => $photoPath,
             'biometric_type' => $request->biometric_type ?? 'none',
             'biometric_photo_path' => $biometricPhotoPath,
@@ -204,9 +212,10 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $cat->load('photos');
+        $cat->load(['photos', 'wilayah']);
+        $masterWilayahs = MasterWilayah::getActiveList();
 
-        return view('member.edit-cat', compact('cat'));
+        return view('member.edit-cat', compact('cat', 'masterWilayahs'));
     }
 
     /**
@@ -223,6 +232,8 @@ class DashboardController extends Controller
             'breed' => 'required|string|max:255',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'required|date',
+            'wilayah_code' => 'nullable|string|max:10',
+            'color' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'photo_labels.*' => 'nullable|string|max:255',
@@ -260,11 +271,22 @@ class DashboardController extends Controller
             $biometricPhotoPath = $this->compressAndStorePhoto($file, 'biometrics');
         }
 
+        $oldWilayah = $cat->wilayah_code;
+        $newWilayah = $request->wilayah_code ?: ($oldWilayah ?: '34');
+        $uniqueCode = $cat->unique_code;
+
+        if (empty($uniqueCode) || $oldWilayah !== $newWilayah) {
+            $uniqueCode = Cat::generateUniqueCode($newWilayah, $cat->id);
+        }
+
         $cat->update([
             'name' => $request->name,
             'breed' => $request->breed,
             'gender' => $request->gender,
             'date_of_birth' => $request->date_of_birth,
+            'wilayah_code' => $newWilayah,
+            'unique_code' => $uniqueCode,
+            'color' => $request->color,
             'photo_path' => $photoPath,
             'biometric_type' => $request->biometric_type ?? $cat->biometric_type,
             'biometric_photo_path' => $biometricPhotoPath,
@@ -471,7 +493,7 @@ class DashboardController extends Controller
      */
     public function downloadKtam(Cat $cat)
     {
-        $cat->load('photos');
+        $cat->load(['photos', 'owner', 'wilayah']);
         $card = $cat->ktamCard;
         if (!$card) {
             return redirect()->route('dashboard')->with('error', 'Kucing ini belum memiliki kartu KTAM.');
@@ -492,19 +514,18 @@ class DashboardController extends Controller
      */
     public function previewKtam(Cat $cat)
     {
-        $cat->load('photos');
+        $cat->load(['photos', 'owner', 'wilayah']);
 
         if (Auth::user()->role === 'member' && (int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
-        if ($cat->ktamCard) {
-            return redirect()->route('dashboard')->with('error', 'Kucing ini sudah memiliki kartu KTAM aktif. Silakan unduh KTAM.');
+        $card = $cat->ktamCard;
+        if (!$card) {
+            $card = new \stdClass();
+            $card->ktam_number = $cat->formatted_unique_code ?? 'DRAFT-XXX-XXX';
+            $card->qr_code_payload = asset('images/logo-muhammadiyah.svg'); 
         }
-
-        $card = new \stdClass();
-        $card->ktam_number = 'DRAFT-XXX-XXX';
-        $card->qr_code_payload = asset('images/logo-muhammadiyah.svg'); 
 
         $isDraft = true;
 
@@ -534,6 +555,8 @@ class DashboardController extends Controller
             'cat_breed' => 'required|string|max:255',
             'cat_gender' => 'required|in:male,female',
             'cat_dob' => 'required|date',
+            'wilayah_code' => 'nullable|string|max:10',
+            'color' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
             'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -567,6 +590,8 @@ class DashboardController extends Controller
             'breed' => $request->cat_breed,
             'gender' => $request->cat_gender,
             'date_of_birth' => $request->cat_dob,
+            'wilayah_code' => $request->wilayah_code ?: '34',
+            'color' => $request->color,
             'photo_path' => $photoPath,
             'biometric_type' => $request->biometric_type ?? 'none',
             'biometric_photo_path' => $biometricPhotoPath,
@@ -598,8 +623,22 @@ class DashboardController extends Controller
      */
     public function verifyKtam($number)
     {
-        $card = KtamCard::where('ktam_number', $number)->with('verifier')->firstOrFail();
-        $cat = $card->cat()->with(['owner', 'photos'])->first();
+        $card = KtamCard::where('ktam_number', $number)
+            ->orWhereHas('cat', function($q) use ($number) {
+                $q->where('unique_code', $number);
+            })
+            ->with('verifier')
+            ->first();
+
+        if (!$card) {
+            $cat = Cat::where('unique_code', $number)->firstOrFail();
+            $card = $cat->ktamCard ?? new KtamCard([
+                'ktam_number' => $cat->formatted_unique_code,
+                'issue_date' => $cat->created_at,
+            ]);
+        } else {
+            $cat = $card->cat()->with(['owner', 'photos', 'wilayah'])->first();
+        }
 
         $records = MedicalRecord::where('cat_id', $cat->id)->with('vet')->latest()->get();
 

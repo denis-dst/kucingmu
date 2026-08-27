@@ -8,7 +8,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     $events = \App\Models\Event::where('status', 'active')->orderBy('date', 'asc')->get();
-    return view('welcome', compact('events'));
+    $activityAlbums = \App\Models\ActivityAlbum::where('is_active', true)
+        ->orderBy('order', 'asc')
+        ->orderBy('activity_date', 'desc')
+        ->orderBy('id', 'desc')
+        ->get();
+    return view('welcome', compact('events', 'activityAlbums'));
 });
 
 use App\Http\Controllers\DashboardController;
@@ -61,13 +66,26 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
     ]);
 });
 
-// Admin Routes
-Route::middleware(['auth', 'role:admin'])->group(function () {
+use App\Http\Controllers\MasterWilayahController;
+use App\Http\Controllers\ActivityAlbumController;
+
+// Admin & Superadmin Routes
+Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/export-data', [DashboardController::class, 'exportData'])->name('export-data');
     Route::post('/admin/cats/{cat}/verify-ktam', [DashboardController::class, 'verifyAndIssueKtam'])->name('admin.verify-ktam');
     Route::get('/settings', [AppSettingController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
     Route::resource('/events', EventController::class, ['names' => 'admin.events']);
+
+    // Superadmin Master Wilayah Management
+    Route::post('/superadmin/wilayah/seed-default', [MasterWilayahController::class, 'seedDefault'])->name('superadmin.wilayah.seed-default');
+    Route::post('/superadmin/wilayah/{wilayah}/toggle-status', [MasterWilayahController::class, 'toggleStatus'])->name('superadmin.wilayah.toggle-status');
+    Route::resource('/superadmin/wilayah', MasterWilayahController::class, ['names' => 'superadmin.wilayah']);
+
+    // Superadmin Album Foto Kegiatan
+    Route::post('/superadmin/albums/seed-default', [ActivityAlbumController::class, 'seedDefault'])->name('superadmin.albums.seed-default');
+    Route::post('/superadmin/albums/{album}/toggle-status', [ActivityAlbumController::class, 'toggleStatus'])->name('superadmin.albums.toggle-status');
+    Route::resource('/superadmin/albums', ActivityAlbumController::class, ['names' => 'superadmin.albums']);
 });
 
 // Shared Cat Management, KTAM Download & Preview & Photo Routes

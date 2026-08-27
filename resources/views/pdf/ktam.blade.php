@@ -1,32 +1,22 @@
 @php
-    // Inline Base64 Logo
-    $ktamLogoSetting = \App\Models\AppSetting::where('key', 'ktam_logo')->first();
-    $appLogoSetting = \App\Models\AppSetting::where('key', 'app_logo')->first();
-    
-    $logoPath = public_path('images/logo-muhammadiyah.svg');
-    $logoMime = 'image/svg+xml';
+    // Inline Base64 Templates for 100% reliable DomPDF and browser rendering
+    $frontTemplatePath = public_path('reference/ktamu-front.png');
+    $backTemplatePath = public_path('reference/ktamu-back.png');
+    $fontPath = public_path('fonts/FingerPaint-Regular.ttf');
 
-    $selectedSetting = null;
-    if ($ktamLogoSetting && $ktamLogoSetting->value) {
-        $selectedSetting = $ktamLogoSetting;
-    } elseif ($appLogoSetting && $appLogoSetting->value) {
-        $selectedSetting = $appLogoSetting;
-    }
+    $frontBase64 = file_exists($frontTemplatePath)
+        ? 'data:image/png;base64,' . base64_encode(file_get_contents($frontTemplatePath))
+        : '';
 
-    if ($selectedSetting) {
-        $storagePath = storage_path('app/public/' . $selectedSetting->value);
-        if (file_exists($storagePath)) {
-            $logoPath = $storagePath;
-            $logoMime = mime_content_type($storagePath);
-        }
-    }
+    $backBase64 = file_exists($backTemplatePath)
+        ? 'data:image/png;base64,' . base64_encode(file_get_contents($backTemplatePath))
+        : '';
 
-    $logoData = null;
-    if (file_exists($logoPath)) {
-        $logoData = 'data:' . $logoMime . ';base64,' . base64_encode(file_get_contents($logoPath));
-    }
+    $fontBase64 = file_exists($fontPath)
+        ? base64_encode(file_get_contents($fontPath))
+        : '';
 
-    // Inline Base64 Photo (uses primary photo)
+    // Inline Base64 Primary Cat Photo
     $photoPathToUse = $cat->primary_photo_path ?? $cat->photo_path;
     $photoData = null;
     if ($photoPathToUse) {
@@ -39,279 +29,297 @@
             $photoData = 'data:' . mime_content_type($publicPath) . ';base64,' . base64_encode(file_get_contents($publicPath));
         }
     }
+
+    // Inline Base64 Biometric Paw Photo if present
+    $pawPhotoData = null;
+    if ($cat->biometric_photo_path) {
+        $storagePaw = storage_path('app/public/' . $cat->biometric_photo_path);
+        if (file_exists($storagePaw)) {
+            $pawPhotoData = 'data:' . mime_content_type($storagePaw) . ';base64,' . base64_encode(file_get_contents($storagePaw));
+        }
+    }
+
+    // Unique Code formatting: "kode_wilayah.kcg.xxxx"
+    $uniqueCode = $cat->formatted_unique_code ?? ($cat->wilayah_code ?? '34') . '.kcg.' . str_pad($cat->id ?? 1, 4, '0', STR_PAD_LEFT);
 @endphp
 <!DOCTYPE html>
-<html>
-
+<html lang="id">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>KTA KucingMu - {{ $cat->name }}</title>
+    <title>KTAM KucingMu - {{ $cat->name }}</title>
     <style>
-        @page {
-            size: 86mm 54mm;
-            margin: 0;
+        @font-face {
+            font-family: 'Finger Paint';
+            font-style: normal;
+            font-weight: 400;
+            @if($fontBase64)
+            src: url('data:font/truetype;charset=utf-8;base64,{{ $fontBase64 }}') format('truetype');
+            @endif
         }
 
-        body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #061d12;
-            width: 86mm;
-            height: 54mm;
-            overflow: hidden;
+        @page {
+            size: 86mm 54mm;
+            margin: 0mm;
+            padding: 0mm;
+        }
+
+        * {
+            box-sizing: border-box;
             -webkit-print-color-adjust: exact;
         }
 
-        .card {
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 86mm;
+            font-family: 'Plus Jakarta Sans', Helvetica, Arial, sans-serif;
+            background-color: #0b1120;
+        }
+
+        /* CARD CONTAINER */
+        .card-page {
             position: relative;
             width: 86mm;
             height: 54mm;
-            background-color: #061d12;
-            color: #ffffff;
             overflow: hidden;
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0 auto;
             box-sizing: border-box;
         }
 
-        /* Watermark Background */
-        .watermark {
+        /* FRONT SIDE (Page 1) */
+        .card-front {
+            background-image: url('{{ $frontBase64 }}');
+            background-color: #0d2b78;
+            page-break-after: always;
+        }
+
+        /* QR Code di Halaman 1 (Pojok Kanan Atas) */
+        .front-qr-container {
             position: absolute;
-            right: -15mm;
-            bottom: -15mm;
-            width: 50mm;
-            height: 50mm;
-            opacity: 0.08;
-            z-index: 0;
-        }
-
-        /* Gold bar border at the top and bottom edges */
-        .gold-border-top {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 1.5mm;
-            background: #ffd700;
-            z-index: 10;
-        }
-
-        /* Header section */
-        .header-table {
-            position: absolute;
-            top: 1.5mm;
-            left: 3mm;
-            width: 80mm;
-            height: 12mm;
-            padding: 2mm 0 0 0;
-            z-index: 10;
-            border-bottom: 0.5px solid rgba(255, 255, 255, 0.15);
-            box-sizing: border-box;
-        }
-
-        .logo-container {
-            width: 9mm;
-            height: 9mm;
-            vertical-align: middle;
-        }
-
-        .logo-img {
-            width: 9mm;
-            height: 9mm;
-        }
-
-        .header-text-container {
-            padding-left: 2.5mm;
-            vertical-align: middle;
-            text-align: left;
-        }
-
-        .org-title {
-            font-size: 5.5px;
-            font-weight: bold;
-            color: #ffd700;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            margin: 0;
-            padding: 0;
-            line-height: 1;
-        }
-
-        .card-title {
-            font-size: 8.5px;
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            margin: 1px 0 0 0;
-            padding: 0;
-            line-height: 1;
-        }
-
-        /* Content section */
-        .content-table {
-            position: absolute;
-            top: 15mm;
-            left: 3mm;
-            width: 80mm;
-            height: 30mm;
-            z-index: 10;
-            box-sizing: border-box;
-        }
-
-        /* Column widths: Photo (22mm), Details (40mm), QR (18mm) */
-        .col-photo {
-            width: 22mm;
-            vertical-align: top;
-            padding-top: 1.5mm;
-        }
-
-        .col-details {
-            width: 40mm;
-            vertical-align: top;
-            padding-left: 2mm;
-            padding-top: 1.5mm;
-        }
-
-        .col-qr {
-            width: 18mm;
-            vertical-align: top;
-            text-align: center;
-            padding-top: 1.5mm;
-        }
-
-        /* Photo Styles */
-        .photo-frame {
-            width: 18mm;
-            height: 23mm;
-            border: 1.5px solid #ffd700;
-            border-radius: 2px;
-            background-color: rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .photo-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-placeholder {
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            padding-top: 9mm;
-            font-size: 6px;
-            font-weight: bold;
-            color: rgba(255, 255, 255, 0.4);
-            text-transform: uppercase;
-        }
-
-        /* Detail Field Styles */
-        .detail-field {
-            margin-bottom: 1.8px;
-        }
-
-        .field-label {
-            font-size: 4px;
-            color: #a7f3d0;
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 0.4px;
-            margin: 0;
-            line-height: 1;
-        }
-
-        .field-value {
-            font-size: 7.5px;
-            color: #ffffff;
-            font-weight: bold;
-            margin: 0.5px 0 0 0;
-            line-height: 1.1;
-            text-transform: uppercase;
-        }
-
-        .biometric-tag {
-            display: inline-block;
-            font-size: 4px;
-            font-weight: bold;
-            color: #061d12;
-            background-color: #a7f3d0;
-            padding: 0.5px 2px;
-            border-radius: 1px;
-            margin-top: 1px;
-            text-transform: uppercase;
-        }
-
-        /* QR Styles */
-        .qr-frame {
-            display: inline-block;
-            width: 14mm;
-            height: 14mm;
+            top: 4.5mm;
+            right: 4.5mm;
+            width: 14.5mm;
+            height: 14.5mm;
             background-color: #ffffff;
-            padding: 1mm;
-            border-radius: 2px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-            text-align: center;
+            border-radius: 2.5px;
+            padding: 0.8mm;
+            box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.45);
+            z-index: 20;
         }
 
-        .qr-img {
+        .front-qr-img {
             width: 100%;
             height: 100%;
             display: block;
         }
 
-        .qr-label {
-            font-size: 4px;
-            font-weight: bold;
-            color: #ffffff;
-            letter-spacing: 0.5px;
-            text-align: center;
-            margin-top: 1mm;
-            text-transform: uppercase;
-        }
-
-        /* Footer section */
-        .footer-table {
+        /* Foto Kucing di Halaman 1 (Pojok Kiri Bawah, Tepat di Atas Nomor Kode Kucing) */
+        .front-photo-container {
             position: absolute;
-            bottom: 1.5mm;
-            left: 3mm;
-            width: 80mm;
-            height: 6mm;
-            z-index: 10;
-            box-sizing: border-box;
-            vertical-align: middle;
+            left: 4.5mm;
+            bottom: 9.5mm;
+            width: 17mm;
+            height: 17mm;
+            border-radius: 3px;
+            border: 1.2px solid #ffffff;
+            overflow: hidden;
+            background-color: #0f172a;
+            box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.45);
+            z-index: 20;
         }
 
-        .ktam-badge {
-            display: inline-block;
-            background-color: #ffd700;
-            color: #094a28;
-            padding: 1px 4px;
-            border-radius: 1.5px;
-            font-size: 6.5px;
+        .front-cat-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .front-unique-code {
+            position: absolute;
+            left: 4.5mm;
+            bottom: 3.2mm;
+            font-family: 'Finger Paint', cursive, sans-serif;
+            font-size: 10.5pt;
+            font-weight: 400;
+            color: #ffffff;
+            letter-spacing: 0.8px;
+            text-transform: lowercase;
+            line-height: 1;
+            z-index: 20;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+        }
+
+        /* BACK SIDE (Page 2) */
+        .card-back {
+            background-image: url('{{ $backBase64 }}');
+            background-color: #0d2b78;
+        }
+
+        /* Value capsules overlaying the white boxes precisely with left alignment */
+        .back-val {
+            position: absolute;
+            display: table;
+            overflow: hidden;
             font-weight: 800;
-            letter-spacing: 0.5px;
+            color: #0b224d;
+            text-transform: uppercase;
+            letter-spacing: 0.1px;
+            z-index: 10;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
-        .footer-slogan {
-            font-size: 5px;
-            font-style: italic;
-            color: #a7f3d0;
-            text-align: right;
+        .back-val-inner {
+            display: table-cell;
             vertical-align: middle;
+            text-align: left;
+            padding: 0 1.8mm;
+            line-height: 1.15;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+        }
+
+        /* Left column boxes (Positioned precisely inside white capsules) */
+        .box-namaku {
+            top: 13.5%;
+            left: 17.75%;
+            width: 23.5%;
+            height: 6.6%;
+        }
+        .box-namaku .back-val-inner {
+            font-size: 8pt;
+            color: #082440;
+        }
+
+        .box-dob {
+            top: 22.3%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 6.6%;
+        }
+        .box-dob .back-val-inner {
+            font-size: 8pt;
+        }
+
+        .box-breed {
+            top: 31.2%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 9.1%;
+        }
+        .box-breed .back-val-inner {
+            font-size: 7pt;
+        }
+
+        .box-color {
+            top: 40.0%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 10.3%;
+        }
+        .box-color .back-val-inner {
+            font-size: 7pt;
+        }
+
+        .box-nikumu {
+            top: 50.0%;
+            left: 17.75%;
+            width: 30.03%;
+            height: 5.5%;
+        }
+        .box-nikumu .back-val-inner {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 7pt;
+            font-weight: 800;
+            color: #0f4c3a;
+        }
+
+        /* Right column boxes (Positioned precisely inside white capsules with text wrapping) */
+        .box-owner-name {
+            top: 13.7%;
+            left: 66.72%;
+            width: 30.03%;
+            height: 13.4%;
+        }
+        .box-owner-name .back-val-inner {
+            font-size: 7.2pt;
+            line-height: 1.15;
+        }
+
+        .box-owner-nbm {
+            top: 29.1%;
+            left: 66.72%;
+            width: 30.03%;
+            height: 13.4%;
+        }
+        .box-owner-nbm .back-val-inner {
+            font-size: 7pt;
+        }
+
+        .box-owner-phone {
+            top: 44.9%;
+            left: 66.72%;
+            width: 30.03%;
+            height: 13.4%;
+        }
+        .box-owner-phone .back-val-inner {
+            font-size: 7pt;
+        }
+
+        /* Paw Box on Back (bottom right) */
+        .box-paw-container {
+            position: absolute;
+            top: 63.14%;
+            left: 51.19%;
+            width: 45.0%;
+            height: 30.0%;
+            z-index: 10;
+            padding: 0.5mm;
+        }
+
+        .paw-table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            padding: 0;
+        }
+
+        .paw-slot-img {
+            width: 14mm;
+            height: 14mm;
+            object-fit: cover;
+            border-radius: 2px;
+            border: 0.5px solid #cbd5e1;
+        }
+
+        .paw-tag {
+            font-size: 3.8pt;
+            font-weight: 800;
+            color: #047857;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            line-height: 1;
+            margin-top: 0.3mm;
         }
 
         .draft-watermark {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 24px;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            font-size: 16pt;
             font-weight: 900;
-            color: rgba(255, 50, 50, 0.35);
-            border: 2px solid rgba(255, 50, 50, 0.35);
-            padding: 2mm 5mm;
+            color: rgba(220, 38, 38, 0.4);
+            border: 1.5px solid rgba(220, 38, 38, 0.4);
+            padding: 1.5mm 4mm;
             text-transform: uppercase;
             letter-spacing: 2px;
             z-index: 100;
@@ -319,92 +327,115 @@
         }
     </style>
 </head>
-
 <body>
-    <div class="card">
+
+    <!-- HALAMAN 1: TAMPAK DEPAN (FRONT) -->
+    <div class="card-page card-front">
         @if(isset($isDraft) && $isDraft)
-            <div class="draft-watermark">Draft KucingMu</div>
+            <div class="draft-watermark">DRAFT KUCINGMU</div>
         @endif
 
-        <!-- Gold Top Border -->
-        <div class="gold-border-top"></div>
+        <!-- QR Code Verifikasi (Pojok Kanan Atas) -->
+        @if(isset($card->qr_code_payload) && $card->qr_code_payload)
+            <div class="front-qr-container">
+                <img class="front-qr-img" src="{{ $card->qr_code_payload }}" alt="QR Verifikasi">
+            </div>
+        @endif
 
-        <!-- Header -->
-        <table class="header-table" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-                <td class="logo-container">
-                    @if($logoData)
-                        <img class="logo-img" src="{{ $logoData }}" alt="Logo">
-                    @endif
-                </td>
-                <td class="header-text-container">
-                    <div class="org-title">KucingMu</div>
-                    <div class="card-title">Kartu Tanda Anggota KucingMu</div>
-                </td>
-            </tr>
-        </table>
+        <!-- Foto Kucing (Pojok Kiri Bawah, Tepat di Atas Nomor Kode Kucing) -->
+        @if($photoData)
+            <div class="front-photo-container">
+                <img class="front-cat-img" src="{{ $photoData }}" alt="{{ $cat->name }}">
+            </div>
+        @elseif($pawPhotoData)
+            <div class="front-photo-container">
+                <img class="front-cat-img" src="{{ $pawPhotoData }}" alt="{{ $cat->name }}">
+            </div>
+        @endif
 
-        <!-- Body Content -->
-        <table class="content-table" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-                <!-- Column 1: Photo -->
-                <td class="col-photo">
-                    <div class="photo-frame">
-                        @if($photoData)
-                            <img class="photo-img" src="{{ $photoData }}" alt="{{ $cat->name }}">
-                        @else
-                            <div class="photo-placeholder">No Photo</div>
-                        @endif
-                    </div>
-                </td>
-
-                <!-- Column 2: Details -->
-                <td class="col-details">
-                    <div class="detail-field">
-                        <div class="field-label">Nama Kucing</div>
-                        <div class="field-value">{{ $cat->name }}</div>
-                    </div>
-                    <div class="detail-field">
-                        <div class="field-label">Ras / Breed</div>
-                        <div class="field-value">{{ $cat->breed }}</div>
-                    </div>
-                    <div class="detail-field">
-                        <div class="field-label">Pemilik</div>
-                        <div class="field-value">{{ $cat->owner->name }}</div>
-                    </div>
-                    <div class="detail-field">
-                        <div class="field-label">Biometrik & NBM</div>
-                        <div class="field-value">
-                            {{ $cat->owner->muhammadiyah_id ?? '-' }}
-                            @if($cat->biometric_type && $cat->biometric_type !== 'none')
-                                <span class="biometric-tag">🐾 {{ strtoupper($cat->biometric_type) }} VERIFIED</span>
-                            @endif
-                        </div>
-                    </div>
-                </td>
-
-                <!-- Column 3: QR Code -->
-                <td class="col-qr">
-                    <div class="qr-frame">
-                        <img class="qr-img" src="{{ $card->qr_code_payload }}" alt="QR Code">
-                    </div>
-                    <div class="qr-label">Scan Verifikasi</div>
-                </td>
-            </tr>
-        </table>
-
-        <!-- Footer -->
-        <table class="footer-table" cellpadding="0" cellspacing="0" border="0">
-            <tr>
-                <td align="left" valign="middle">
-                    <div class="ktam-badge">{{ $card->ktam_number }}</div>
-                </td>
-                <td align="right" valign="middle" class="footer-slogan">
-                    "Sayangilah makhluk di bumi, niscaya yang di langit menyayangimu"
-                </td>
-            </tr>
-        </table>
+        <!-- Kode Unik Kucing (Pojok Kiri Bawah) dengan Font Finger Paint Putih -->
+        <div class="front-unique-code">
+            {{ $uniqueCode }}
+        </div>
     </div>
-</body>
 
+    <!-- HALAMAN 2: TAMPAK BELAKANG (BACK) -->
+    <div class="card-page card-back">
+        @if(isset($isDraft) && $isDraft)
+            <div class="draft-watermark">DRAFT KUCINGMU</div>
+        @endif
+
+        <!-- 1. NAMAKu -->
+        <div class="back-val box-namaku">
+            <div class="back-val-inner">
+                {{ $cat->name }}
+            </div>
+        </div>
+
+        <!-- 2. DOB -->
+        <div class="back-val box-dob">
+            <div class="back-val-inner">
+                {{ $cat->date_of_birth ? $cat->date_of_birth->format('d-m-Y') : '-' }}
+            </div>
+        </div>
+
+        <!-- 3. BREED -->
+        <div class="back-val box-breed">
+            <div class="back-val-inner">
+                {{ $cat->breed ?: 'Domestik' }}
+            </div>
+        </div>
+
+        <!-- 4. COLOR -->
+        <div class="back-val box-color">
+            <div class="back-val-inner">
+                {{ $cat->color ?: 'Campuran / Ras' }}
+            </div>
+        </div>
+
+        <!-- 5. NIKuMu -->
+        <div class="back-val box-nikumu">
+            <div class="back-val-inner">
+                {{ $uniqueCode }}
+            </div>
+        </div>
+
+        <!-- 6. NAMA OWNER -->
+        <div class="back-val box-owner-name">
+            <div class="back-val-inner">
+                {{ $cat->owner->name ?? 'Pemilik Kucing' }}
+            </div>
+        </div>
+
+        <!-- 7. NBM OWNER -->
+        <div class="back-val box-owner-nbm">
+            <div class="back-val-inner">
+                {{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?: '-') }}
+            </div>
+        </div>
+
+        <!-- 8. KONTAK OWNER -->
+        <div class="back-val box-owner-phone">
+            <div class="back-val-inner">
+                {{ $cat->owner->phone ?: '-' }}
+            </div>
+        </div>
+
+        <!-- 9. TANDA PAW KUCING (Halaman 2) -->
+        <div class="box-paw-container">
+            @if($pawPhotoData)
+                <table class="paw-table">
+                    <tr>
+                        <td align="center" valign="middle">
+                            <img class="paw-slot-img" src="{{ $pawPhotoData }}" alt="Paw Biometrik">
+                            <div class="paw-tag">Biometrik Paw</div>
+                        </td>
+                    </tr>
+                </table>
+            @endif
+        </div>
+
+    </div>
+
+</body>
 </html>

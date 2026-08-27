@@ -17,6 +17,12 @@
                         <a href="{{ route('export-data') }}" class="button-primary text-xs font-bold px-4 py-2.5 shadow-sm">
                             <span>📊</span> Ekspor Semua Data (CSV)
                         </a>
+                        <a href="{{ route('superadmin.wilayah.index') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
+                            <span>🏛️</span> Master Wilayah
+                        </a>
+                        <a href="{{ route('superadmin.albums.index') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
+                            <span>📸</span> Album Kegiatan
+                        </a>
                     </div>
                 </div>
                 <div class="hidden md:block text-5xl">
@@ -97,7 +103,7 @@
                                         <div>
                                             <h3 class="font-bold text-slate-900 text-sm leading-tight">{{ $cat->name }}</h3>
                                             <p class="text-xs text-slate-500">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }}</p>
-                                            <p class="text-[11px] text-slate-400 mt-0.5">Pemilik: <strong class="text-slate-700">{{ $cat->owner->name }}</strong> (NBM: {{ $cat->owner->muhammadiyah_id ?? '-' }})</p>
+                                            <p class="text-[11px] text-slate-400 mt-0.5">Pemilik: <strong class="text-slate-700">{{ $cat->owner->name }}</strong> (NBM: <span class="font-mono font-semibold">{{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-') }}</span>)</p>
                                         </div>
                                     </div>
 
@@ -197,7 +203,7 @@
                                                 </td>
                                                 <td class="py-3.5 px-3">
                                                     <div class="text-slate-900 font-semibold">{{ $cat->owner->name }}</div>
-                                                    <div class="text-[11px] text-slate-500">NBM: {{ $cat->owner->muhammadiyah_id ?? '-' }}</div>
+                                                    <div class="text-[11px] text-slate-500 font-mono">NBM: {{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-') }}</div>
                                                 </td>
                                                 <td class="py-3.5 px-3">
                                                     @if($cat->biometric_type && $cat->biometric_type !== 'none')
@@ -209,7 +215,8 @@
                                                     @endif
                                                 </td>
                                                 <td class="py-3.5 px-3 font-mono text-[11px] font-semibold text-slate-800 whitespace-nowrap">
-                                                    {{ $cat->ktamCard ? $cat->ktamCard->ktam_number : '-' }}
+                                                    <div class="font-bold text-teal-900">{{ $cat->formatted_unique_code }}</div>
+                                                    <div class="text-[10px] text-slate-400 font-sans">{{ $cat->wilayah ? $cat->wilayah->singkatan : 'DIY' }} &bull; {{ $cat->ktamCard ? $cat->ktamCard->ktam_number : 'Draft' }}</div>
                                                 </td>
                                                 <td class="py-3.5 px-3">
                                                     @if($cat->ktamCard)

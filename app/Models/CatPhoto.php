@@ -14,10 +14,16 @@ class CatPhoto extends Model
         'photo_path',
         'label',
         'is_primary',
+        'photo_embedding',
+        'color_fingerprint',
+        'spatial_fingerprint',
     ];
 
     protected $casts = [
         'is_primary' => 'boolean',
+        'photo_embedding' => 'array',
+        'color_fingerprint' => 'array',
+        'spatial_fingerprint' => 'array',
     ];
 
     public function cat()

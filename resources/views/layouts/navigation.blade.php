@@ -28,7 +28,13 @@
                             {{ __('eSurveillance Kucing') }}
                         </x-nav-link>
                     @endif
-                    @if(Auth::user()->role === 'admin')
+                    @if(in_array(Auth::user()->role, ['admin', 'superadmin']))
+                        <x-nav-link :href="route('superadmin.wilayah.index')" :active="request()->routeIs('superadmin.wilayah.*')">
+                            {{ __('Master Wilayah') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('superadmin.albums.index')" :active="request()->routeIs('superadmin.albums.*')">
+                            {{ __('Album Kegiatan') }}
+                        </x-nav-link>
                         <x-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')">
                             {{ __('Kelola Event') }}
                         </x-nav-link>
@@ -100,7 +106,13 @@
                     {{ __('eSurveillance Kucing') }}
                 </x-responsive-nav-link>
             @endif
-            @if(Auth::user()->role === 'admin')
+            @if(in_array(Auth::user()->role, ['admin', 'superadmin']))
+                <x-responsive-nav-link :href="route('superadmin.wilayah.index')" :active="request()->routeIs('superadmin.wilayah.*')">
+                    {{ __('Master Wilayah') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('superadmin.albums.index')" :active="request()->routeIs('superadmin.albums.*')">
+                    {{ __('Album Kegiatan') }}
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('admin.events.index')" :active="request()->routeIs('admin.events.*')">
                     {{ __('Kelola Event') }}
                 </x-responsive-nav-link>

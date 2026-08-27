@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
             'role' => 'admin',
             'phone' => '081234567890',
-            'muhammadiyah_id' => 'NBM-ADMIN-01',
+            'muhammadiyah_id' => '1.000.001',
         ]);
 
         // Dokter / Vet
@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
             'role' => 'dokter',
             'phone' => '081234567891',
-            'muhammadiyah_id' => 'NBM-DOKTER-01',
+            'muhammadiyah_id' => '1.000.002',
         ]);
 
         // Volunteer
@@ -42,17 +42,24 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('password'),
             'role' => 'volunteer',
             'phone' => '081234567892',
-            'muhammadiyah_id' => 'NBM-RELAWAN-01',
+            'muhammadiyah_id' => '1.000.003',
         ]);
 
         // Member
-        User::create([
-            'name' => 'Siti Pemilik Kucing',
-            'email' => 'member@kucingmu.com',
-            'password' => bcrypt('password'),
-            'role' => 'member',
-            'phone' => '081234567893',
-            'muhammadiyah_id' => 'NBM-MEMBER-01',
+        User::firstOrCreate(
+            ['email' => 'member@kucingmu.com'],
+            [
+                'name' => 'Siti Pemilik Kucing',
+                'password' => bcrypt('password'),
+                'role' => 'member',
+                'phone' => '081234567893',
+                'muhammadiyah_id' => '1.234.567',
+            ]
+        );
+
+        $this->call([
+            MasterWilayahSeeder::class,
+            ActivityAlbumSeeder::class,
         ]);
     }
 }

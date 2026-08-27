@@ -87,8 +87,16 @@
                             <span class="font-bold text-slate-900 text-sm">{{ $cat->name }}</span>
                         </div>
                         <div>
+                            <span class="text-slate-500 block font-medium">Kode Unik KTAM (NIKuMu)</span>
+                            <span class="font-bold font-mono text-teal-800 text-sm">{{ $cat->formatted_unique_code }}</span>
+                        </div>
+                        <div>
                             <span class="text-slate-500 block font-medium">Ras / Jenis</span>
-                            <span class="font-bold text-slate-900 text-sm">{{ $cat->breed }}</span>
+                            <span class="font-bold text-slate-900">{{ $cat->breed }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block font-medium">Warna / Pola</span>
+                            <span class="font-bold text-slate-900">{{ $cat->color ?: 'Campuran / Ras' }}</span>
                         </div>
                         <div>
                             <span class="text-slate-500 block font-medium">Jenis Kelamin</span>
@@ -99,12 +107,16 @@
                             <span class="font-bold text-slate-900">{{ $cat->date_of_birth->format('d M Y') }}</span>
                         </div>
                         <div>
+                            <span class="text-slate-500 block font-medium">Wilayah Muhammadiyah</span>
+                            <span class="font-bold text-slate-900">{{ $cat->wilayah ? $cat->wilayah->nama : 'PWM D.I. Yogyakarta' }}</span>
+                        </div>
+                        <div>
                             <span class="text-slate-500 block font-medium">Nama Pemilik</span>
                             <span class="font-bold text-slate-900">{{ $cat->owner->name }}</span>
                         </div>
-                        <div>
-                            <span class="text-slate-500 block font-medium">Nomor NBM</span>
-                            <span class="font-bold text-slate-900">{{ $cat->owner->muhammadiyah_id ?? '-' }}</span>
+                        <div class="col-span-2">
+                            <span class="text-slate-500 block font-medium">Nomor NBM Pemilik</span>
+                            <span class="font-bold font-mono text-slate-900">{{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-') }}</span>
                         </div>
                     </div>
                 </div>

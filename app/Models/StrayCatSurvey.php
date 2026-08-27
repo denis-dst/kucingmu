@@ -24,6 +24,9 @@ class StrayCatSurvey extends Model
         'food_source',
         'notes',
         'photo_path',
+        'photo_embedding',
+        'color_fingerprint',
+        'spatial_fingerprint',
 
         // Step 0 – Identitas
         'surveyor_name',
@@ -124,6 +127,9 @@ class StrayCatSurvey extends Model
     protected $casts = [
         'surveyed_at'             => 'datetime',
         'physical_exam_date'      => 'date',
+        'photo_embedding'         => 'array',
+        'color_fingerprint'       => 'array',
+        'spatial_fingerprint'     => 'array',
         // JSON fields
         'cat_individuals'         => 'array',
         'eye_condition'           => 'array',

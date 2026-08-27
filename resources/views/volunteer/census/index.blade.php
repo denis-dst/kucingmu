@@ -15,7 +15,7 @@
 
                     <div class="mt-5 flex flex-wrap gap-3">
                         <a href="{{ route('volunteer.census.scan') }}" class="button-primary px-5 py-2.5 inline-flex items-center gap-2 text-xs font-bold shadow-md bg-teal-800 hover:bg-teal-900">
-                            <span>🔍</span> Pindai / Scan Wajah Kucing
+                            <span>🔍</span> Pindai / Scan Wajah Kucing {dalam pengembangan}
                         </a>
                         <a href="{{ route('volunteer.census.create') }}" class="button-secondary px-5 py-2.5 inline-flex items-center gap-2 text-xs font-semibold bg-white">
                             <span>➕</span> Input Sensus Baru

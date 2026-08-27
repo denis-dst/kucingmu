@@ -15,6 +15,9 @@ class Cat extends Model
         'breed',
         'gender',
         'date_of_birth',
+        'wilayah_code',
+        'unique_code',
+        'color',
         'photo_path',
         'allergies',
         'vaccine_history',
@@ -22,11 +25,56 @@ class Cat extends Model
         'biometric_type',
         'biometric_photo_path',
         'biometric_code',
+        'photo_embedding',
+        'color_fingerprint',
+        'spatial_fingerprint',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
+        'photo_embedding' => 'array',
+        'color_fingerprint' => 'array',
+        'spatial_fingerprint' => 'array',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($cat) {
+            if (empty($cat->wilayah_code)) {
+                $cat->wilayah_code = '34';
+            }
+        });
+
+        static::created(function ($cat) {
+            if (empty($cat->unique_code)) {
+                $cat->unique_code = self::generateUniqueCode($cat->wilayah_code ?? '34', $cat->id);
+                $cat->saveQuietly();
+            }
+        });
+    }
+
+    /**
+     * Generate unique cat code with format: "kode_wilayah.kcg.xxxx"
+     */
+    public static function generateUniqueCode(?string $wilayahCode = '34', ?int $sequence = null): string
+    {
+        $kode = strtolower(trim($wilayahCode ?: '34'));
+        $seq = $sequence ?: (self::count() + 1);
+        return $kode . '.kcg.' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function getFormattedUniqueCodeAttribute(): string
+    {
+        if (!empty($this->unique_code)) {
+            return $this->unique_code;
+        }
+        return self::generateUniqueCode($this->wilayah_code ?? '34', $this->id);
+    }
+
+    public function wilayah()
+    {
+        return $this->belongsTo(MasterWilayah::class, 'wilayah_code', 'kode');
+    }
 
     public function owner()
     {
