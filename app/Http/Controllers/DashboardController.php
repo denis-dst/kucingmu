@@ -21,13 +21,13 @@ class DashboardController extends Controller
     /**
      * Show the application dashboard based on user role.
      */
-    public function index()
+    public function index(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
         if ($user->isAdmin()) {
-            return $this->adminDashboard();
+            return $this->adminDashboard($request);
         } elseif ($user->isDokter()) {
             return $this->dokterDashboard();
         } elseif ($user->isVolunteer()) {
@@ -40,7 +40,7 @@ class DashboardController extends Controller
     /**
      * Render Admin Dashboard.
      */
-    protected function adminDashboard()
+    protected function adminDashboard(Request $request)
     {
         $stats = [
             'cats_count' => Cat::count(),
@@ -50,7 +50,27 @@ class DashboardController extends Controller
             'pending_verification_count' => Cat::whereDoesntHave('ktamCard')->count(),
         ];
 
-        $cats = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah'])->latest()->paginate(10);
+        $catQuery = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah'])->latest();
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $catQuery->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('breed', 'like', "%{$search}%")
+                  ->orWhere('unique_code', 'like', "%{$search}%")
+                  ->orWhereHas('owner', function($oq) use ($search) {
+                      $oq->where('name', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%")
+                         ->orWhere('muhammadiyah_id', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('ktamCard', function($kq) use ($search) {
+                      $kq->where('ktam_number', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $cats = $catQuery->paginate(10)->withQueryString();
         $pendingVerificationCats = Cat::whereDoesntHave('ktamCard')
             ->with(['owner', 'photos', 'medicalRecords.vet', 'wilayah'])
             ->latest()

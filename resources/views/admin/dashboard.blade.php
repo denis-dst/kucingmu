@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-8" x-data="{ searchKtam: '', showModal: false, activeCat: null }">
+    <div class="py-8" x-data="{ searchKtam: '', searchPending: '', showModal: false, activeCat: null }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <!-- Hero Panel -->
@@ -77,7 +77,7 @@
 
             <!-- Admin Verification Alert Section (Pending KTAM Verification) -->
             <div class="content-card border-l-4 border-amber-500">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
                     <div>
                         <h2 class="font-outfit text-lg font-bold text-slate-900 flex items-center gap-2">
                             <span>Permintaan Verifikasi & Penerbitan KTAM</span>
@@ -87,6 +87,15 @@
                         </h2>
                         <p class="text-xs text-slate-500 mt-0.5">Kucing di bawah ini telah diperiksa oleh Dokter Hewan dan menunggu peninjauan Admin untuk penerbitan Kartu KTAM resmi.</p>
                     </div>
+
+                    @if($pendingVerificationCats->count() > 0)
+                        <!-- Search Bar for Pending Cards -->
+                        <div class="relative w-full sm:w-64 flex-shrink-0">
+                            <input type="text" x-model="searchPending" placeholder="Cari di antrian pending..." class="form-input text-xs py-1.5 px-3 pl-8 pr-7 min-h-[36px] w-full rounded-xl bg-slate-50 border-slate-200 focus:bg-white transition">
+                            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+                            <button type="button" x-show="searchPending" @click="searchPending = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold" style="display: none;">✕</button>
+                        </div>
+                    @endif
                 </div>
 
                 @if($pendingVerificationCats->isEmpty())
@@ -96,7 +105,9 @@
                 @else
                     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         @foreach($pendingVerificationCats as $cat)
-                            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3 flex flex-col justify-between hover:shadow-md transition">
+                            <div x-show="!searchPending || '{{ strtolower(addslashes($cat->name . ' ' . $cat->breed . ' ' . $cat->owner->name . ' ' . ($cat->owner->muhammadiyah_id ?? '') . ' ' . ($cat->owner->phone ?? ''))) }}'.includes(searchPending.toLowerCase().trim())"
+                                 x-transition
+                                 class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3 flex flex-col justify-between hover:shadow-md transition">
                                 <div class="space-y-2">
                                     <div class="flex items-start gap-3">
                                         <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-14 h-14 object-cover rounded-xl border border-slate-200 shadow-xs flex-shrink-0">
@@ -166,12 +177,28 @@
                 <!-- Left Section: Cat Registry & Status -->
                 <div class="lg:col-span-2 space-y-6">
                     <div class="content-card">
-                        <div class="border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
+                        <div class="border-b border-slate-100 pb-3 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
                             <div>
                                 <h2 class="font-outfit text-lg font-bold text-slate-900">Database Anggota KucingMu</h2>
                                 <p class="text-xs text-slate-500">Daftar kucing peliharaan yang terdaftar di sistem.</p>
                             </div>
-                            <span class="text-xs text-slate-500 font-medium">Total: {{ $cats->total() }} Ekor</span>
+                            
+                            <!-- Server-side Search Form for Cat Registry Table -->
+                            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                                <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2 w-full sm:w-auto">
+                                    <div class="relative w-full sm:w-60 md:w-72">
+                                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Kucing / KTAM / Pemilik..." class="form-input text-xs py-1.5 px-3 pl-8 pr-8 min-h-[36px] w-full rounded-xl bg-slate-50 border-slate-200 focus:bg-white transition">
+                                        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+                                        @if(request('search'))
+                                            <a href="{{ route('dashboard') }}" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold" title="Hapus pencarian">✕</a>
+                                        @endif
+                                    </div>
+                                    <button type="submit" class="button-primary text-xs font-semibold px-3.5 py-1.5 min-h-[36px] rounded-xl shadow-xs">
+                                        Cari
+                                    </button>
+                                </form>
+                                <span class="text-xs text-slate-400 font-medium whitespace-nowrap hidden lg:inline">Total: {{ $cats->total() }} Ekor</span>
+                            </div>
                         </div>
 
                         @if($cats->isEmpty())
