@@ -76,43 +76,39 @@
             </div>
 
             <!-- Admin Verification Alert Section (Pending KTAM Verification) -->
-            <div class="content-card border-l-4 border-amber-500 bg-white">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center flex-wrap gap-2.5">
-                            <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight">
-                                Permintaan Verifikasi & Penerbitan KTAM
-                            </h2>
-                            @if($pendingVerificationCats->count() > 0)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                                    {{ $pendingVerificationCats->count() }} Menunggu
-                                </span>
-                            @endif
+            <div class="content-card border-l-4 border-amber-500 bg-white" style="box-sizing: border-box; overflow: hidden; width: 100%;">
+                <!-- Header Toolbar -->
+                <div style="display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+                        <div style="flex: 1 1 300px; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight" style="margin: 0;">
+                                    Permintaan Verifikasi & Penerbitan KTAM
+                                </h2>
+                                @if($pendingVerificationCats->count() > 0)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                        {{ $pendingVerificationCats->count() }} Menunggu
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Kucing di bawah ini telah diperiksa dokter dan menunggu peninjauan Admin untuk penerbitan Kartu KTAM resmi.</p>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">Kucing di bawah ini telah diperiksa dokter dan menunggu peninjauan Admin untuk penerbitan Kartu KTAM resmi.</p>
-                    </div>
 
-                    @if($pendingVerificationCats->count() > 0)
-                        <!-- Clean Search Bar for Pending Cards -->
-                        <div class="w-full md:w-72 flex-shrink-0">
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
-                                    🔍
-                                </span>
+                        @if($pendingVerificationCats->count() > 0)
+                            <!-- Clean Search Bar for Pending Cards -->
+                            <div style="position: relative; width: 100%; max-width: 280px; flex-shrink: 0;">
+                                <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px; pointer-events: none;">🔍</span>
                                 <input type="text" 
                                        x-model="searchPending" 
                                        placeholder="Filter nama, NBM, pemilik..." 
-                                       class="form-input text-xs py-2 pl-8 pr-8 w-full rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-teal-500 transition shadow-2xs">
+                                       style="width: 100%; box-sizing: border-box; font-size: 12px; padding: 8px 30px 8px 30px; border-radius: 10px; border: 1px solid #cbd5e1; background-color: #f8fafc; outline: none; transition: border-color 0.15s ease-in-out;">
                                 <button type="button" 
                                         x-show="searchPending" 
                                         @click="searchPending = ''" 
-                                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 text-xs font-bold" 
-                                        style="display: none;">
-                                    ✕
-                                </button>
+                                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px; font-weight: bold; background: none; border: none; cursor: pointer; display: none;">✕</button>
                             </div>
-                        </div>
-                    @endif
+                        @endif
+                    </div>
                 </div>
 
                 @if($pendingVerificationCats->isEmpty())
@@ -122,19 +118,22 @@
                         <p class="text-[11px] text-slate-400 mt-0.5">Semua pemeriksaan dokter telah diverifikasi dan kartu KTAM telah diterbitkan.</p>
                     </div>
                 @else
-                    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" style="width: 100%; box-sizing: border-box;">
                         @foreach($pendingVerificationCats as $cat)
                             <div x-show="!searchPending || '{{ strtolower(addslashes($cat->name . ' ' . $cat->breed . ' ' . $cat->owner->name . ' ' . ($cat->owner->muhammadiyah_id ?? '') . ' ' . ($cat->owner->phone ?? ''))) }}'.includes(searchPending.toLowerCase().trim())"
                                  x-transition
-                                 class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-3 flex flex-col justify-between hover:shadow-md hover:border-amber-300 transition">
+                                 class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-3 flex flex-col justify-between hover:shadow-md hover:border-amber-300 transition"
+                                 style="overflow: hidden; box-sizing: border-box;">
                                 <div class="space-y-2.5">
-                                    <div class="flex items-start gap-3">
-                                        <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-13 h-13 object-cover rounded-xl border border-slate-200 shadow-2xs flex-shrink-0">
-                                        <div class="min-w-0 flex-1">
-                                            <h3 class="font-bold text-slate-900 text-sm truncate">{{ $cat->name }}</h3>
-                                            <p class="text-xs text-slate-500 truncate">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }}</p>
-                                            <p class="text-[11px] text-slate-400 mt-0.5 truncate">Pemilik: <strong class="text-slate-700">{{ $cat->owner->name }}</strong></p>
-                                            <p class="text-[10px] font-mono text-slate-400">NBM: <span class="font-semibold text-slate-600">{{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-') }}</span></p>
+                                    <div style="display: flex; align-items: flex-start; gap: 12px; overflow: hidden;">
+                                        <div style="width: 56px; height: 56px; min-width: 56px; min-height: 56px; max-width: 56px; max-height: 56px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; flex-shrink: 0; background-color: #f1f5f9;">
+                                            <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+                                        </div>
+                                        <div style="flex: 1 1 auto; min-width: 0; overflow: hidden;">
+                                            <h3 class="font-bold text-slate-900 text-sm" style="margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $cat->name }}</h3>
+                                            <p class="text-xs text-slate-500" style="margin: 2px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }}</p>
+                                            <p class="text-[11px] text-slate-400" style="margin: 2px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Pemilik: <strong class="text-slate-700">{{ $cat->owner->name }}</strong></p>
+                                            <p class="text-[10px] font-mono text-slate-400" style="margin: 1px 0 0 0;">NBM: <span class="font-semibold text-slate-600">{{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-') }}</span></p>
                                         </div>
                                     </div>
 
@@ -162,7 +161,7 @@
                                         @php $lastRecord = $cat->medicalRecords->first(); @endphp
                                         <div class="bg-slate-50 p-2.5 rounded-lg text-xs space-y-1 text-slate-600 border border-slate-100">
                                             <div class="font-semibold text-slate-800 flex justify-between items-center">
-                                                <span class="truncate">{{ $lastRecord->vet->name ?? 'Dokter Hewan' }}</span>
+                                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">{{ $lastRecord->vet->name ?? 'Dokter Hewan' }}</span>
                                                 <span class="text-[10px] text-slate-400 whitespace-nowrap">{{ $lastRecord->created_at->format('d M Y') }}</span>
                                             </div>
                                             <p class="text-[11px]">Kondisi: <strong class="text-slate-800">{{ $lastRecord->general_condition }}</strong> ({{ $lastRecord->weight }}kg, {{ $lastRecord->temperature }}°C)</p>
@@ -174,7 +173,7 @@
                                     @endif
                                 </div>
 
-                                <div class="pt-2 border-t border-slate-100 flex items-center gap-2">
+                                <div class="pt-2 border-t border-slate-100 flex items-center gap-2" style="margin-top: 8px;">
                                     <a href="{{ route('cat.edit', $cat->id) }}" class="btn-action-secondary flex-1 py-2 text-center text-xs font-semibold">
                                         <span>✏️</span> Edit & Foto
                                     </a>
@@ -196,34 +195,34 @@
                 
                 <!-- Left Section: Cat Registry & Status -->
                 <div class="lg:col-span-2 space-y-6">
-                    <div class="content-card">
-                        <div class="border-b border-slate-100 pb-4 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
-                            <div>
-                                <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight">Database Anggota KucingMu</h2>
-                                <p class="text-xs text-slate-500 mt-0.5">Daftar kucing peliharaan yang terdaftar di sistem.</p>
-                            </div>
-                            
-                            <!-- Clean Server-side Search Form for Cat Registry Table -->
-                            <div class="flex items-center gap-2">
-                                <form method="GET" action="{{ route('dashboard') }}" class="flex items-center gap-2">
-                                    <div class="relative w-56 sm:w-64">
-                                        <span class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400 text-xs">
-                                            🔍
-                                        </span>
-                                        <input type="text" 
-                                               name="search" 
-                                               value="{{ request('search') }}" 
-                                               placeholder="Cari kucing, KTAM, pemilik..." 
-                                               class="form-input text-xs py-1.5 pl-8 pr-7 w-full rounded-xl bg-slate-50 border-slate-200 focus:bg-white focus:border-teal-500 focus:ring-teal-500 transition shadow-2xs">
-                                        @if(request('search'))
-                                            <a href="{{ route('dashboard') }}" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 text-xs font-bold" title="Hapus pencarian">✕</a>
-                                        @endif
-                                    </div>
-                                    <button type="submit" class="button-primary text-xs font-semibold px-3 py-1.5 min-h-[34px] rounded-xl shadow-2xs">
-                                        Cari
-                                    </button>
-                                </form>
-                                <span class="text-[11px] text-slate-400 font-medium whitespace-nowrap hidden sm:inline">Total: {{ $cats->total() }}</span>
+                    <div class="content-card" style="box-sizing: border-box; overflow: hidden; width: 100%;">
+                        <div style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight" style="margin: 0;">Database Anggota KucingMu</h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Daftar kucing peliharaan yang terdaftar di sistem.</p>
+                                </div>
+                                
+                                <!-- Clean Server-side Search Form for Cat Registry Table -->
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <form method="GET" action="{{ route('dashboard') }}" style="display: flex; align-items: center; gap: 6px;">
+                                        <div style="position: relative; width: 220px;">
+                                            <span style="position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px; pointer-events: none;">🔍</span>
+                                            <input type="text" 
+                                                   name="search" 
+                                                   value="{{ request('search') }}" 
+                                                   placeholder="Cari kucing, KTAM, pemilik..." 
+                                                   style="width: 100%; box-sizing: border-box; font-size: 12px; padding: 6px 26px 6px 26px; border-radius: 10px; border: 1px solid #cbd5e1; background-color: #f8fafc; outline: none;">
+                                            @if(request('search'))
+                                                <a href="{{ route('dashboard') }}" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px; font-weight: bold; text-decoration: none;" title="Hapus pencarian">✕</a>
+                                            @endif
+                                        </div>
+                                        <button type="submit" class="button-primary text-xs font-semibold" style="padding: 6px 14px; min-height: 32px; border-radius: 10px;">
+                                            Cari
+                                        </button>
+                                    </form>
+                                    <span class="text-[11px] text-slate-400 font-medium whitespace-nowrap hidden sm:inline">Total: {{ $cats->total() }}</span>
+                                </div>
                             </div>
                         </div>
 
