@@ -86,14 +86,79 @@
                             <input type="text" id="kampus_custom" name="kampus_custom" value="{{ old('kampus_custom', $census->kampus_custom) }}" placeholder="Contoh: UNISA Yogyakarta / UM Magelang" class="form-input text-xs bg-white w-full">
                         </div>
 
-                        <!-- Zona / Sektor Kampus (Autocomplete Select / Combobox) -->
+                        <!-- Zona / Sektor Kampus (Autocomplete Select / Combobox Tersinkronisasi dengan Kampus) -->
                         <div class="col-span-full min-w-0" x-data="{
                             open: false,
                             search: '{{ old('zona', $census->zona) }}',
-                            zones: {{ json_encode($zones ?? ['UMY - Selatan', 'UMY - Utara', 'UMY - Tengah (admisi, AR, maskam, boga)', 'Unires & E8']) }},
+                            allDbZones: {{ json_encode($zones ?? []) }},
+                            defaultZonesByCampus: {
+                                'UMY': [
+                                    'UMY - Selatan',
+                                    'UMY - Utara',
+                                    'UMY - Tengah (admisi, AR, maskam, boga)',
+                                    'UMY - Unires & E8',
+                                    'UMY - Lapangan Bintang & Sportorium',
+                                    'UMY - Gedung Pascasarjana & Rektorat'
+                                ],
+                                'UAD': [
+                                    'UAD - Kampus 1 (Jl. Kapas)',
+                                    'UAD - Kampus 2 (Jl. Pramuka)',
+                                    'UAD - Kampus 3 (Jl. Prof. Soepomo)',
+                                    'UAD - Kampus 4 (Utama / Ringroad)',
+                                    'UAD - Kampus 5 (Jl. Ki Ageng Pemanahan)',
+                                    'UAD - Asrama Mahasiswa Persada'
+                                ],
+                                'UMP': [
+                                    'UMP - Kampus 1 Dukuhwaluh (Gedung Pusat & Rektorat)',
+                                    'UMP - Kampus 1 Dukuhwaluh (Fakultas & Kantin)',
+                                    'UMP - Kampus 2 Sokaraja',
+                                    'UMP - Lapangan & Area Luar'
+                                ],
+                                'UMS': [
+                                    'UMS - Kampus 1 Pabelan',
+                                    'UMS - Kampus 2 Pabelan',
+                                    'UMS - Kampus 3 Gonilan',
+                                    'UMS - Edutorium & Danau UMS',
+                                    'UMS - Pesantren Mahasiswa KH Mas Mansur'
+                                ]
+                            },
+                            get currentCampusZones() {
+                                const currentK = (typeof kampus !== 'undefined' ? kampus : '{{ $census->kampus }}');
+                                let baseList = [];
+
+                                if (this.defaultZonesByCampus[currentK]) {
+                                    baseList = [...this.defaultZonesByCampus[currentK]];
+                                }
+
+                                this.allDbZones.forEach(z => {
+                                    if (!z) return;
+                                    const zTrim = z.trim();
+                                    if (currentK === 'Lainnya') {
+                                        if (!baseList.includes(zTrim)) baseList.push(zTrim);
+                                    } else {
+                                        const prefixCheck = currentK.toLowerCase();
+                                        if (zTrim.toLowerCase().startsWith(prefixCheck + ' -') || 
+                                            zTrim.toLowerCase().startsWith(prefixCheck + ' /') ||
+                                            zTrim.toLowerCase().startsWith(prefixCheck + ' ')) {
+                                            if (!baseList.includes(zTrim)) baseList.push(zTrim);
+                                        }
+                                    }
+                                });
+
+                                return baseList;
+                            },
                             get filteredZones() {
-                                if (!this.search) return this.zones;
-                                return this.zones.filter(z => z.toLowerCase().includes(this.search.toLowerCase()));
+                                const list = this.currentCampusZones;
+                                if (!this.search) return list;
+                                return list.filter(z => z.toLowerCase().includes(this.search.toLowerCase().trim()));
+                            },
+                            get dynamicPlaceholder() {
+                                const currentK = (typeof kampus !== 'undefined' ? kampus : '{{ $census->kampus }}');
+                                if (currentK === 'UMY') return 'Pilih atau ketik zona UMY (contoh: UMY - Selatan, UMY - Gedung AR)...';
+                                if (currentK === 'UAD') return 'Pilih atau ketik zona UAD (contoh: UAD - Kampus 4, UAD - Kampus 2)...';
+                                if (currentK === 'UMP') return 'Pilih atau ketik zona UMP (contoh: UMP - Kampus 1 Dukuhwaluh)...';
+                                if (currentK === 'UMS') return 'Pilih atau ketik zona UMS (contoh: UMS - Kampus 1 Pabelan)...';
+                                return 'Pilih atau ketik zona baru (contoh: Gedung Rektorat, Kantin Utama)...';
                             },
                             selectZone(val) {
                                 this.search = val;
@@ -104,7 +169,7 @@
                                 <label for="zona" class="form-label text-xs mb-0">
                                     Zona / Sektor Kampus <span class="text-rose-500">*</span>
                                 </label>
-                                <span class="text-[11px] text-slate-500">Pilih dari daftar atau ketik zona baru</span>
+                                <span class="text-[11px] text-slate-500" x-text="'Pilihan zona disesuaikan untuk ' + (kampus === 'Lainnya' ? (kampusCustom || 'PTMA Lain') : kampus)">Pilih dari daftar atau ketik zona baru</span>
                             </div>
 
                             <div class="relative">
@@ -117,7 +182,7 @@
                                            @input="open = true"
                                            required
                                            autocomplete="off"
-                                           placeholder="Pilih atau ketik zona baru (contoh: UMY - Selatan, UMY - Utara)..."
+                                           :placeholder="dynamicPlaceholder"
                                            class="form-input text-xs pr-10 w-full">
                                     
                                     <button type="button" @click="open = !open" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs p-1" title="Buka pilihan zona">
@@ -128,9 +193,15 @@
                                 <!-- Autocomplete Dropdown Menu -->
                                 <div x-show="open"
                                      x-transition
-                                     class="absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto divide-y divide-slate-100 text-xs"
+                                     class="absolute z-30 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 overflow-y-auto divide-y divide-slate-100 text-xs"
                                      style="display: none;">
                                     
+                                    <!-- Header Kampus Aktif -->
+                                    <div class="px-3.5 py-1.5 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                                        <span x-text="'Daftar Rekomendasi Zona ' + (kampus === 'Lainnya' ? (kampusCustom || 'PTMA') : kampus)"></span>
+                                        <span class="text-slate-400" x-text="filteredZones.length + ' pilihan'"></span>
+                                    </div>
+
                                     <!-- Filtered Options List -->
                                     <template x-for="item in filteredZones" :key="item">
                                         <button type="button"
@@ -142,17 +213,17 @@
                                     </template>
 
                                     <!-- Custom New Option if not exact match -->
-                                    <template x-if="search && !zones.some(z => z.toLowerCase() === search.toLowerCase().trim())">
+                                    <template x-if="search && !currentCampusZones.some(z => z.toLowerCase() === search.toLowerCase().trim())">
                                         <button type="button"
                                                 @click="open = false"
-                                                class="w-full text-left px-3.5 py-2.5 bg-amber-50/70 hover:bg-amber-100 text-amber-900 transition flex items-center gap-2">
+                                                class="w-full text-left px-3.5 py-2.5 bg-amber-50/80 hover:bg-amber-100 text-amber-900 transition flex items-center gap-2">
                                             <span class="font-bold text-teal-700">➕</span>
                                             <span>Gunakan zona baru: <strong class="underline" x-text="search"></strong></span>
                                         </button>
                                     </template>
 
-                                    <div x-show="filteredZones.length === 0 && (!search || zones.some(z => z.toLowerCase() === search.toLowerCase().trim()))" class="px-3.5 py-2.5 text-slate-400 text-center">
-                                        Tidak ada opsi yang cocok. Ketik untuk menambahkan zona baru.
+                                    <div x-show="filteredZones.length === 0 && (!search || currentCampusZones.some(z => z.toLowerCase() === search.toLowerCase().trim()))" class="px-3.5 py-3 text-slate-400 text-center">
+                                        Belum ada zona tersimpan. Silakan ketik nama zona baru untuk ditambahkan.
                                     </div>
                                 </div>
                             </div>
