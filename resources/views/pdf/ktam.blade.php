@@ -293,7 +293,7 @@
         .box-qr-bottom-right {
             position: absolute;
             top: 62.5%;
-            left: 51.19%;
+            left: 61.19%;
             width: 45.0%;
             height: 31.0%;
             z-index: 15;
