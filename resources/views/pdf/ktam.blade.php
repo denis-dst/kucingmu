@@ -268,7 +268,7 @@
         }
 
         .box-owner-nbm {
-            top: 39.1%;
+            top: 33%;
             left: 66.72%;
             width: 30.03%;
             height: 13.4%;
