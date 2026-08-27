@@ -50,13 +50,13 @@ class DashboardController extends Controller
             'pending_verification_count' => Cat::whereDoesntHave('ktamCard')->count(),
         ];
 
-        $cats = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet'])->latest()->paginate(10);
+        $cats = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah'])->latest()->paginate(10);
         $pendingVerificationCats = Cat::whereDoesntHave('ktamCard')
-            ->with(['owner', 'photos', 'medicalRecords.vet'])
+            ->with(['owner', 'photos', 'medicalRecords.vet', 'wilayah'])
             ->latest()
             ->get();
             
-        $appointments = Appointment::with('cat')->orderBy('date', 'desc')->take(5)->get();
+        $appointments = Appointment::with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
 
         return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments'));
     }
@@ -67,14 +67,14 @@ class DashboardController extends Controller
     protected function dokterDashboard()
     {
         // Queue for today
-        $queue = Appointment::with('cat.owner')
+        $queue = Appointment::with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
             ->whereIn('status', ['scheduled', 'checked_in'])
             ->whereDate('date', Carbon::today())
             ->orderBy('status', 'desc') // checked_in first
             ->orderBy('id', 'asc')
             ->get();
 
-        $recentRecords = MedicalRecord::with('cat', 'appointment')
+        $recentRecords = MedicalRecord::with(['cat.owner', 'cat.photos', 'appointment'])
             ->where('vet_id', Auth::id())
             ->latest()
             ->take(10)
@@ -88,7 +88,7 @@ class DashboardController extends Controller
      */
     protected function volunteerDashboard()
     {
-        $todayAppointments = Appointment::with('cat.owner')
+        $todayAppointments = Appointment::with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
             ->whereDate('date', Carbon::today())
             ->orderBy('id', 'desc')
             ->get();
@@ -102,9 +102,9 @@ class DashboardController extends Controller
      */
     protected function memberDashboard()
     {
-        $cats = Auth::user()->cats()->with(['ktamCard', 'medicalRecords', 'photos', 'wilayah'])->get();
+        $cats = Auth::user()->cats()->with(['ktamCard', 'medicalRecords.vet', 'photos', 'wilayah'])->get();
         $appointments = Appointment::whereIn('cat_id', $cats->pluck('id'))
-            ->with('cat')
+            ->with(['cat.photos'])
             ->latest()
             ->get();
 

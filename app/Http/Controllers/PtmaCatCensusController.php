@@ -42,13 +42,22 @@ class PtmaCatCensusController extends Controller
 
         $censuses = $query->paginate(12)->withQueryString();
 
+        $campusCounts = PtmaCatCensus::selectRaw("
+            COUNT(*) as total,
+            SUM(CASE WHEN kampus = 'UMY' THEN 1 ELSE 0 END) as umy,
+            SUM(CASE WHEN kampus = 'UAD' THEN 1 ELSE 0 END) as uad,
+            SUM(CASE WHEN kampus = 'UMP' THEN 1 ELSE 0 END) as ump,
+            SUM(CASE WHEN kampus = 'UMS' THEN 1 ELSE 0 END) as ums,
+            SUM(CASE WHEN volunteer_id = ? THEN 1 ELSE 0 END) as my_submissions
+        ", [Auth::id() ?? 0])->first();
+
         $stats = [
-            'total' => PtmaCatCensus::count(),
-            'umy' => PtmaCatCensus::where('kampus', 'UMY')->count(),
-            'uad' => PtmaCatCensus::where('kampus', 'UAD')->count(),
-            'ump' => PtmaCatCensus::where('kampus', 'UMP')->count(),
-            'ums' => PtmaCatCensus::where('kampus', 'UMS')->count(),
-            'my_submissions' => PtmaCatCensus::where('volunteer_id', Auth::id())->count(),
+            'total'          => (int) ($campusCounts->total ?? 0),
+            'umy'            => (int) ($campusCounts->umy ?? 0),
+            'uad'            => (int) ($campusCounts->uad ?? 0),
+            'ump'            => (int) ($campusCounts->ump ?? 0),
+            'ums'            => (int) ($campusCounts->ums ?? 0),
+            'my_submissions' => (int) ($campusCounts->my_submissions ?? 0),
         ];
 
         return view('volunteer.census.index', compact('censuses', 'stats'));
