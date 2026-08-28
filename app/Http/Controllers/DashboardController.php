@@ -148,12 +148,12 @@ class DashboardController extends Controller
             'date_of_birth' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
-            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
             'photo_labels.*' => 'nullable|string|max:255',
             'primary_photo_index' => 'nullable|integer',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
-            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
             'biometric_code' => 'nullable|string|max:255',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
@@ -264,11 +264,11 @@ class DashboardController extends Controller
             'date_of_birth' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
-            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
             'photo_labels.*' => 'nullable|string|max:255',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
-            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
             'biometric_code' => 'nullable|string|max:255',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
@@ -280,7 +280,7 @@ class DashboardController extends Controller
 
         $photoPath = $cat->photo_path;
         if ($request->hasFile('photo')) {
-            if ($cat->photo_path) {
+            if ($cat->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($cat->photo_path)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
             }
             $file = $request->file('photo');
@@ -297,7 +297,7 @@ class DashboardController extends Controller
 
         $biometricPhotoPath = $cat->biometric_photo_path;
         if ($request->hasFile('biometric_photo')) {
-            if ($cat->biometric_photo_path) {
+            if ($cat->biometric_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($cat->biometric_photo_path)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->biometric_photo_path);
             }
             $file = $request->file('biometric_photo');
@@ -333,21 +333,40 @@ class DashboardController extends Controller
             $uploadedPhotos = $request->file('photos');
             $labels = $request->input('photo_labels', []);
 
-            foreach ($uploadedPhotos as $index => $uploadedFile) {
+            foreach ($uploadedPhotos as $key => $uploadedFile) {
+                if (!$uploadedFile) continue;
+
                 $savedPath = $this->compressAndStorePhoto($uploadedFile);
-                $label = isset($labels[$index]) && !empty($labels[$index]) ? $labels[$index] : 'Foto Samping/Lain';
+                $label = isset($labels[$key]) && !empty($labels[$key]) ? $labels[$key] : 'Foto Kucing';
 
-                $hasPrimary = CatPhoto::where('cat_id', $cat->id)->where('is_primary', true)->exists();
+                $existingForLabel = CatPhoto::where('cat_id', $cat->id)
+                    ->whereRaw('LOWER(label) = ?', [strtolower(trim($label))])
+                    ->first();
 
-                CatPhoto::create([
-                    'cat_id' => $cat->id,
-                    'photo_path' => $savedPath,
-                    'label' => $label,
-                    'is_primary' => !$hasPrimary,
-                ]);
+                if ($existingForLabel) {
+                    if ($existingForLabel->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingForLabel->photo_path)) {
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($existingForLabel->photo_path);
+                    }
+                    $existingForLabel->update([
+                        'photo_path' => $savedPath,
+                    ]);
+                    if ($existingForLabel->is_primary || strtolower(trim($label)) === 'tampak depan') {
+                        $cat->update(['photo_path' => $savedPath]);
+                    }
+                } else {
+                    $hasPrimary = CatPhoto::where('cat_id', $cat->id)->where('is_primary', true)->exists();
+                    $isPrimary = (strtolower(trim($label)) === 'tampak depan' && !$hasPrimary) || (!$hasPrimary);
 
-                if (!$hasPrimary) {
-                    $cat->update(['photo_path' => $savedPath]);
+                    CatPhoto::create([
+                        'cat_id' => $cat->id,
+                        'photo_path' => $savedPath,
+                        'label' => $label,
+                        'is_primary' => $isPrimary,
+                    ]);
+
+                    if ($isPrimary) {
+                        $cat->update(['photo_path' => $savedPath]);
+                    }
                 }
             }
         }
@@ -365,7 +384,7 @@ class DashboardController extends Controller
         }
 
         $request->validate([
-            'photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photo' => 'required|image|mimes:jpeg,png,jpg|max:1024',
             'label' => 'required|string|max:255',
             'is_primary' => 'nullable|boolean',
         ]);

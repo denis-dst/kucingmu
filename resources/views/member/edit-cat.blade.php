@@ -106,80 +106,218 @@
                         </div>
                     </div>
 
-                    <!-- Multi-Photo Gallery Section -->
+                    <!-- Multi-Photo Gallery Section with Direct Position Upload Buttons -->
                     <div class="border-t border-slate-100 pt-6 space-y-4">
-                        <div>
-                            <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                                📷 Galeri Foto Kucing (Tampak Depan, Samping, Atas)
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Unggah foto dari galeri atau ambil foto langsung menggunakan kamera. Pilih 1 foto utama untuk cetak KTAM.</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                                    📷 Galeri Foto Kucing Berdasarkan Posisi
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Unggah langsung foto untuk masing-masing posisi kucing (Tampak Depan, Samping, Atas, Hidung/Wajah, Telapak Kaki). Format <strong>JPG & PNG</strong>, maksimal <strong>1 MB</strong> per foto.</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-teal-50 text-teal-800 border border-teal-200 shrink-0">
+                                <span>⚡</span> Maks. 1 MB / Foto (JPG/PNG)
+                            </span>
                         </div>
 
-                        <!-- Existing Photo Grid -->
-                        @if($cat->photos->count() > 0)
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                @foreach($cat->photos as $photo)
-                                    <div class="relative bg-slate-50 border {{ $photo->is_primary ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-200' }} rounded-xl p-2 flex flex-col justify-between space-y-2">
-                                        <div class="relative h-28 w-full rounded-lg overflow-hidden bg-slate-200">
-                                            <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->label }}" class="h-full w-full object-cover">
-                                            @if($photo->is_primary)
-                                                <span class="absolute top-1 left-1 bg-teal-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                                                    ★ UTAMA KTAM
-                                                </span>
-                                            @endif
+                        @php
+                            $photoPositions = [
+                                [
+                                    'key' => 'depan',
+                                    'label' => 'Tampak Depan',
+                                    'subtitle' => 'Wajah / Pose Depan (Utama KTAM)',
+                                    'icon' => '🐱',
+                                    'is_primary_candidate' => true,
+                                ],
+                                [
+                                    'key' => 'samping',
+                                    'label' => 'Tampak Samping',
+                                    'subtitle' => 'Profil Samping Tubuh (Kiri/Kanan)',
+                                    'icon' => '🐈',
+                                    'is_primary_candidate' => false,
+                                ],
+                                [
+                                    'key' => 'atas',
+                                    'label' => 'Tampak Atas',
+                                    'subtitle' => 'Pola Punggung / Dorsal Tubuh',
+                                    'icon' => '🐾',
+                                    'is_primary_candidate' => false,
+                                ],
+                                [
+                                    'key' => 'wajah',
+                                    'label' => 'Foto Hidung/Wajah',
+                                    'subtitle' => 'Detail Hidung & Muka Close-up',
+                                    'icon' => '👃',
+                                    'is_primary_candidate' => false,
+                                ],
+                                [
+                                    'key' => 'paw',
+                                    'label' => 'Foto Telapak Kaki (Paw)',
+                                    'subtitle' => 'Detail Bantalan Paw Print',
+                                    'icon' => '🐾',
+                                    'is_primary_candidate' => false,
+                                ],
+                            ];
+
+                            // Track mapped photos so any other unmatched photos can still be viewed & managed
+                            $mappedPhotoIds = [];
+                        @endphp
+
+                        <!-- Grid 5 Posisi Foto -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($photoPositions as $pos)
+                                @php
+                                    $existingPhoto = $cat->photos->first(function($p) use ($pos) {
+                                        return strtolower(trim($p->label)) === strtolower(trim($pos['label']));
+                                    });
+                                    if ($existingPhoto) {
+                                        $mappedPhotoIds[] = $existingPhoto->id;
+                                    }
+                                @endphp
+
+                                <div class="relative bg-slate-50/90 border {{ $existingPhoto && $existingPhoto->is_primary ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-200' }} rounded-2xl p-4 flex flex-col justify-between space-y-3 hover:border-slate-300 transition shadow-xs">
+                                    <!-- Header Posisi -->
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-base">{{ $pos['icon'] }}</span>
+                                                <h4 class="text-xs font-bold text-slate-800">{{ $pos['label'] }}</h4>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 mt-0.5 leading-tight">{{ $pos['subtitle'] }}</p>
                                         </div>
 
-                                        <div class="space-y-1 text-center">
-                                            <span class="text-xs font-semibold text-slate-700 block truncate">{{ $photo->label }}</span>
-                                            
-                                            <div class="flex items-center justify-center gap-2 pt-1 border-t border-slate-200/60">
-                                                @if(!$photo->is_primary)
-                                                    <button type="submit" form="set-primary-form-{{ $photo->id }}" class="text-[10px] font-bold text-teal-700 hover:underline">
-                                                        Set Utama
-                                                    </button>
-                                                    <span class="text-slate-300">|</span>
-                                                @endif
-                                                <button type="submit" form="delete-photo-form-{{ $photo->id }}" onclick="return confirm('Hapus foto ini?')" class="text-[10px] font-bold text-red-600 hover:underline">
-                                                    Hapus
+                                        @if($existingPhoto && $existingPhoto->is_primary)
+                                            <span class="bg-teal-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-xs whitespace-nowrap">
+                                                ★ UTAMA KTAM
+                                            </span>
+                                        @elseif($existingPhoto)
+                                            <span class="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-200 whitespace-nowrap">
+                                                ✓ Tersimpan
+                                            </span>
+                                        @else
+                                            <span class="bg-slate-200/80 text-slate-600 text-[9px] font-bold px-2 py-0.5 rounded whitespace-nowrap">
+                                                Kosong
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Preview Area -->
+                                    <div class="relative aspect-4/3 sm:aspect-square w-full rounded-xl overflow-hidden bg-white border border-slate-200/80 flex items-center justify-center shadow-inner">
+                                        <!-- Live Selected Preview -->
+                                        <template x-if="previews['{{ $pos['key'] }}']">
+                                            <div class="relative w-full h-full">
+                                                <img :src="previews['{{ $pos['key'] }}']" alt="{{ $pos['label'] }}" class="w-full h-full object-cover">
+                                                <span class="absolute top-2 left-2 bg-indigo-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-sm">
+                                                    📷 Baru Dipilih
+                                                </span>
+                                                <button type="button" @click="clearSelectedPhoto('{{ $pos['key'] }}', 'photo_input_{{ $pos['key'] }}')" class="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm hover:bg-rose-700">
+                                                    ✕ Batal
                                                 </button>
                                             </div>
-                                        </div>
+                                        </template>
+
+                                        <!-- Existing Stored Photo -->
+                                        <template x-if="!previews['{{ $pos['key'] }}']">
+                                            @if($existingPhoto)
+                                                <img src="{{ asset('storage/' . $existingPhoto->photo_path) }}" alt="{{ $pos['label'] }}" class="w-full h-full object-cover">
+                                            @else
+                                                <div class="text-center p-3 text-slate-400 space-y-1">
+                                                    <span class="text-3xl block">{{ $pos['icon'] }}</span>
+                                                    <span class="text-[11px] font-medium block">Belum ada foto</span>
+                                                    <span class="text-[10px] text-slate-400 block">Klik tombol di bawah</span>
+                                                </div>
+                                            @endif
+                                        </template>
                                     </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4 text-center text-xs text-slate-400">
-                                Belum ada foto di galeri. Silakan unggah foto dari galeri atau kamera di bawah.
+
+                                    <!-- Existing Photo Action (Set Utama & Hapus) if available and no new preview -->
+                                    @if($existingPhoto)
+                                        <div x-show="!previews['{{ $pos['key'] }}']" class="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60">
+                                            @if(!$existingPhoto->is_primary)
+                                                <button type="submit" form="set-primary-form-{{ $existingPhoto->id }}" class="text-[11px] font-bold text-teal-700 hover:text-teal-900 hover:underline">
+                                                    ★ Jadikan Utama KTAM
+                                                </button>
+                                            @else
+                                                <span class="text-[11px] text-teal-700 font-bold">Foto Utama Saat Ini</span>
+                                            @endif
+
+                                            <button type="submit" form="delete-photo-form-{{ $existingPhoto->id }}" onclick="return confirm('Hapus foto {{ $pos['label'] }} ini?')" class="text-[11px] font-bold text-rose-600 hover:text-rose-800 hover:underline">
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    @endif
+
+                                    <!-- Direct Upload & Camera Buttons -->
+                                    <div class="space-y-1.5 pt-1">
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <!-- Tombol Unggah File / Galeri -->
+                                            <label class="button-secondary text-xs font-semibold py-2 px-2 flex items-center justify-center gap-1.5 cursor-pointer bg-white hover:bg-slate-100 shadow-xs border-slate-300">
+                                                <span>📁</span>
+                                                <span class="truncate">{{ $existingPhoto ? 'Ganti File' : 'Unggah File' }}</span>
+                                                <input type="file"
+                                                       id="photo_input_{{ $pos['key'] }}"
+                                                       name="photos[{{ $pos['key'] }}]"
+                                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                                       class="hidden"
+                                                       @change="validateAndPreview($event, '{{ $pos['key'] }}')">
+                                            </label>
+
+                                            <!-- Tombol Kamera -->
+                                            <button type="button"
+                                                    @click="openCamera('photo_input_{{ $pos['key'] }}', '{{ $pos['key'] }}')"
+                                                    class="button-secondary text-xs font-semibold py-2 px-2 flex items-center justify-center gap-1.5 bg-white hover:bg-teal-50 hover:text-teal-800 hover:border-teal-300 shadow-xs border-slate-300">
+                                                <span>📷</span>
+                                                <span class="truncate">{{ $existingPhoto ? 'Ganti Kamera' : 'Kamera' }}</span>
+                                            </button>
+                                        </div>
+
+                                        <input type="hidden" name="photo_labels[{{ $pos['key'] }}]" value="{{ $pos['label'] }}">
+                                        
+                                        <p class="text-[10px] text-slate-400 text-center">Format: JPG/PNG (Maks 1 MB)</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Unmapped / Extra Photos Section if exists -->
+                        @php
+                            $extraPhotos = $cat->photos->whereNotIn('id', $mappedPhotoIds);
+                        @endphp
+                        @if($extraPhotos->count() > 0)
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 mt-4">
+                                <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                    <span>🖼</span> Foto Tambahan Lainnya yang Tersimpan ({{ $extraPhotos->count() }})
+                                </h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    @foreach($extraPhotos as $photo)
+                                        <div class="relative bg-white border {{ $photo->is_primary ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-200' }} rounded-xl p-2 flex flex-col justify-between space-y-2">
+                                            <div class="relative h-24 w-full rounded-lg overflow-hidden bg-slate-200">
+                                                <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->label }}" class="h-full w-full object-cover">
+                                                @if($photo->is_primary)
+                                                    <span class="absolute top-1 left-1 bg-teal-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
+                                                        ★ UTAMA KTAM
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <div class="space-y-1 text-center">
+                                                <span class="text-xs font-semibold text-slate-700 block truncate">{{ $photo->label }}</span>
+                                                <div class="flex items-center justify-center gap-2 pt-1 border-t border-slate-200/60">
+                                                    @if(!$photo->is_primary)
+                                                        <button type="submit" form="set-primary-form-{{ $photo->id }}" class="text-[10px] font-bold text-teal-700 hover:underline">
+                                                            Set Utama
+                                                        </button>
+                                                        <span class="text-slate-300">|</span>
+                                                    @endif
+                                                    <button type="submit" form="delete-photo-form-{{ $photo->id }}" onclick="return confirm('Hapus foto ini?')" class="text-[10px] font-bold text-red-600 hover:underline">
+                                                        Hapus
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         @endif
-
-                        <!-- Input Upload Foto Baru + Camera Button -->
-                        <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <label class="form-label font-semibold text-slate-700 block text-xs">Tambah Foto Baru ke Galeri</label>
-                                <button type="button" @click="openCamera('new_gallery_photo_input', 'new_gallery_preview')" class="button-secondary text-xs py-1 px-3 inline-flex items-center gap-1.5">
-                                    <span>📷 Ambil Foto Kamera</span>
-                                </button>
-                            </div>
-                            
-                            <div class="grid gap-3 sm:grid-cols-2">
-                                <div>
-                                    <input type="file" id="new_gallery_photo_input" name="photos[]" accept="image/*" capture="environment" class="form-input w-full py-1 text-xs border-slate-300 rounded-lg">
-                                </div>
-                                <div>
-                                    <select name="photo_labels[]" class="form-input w-full py-1 text-xs border-slate-300 rounded-lg">
-                                        <option value="Tampak Depan">Tampak Depan</option>
-                                        <option value="Tampak Samping">Tampak Samping</option>
-                                        <option value="Tampak Atas">Tampak Atas</option>
-                                        <option value="Foto Hidung/Wajah">Foto Hidung/Wajah</option>
-                                        <option value="Foto Telapak Kaki (Paw)">Foto Telapak Kaki (Paw)</option>
-                                        <option value="Lainnya">Lainnya</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <!-- Realtime Camera Preview -->
-                            <img id="new_gallery_preview" class="hidden w-24 h-24 object-cover rounded-lg border border-teal-500 shadow-sm mt-2">
-                        </div>
                     </div>
 
                     <!-- Biometrics Section -->
@@ -188,7 +326,7 @@
                             <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
                                 🐾 Data Biometrik Kucing (Paw Print / Nose Print)
                             </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Sistem mendukung penyimpanan identifikasi biometrik telapak kaki (*paw*) atau hidung (*nose print*).</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Sistem mendukung penyimpanan identifikasi biometrik telapak kaki (*paw*) atau hidung (*nose print*). Maks. 1 MB (JPG/PNG).</p>
                         </div>
 
                         <div class="grid gap-4 sm:grid-cols-3">
@@ -205,11 +343,17 @@
                             <div>
                                 <div class="flex items-center justify-between">
                                     <label for="biometric_photo" class="form-label font-semibold text-slate-700">Unggah Sampel Biometrik</label>
-                                    <button type="button" @click="openCamera('biometric_photo', 'biometric_preview')" class="text-[10px] font-bold text-teal-700 hover:underline">
+                                    <button type="button" @click="openCamera('biometric_photo', 'biometric', 'biometric_preview')" class="text-[10px] font-bold text-teal-700 hover:underline">
                                         📷 Kamera
                                     </button>
                                 </div>
-                                <input type="file" id="biometric_photo" name="biometric_photo" accept="image/*" capture="environment" class="form-input mt-1 block w-full text-xs border-slate-300 rounded-xl">
+                                <input type="file"
+                                       id="biometric_photo"
+                                       name="biometric_photo"
+                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                       capture="environment"
+                                       @change="validateAndPreview($event, 'biometric', 'biometric_preview')"
+                                       class="form-input mt-1 block w-full text-xs border-slate-300 rounded-xl">
                                 <img id="biometric_preview" class="hidden w-20 h-20 object-cover rounded-lg border border-teal-500 mt-2 shadow-xs">
                             </div>
 
@@ -318,11 +462,70 @@
                 stream: null,
                 capturedImage: null,
                 targetInputId: null,
+                previewKey: null,
                 previewImageId: null,
+                previews: {},
 
-                openCamera(inputId, previewId = null) {
+                validateAndPreview(event, key, directPreviewId = null) {
+                    const input = event.target;
+                    const file = input.files && input.files[0];
+                    if (!file) return;
+
+                    // Validate file type (JPG/PNG only)
+                    const validMimes = ['image/jpeg', 'image/png', 'image/jpg'];
+                    const isValidType = validMimes.includes(file.type) || file.name.match(/\.(jpe?g|png)$/i);
+                    if (!isValidType) {
+                        alert('Format file tidak didukung! Harap unggah foto dengan format JPG atau PNG.');
+                        input.value = '';
+                        if (key) this.previews[key] = null;
+                        if (directPreviewId) {
+                            const prev = document.getElementById(directPreviewId);
+                            if (prev) prev.classList.add('hidden');
+                        }
+                        return;
+                    }
+
+                    // Validate file size: Max 1 MB (1024 * 1024 bytes)
+                    const maxSizeBytes = 1024 * 1024;
+                    if (file.size > maxSizeBytes) {
+                        const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                        alert(`Ukuran file terlalu besar (${sizeMb} MB)! Maksimal ukuran 1 foto adalah 1 MB (JPG/PNG).`);
+                        input.value = '';
+                        if (key) this.previews[key] = null;
+                        if (directPreviewId) {
+                            const prev = document.getElementById(directPreviewId);
+                            if (prev) prev.classList.add('hidden');
+                        }
+                        return;
+                    }
+
+                    // Generate live preview
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (key) {
+                            this.previews[key] = e.target.result;
+                        }
+                        if (directPreviewId) {
+                            const prev = document.getElementById(directPreviewId);
+                            if (prev) {
+                                prev.src = e.target.result;
+                                prev.classList.remove('hidden');
+                            }
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                },
+
+                clearSelectedPhoto(key, inputId) {
+                    this.previews[key] = null;
+                    const input = document.getElementById(inputId);
+                    if (input) input.value = '';
+                },
+
+                openCamera(inputId, previewKey = null, directPreviewId = null) {
                     this.targetInputId = inputId;
-                    this.previewImageId = previewId;
+                    this.previewKey = previewKey;
+                    this.previewImageId = directPreviewId;
                     this.capturedImage = null;
                     this.showModal = true;
 
@@ -370,12 +573,21 @@
                     }
                     const file = new File([u8arr], 'camera_photo_' + Date.now() + '.jpg', { type: mime });
 
+                    if (file.size > 1024 * 1024) {
+                        alert('Ukuran foto kamera melebihi 1 MB. Silakan ulangi pemotretan.');
+                        return;
+                    }
+
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);
 
                     const inputElem = document.getElementById(this.targetInputId);
                     if (inputElem) {
                         inputElem.files = dataTransfer.files;
+                    }
+
+                    if (this.previewKey) {
+                        this.previews[this.previewKey] = this.capturedImage;
                     }
 
                     if (this.previewImageId) {
