@@ -467,6 +467,10 @@ class DashboardController extends Controller
      */
     public function storeAppointment(Request $request)
     {
+        if (!AppSetting::isEnabled('enable_appointments', true)) {
+            return redirect()->back()->with('error', 'Fitur janji temu pemeriksaan sedang dinonaktifkan oleh administrator.');
+        }
+
         $request->validate([
             'cat_id' => 'required|exists:cats,id',
             'date' => 'required|date|after_or_equal:today',

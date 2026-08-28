@@ -138,61 +138,63 @@
                     </div>
 
                     <!-- Appointments / Bookings Section -->
-                    <div class="content-card">
-                        <div class="border-b border-slate-200 pb-3 mb-4">
-                            <h2 class="font-outfit text-lg font-bold text-slate-900">Riwayat Janji Temu Pemeriksaan</h2>
-                        </div>
+                    @if(($app_settings['enable_appointments'] ?? '1') == '1')
+                        <div class="content-card">
+                            <div class="border-b border-slate-200 pb-3 mb-4">
+                                <h2 class="font-outfit text-lg font-bold text-slate-900">Riwayat Janji Temu Pemeriksaan</h2>
+                            </div>
 
-                        @if($appointments->isEmpty())
-                            <div class="text-center py-6 text-slate-600 text-xs bg-slate-50 rounded-lg border border-slate-200">
-                                Belum ada riwayat janji temu pemeriksaan medis. Silakan buat janji temu pada formulir di sebelah kanan.
-                            </div>
-                        @else
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs" aria-label="Daftar Janji Temu Medis">
-                                    <thead>
-                                        <tr class="border-b border-slate-200 text-slate-700 font-bold bg-slate-50">
-                                            <th class="py-2.5 px-3">Kucing</th>
-                                            <th class="py-2.5 px-3">Tanggal</th>
-                                            <th class="py-2.5 px-3">Sesi Waktu</th>
-                                            <th class="py-2.5 px-3">Status</th>
-                                            <th class="py-2.5 px-3">Catatan Medis</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-200 text-slate-700">
-                                        @foreach($appointments as $app)
-                                            <tr class="hover:bg-slate-50">
-                                                <td class="py-3 px-3 font-semibold text-slate-900">{{ $app->cat->name }}</td>
-                                                <td class="py-3 px-3">{{ $app->date->format('d M Y') }}</td>
-                                                <td class="py-3 px-3 font-mono text-[11px]">{{ $app->time_slot }}</td>
-                                                <td class="py-3 px-3">
-                                                    @if($app->status == 'scheduled')
-                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-200">Terjadwal</span>
-                                                    @elseif($app->status == 'checked_in')
-                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">Hadir di Lokasi</span>
-                                                    @elseif($app->status == 'completed')
-                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-200">Selesai</span>
-                                                    @else
-                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-200">Dibatalkan</span>
-                                                    @endif
-                                                </td>
-                                                <td class="py-3 px-3">
-                                                    @if($app->medicalRecord)
-                                                        <div class="text-[11px]">
-                                                            <p><strong class="text-slate-800">Kondisi:</strong> {{ $app->medicalRecord->general_condition }}</p>
-                                                            <p><strong class="text-slate-800">BB/Suhu:</strong> {{ $app->medicalRecord->weight }}kg / {{ $app->medicalRecord->temperature }}°C</p>
-                                                        </div>
-                                                    @else
-                                                        <span class="text-slate-400">Menunggu pemeriksaan</span>
-                                                    @endif
-                                                </td>
+                            @if($appointments->isEmpty())
+                                <div class="text-center py-6 text-slate-600 text-xs bg-slate-50 rounded-lg border border-slate-200">
+                                    Belum ada riwayat janji temu pemeriksaan medis. Silakan buat janji temu pada formulir di sebelah kanan.
+                                </div>
+                            @else
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left text-xs" aria-label="Daftar Janji Temu Medis">
+                                        <thead>
+                                            <tr class="border-b border-slate-200 text-slate-700 font-bold bg-slate-50">
+                                                <th class="py-2.5 px-3">Kucing</th>
+                                                <th class="py-2.5 px-3">Tanggal</th>
+                                                <th class="py-2.5 px-3">Sesi Waktu</th>
+                                                <th class="py-2.5 px-3">Status</th>
+                                                <th class="py-2.5 px-3">Catatan Medis</th>
                                             </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @endif
-                    </div>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-200 text-slate-700">
+                                            @foreach($appointments as $app)
+                                                <tr class="hover:bg-slate-50">
+                                                    <td class="py-3 px-3 font-semibold text-slate-900">{{ $app->cat->name }}</td>
+                                                    <td class="py-3 px-3">{{ $app->date->format('d M Y') }}</td>
+                                                    <td class="py-3 px-3 font-mono text-[11px]">{{ $app->time_slot }}</td>
+                                                    <td class="py-3 px-3">
+                                                        @if($app->status == 'scheduled')
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-200">Terjadwal</span>
+                                                        @elseif($app->status == 'checked_in')
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">Hadir di Lokasi</span>
+                                                        @elseif($app->status == 'completed')
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-200">Selesai</span>
+                                                        @else
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-200">Dibatalkan</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="py-3 px-3">
+                                                        @if($app->medicalRecord)
+                                                            <div class="text-[11px]">
+                                                                <p><strong class="text-slate-800">Kondisi:</strong> {{ $app->medicalRecord->general_condition }}</p>
+                                                                <p><strong class="text-slate-800">BB/Suhu:</strong> {{ $app->medicalRecord->weight }}kg / {{ $app->medicalRecord->temperature }}°C</p>
+                                                            </div>
+                                                        @else
+                                                            <span class="text-slate-400">Menunggu pemeriksaan</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Right Column (Forms) -->
@@ -284,45 +286,47 @@
                     </div>
 
                     <!-- Book Appointment Form -->
-                    <div class="content-card">
-                        <h2 class="font-outfit text-base font-bold text-slate-900 border-b border-slate-200 pb-2.5 mb-4">Buat Janji Pemeriksaan</h2>
-                        @if($cats->isEmpty())
-                            <p class="text-xs text-slate-600 text-center py-4 bg-slate-50 rounded-lg border border-slate-200">
-                                Daftarkan kucing terlebih dahulu sebelum membuat jadwal janji temu pemeriksaan dokter.
-                            </p>
-                        @else
-                            <form method="POST" action="{{ route('appointment.store') }}" class="space-y-3.5">
-                                @csrf
-                                <div>
-                                    <label for="select_cat" class="form-label text-xs">Pilih Kucing</label>
-                                    <select id="select_cat" name="cat_id" required class="form-input text-xs">
-                                        @foreach($cats as $cat)
-                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="app_date" class="form-label text-xs">Tanggal Pemeriksaan</label>
-                                    <input type="date" id="app_date" name="date" required class="form-input text-xs">
-                                </div>
-                                <div>
-                                    <label for="app_slot" class="form-label text-xs">Sesi Waktu</label>
-                                    <select id="app_slot" name="time_slot" required class="form-input text-xs">
-                                        <option value="Sesi Pagi (09:00 - 11:30)">Sesi Pagi (09:00 - 11:30)</option>
-                                        <option value="Sesi Siang (13:00 - 15:30)">Sesi Siang (13:00 - 15:30)</option>
-                                        <option value="Sesi Sore (16:00 - 17:30)">Sesi Sore (16:00 - 17:30)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="app_notes" class="form-label text-xs">Keluhan / Catatan Kunjungan</label>
-                                    <textarea id="app_notes" name="notes" rows="2" class="form-input text-xs" placeholder="Tuliskan keluhan atau tujuan pemeriksaan..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full button-primary text-xs font-semibold py-2.5">
-                                    Konfirmasi Janji Temu
-                                </button>
-                            </form>
-                        @endif
-                    </div>
+                    @if(($app_settings['enable_appointments'] ?? '1') == '1')
+                        <div class="content-card">
+                            <h2 class="font-outfit text-base font-bold text-slate-900 border-b border-slate-200 pb-2.5 mb-4">Buat Janji Pemeriksaan</h2>
+                            @if($cats->isEmpty())
+                                <p class="text-xs text-slate-600 text-center py-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    Daftarkan kucing terlebih dahulu sebelum membuat jadwal janji temu pemeriksaan dokter.
+                                </p>
+                            @else
+                                <form method="POST" action="{{ route('appointment.store') }}" class="space-y-3.5">
+                                    @csrf
+                                    <div>
+                                        <label for="select_cat" class="form-label text-xs">Pilih Kucing</label>
+                                        <select id="select_cat" name="cat_id" required class="form-input text-xs">
+                                            @foreach($cats as $cat)
+                                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="app_date" class="form-label text-xs">Tanggal Pemeriksaan</label>
+                                        <input type="date" id="app_date" name="date" required class="form-input text-xs">
+                                    </div>
+                                    <div>
+                                        <label for="app_slot" class="form-label text-xs">Sesi Waktu</label>
+                                        <select id="app_slot" name="time_slot" required class="form-input text-xs">
+                                            <option value="Sesi Pagi (09:00 - 11:30)">Sesi Pagi (09:00 - 11:30)</option>
+                                            <option value="Sesi Siang (13:00 - 15:30)">Sesi Siang (13:00 - 15:30)</option>
+                                            <option value="Sesi Sore (16:00 - 17:30)">Sesi Sore (16:00 - 17:30)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="app_notes" class="form-label text-xs">Keluhan / Catatan Kunjungan</label>
+                                        <textarea id="app_notes" name="notes" rows="2" class="form-input text-xs" placeholder="Tuliskan keluhan atau tujuan pemeriksaan..."></textarea>
+                                    </div>
+                                    <button type="submit" class="w-full button-primary text-xs font-semibold py-2.5">
+                                        Konfirmasi Janji Temu
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @endif
 
                     <!-- Active Events / Kegiatan Sosialisasi -->
                     @if(isset($activeEvents) && $activeEvents->isNotEmpty())

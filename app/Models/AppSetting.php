@@ -16,4 +16,19 @@ class AppSetting extends Model
         'label',
         'type',
     ];
+
+    public static function get(string $key, $default = null)
+    {
+        $setting = static::find($key);
+        return $setting ? $setting->value : $default;
+    }
+
+    public static function isEnabled(string $key, bool $default = true): bool
+    {
+        $val = static::get($key);
+        if ($val === null) {
+            return $default;
+        }
+        return (string)$val === '1' || $val === true;
+    }
 }

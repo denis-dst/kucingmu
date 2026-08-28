@@ -47,8 +47,8 @@
                                         @if($setting->type === 'boolean')
                                             <div class="flex items-center mt-1">
                                                 <select id="setting_{{ $setting->key }}" name="settings[{{ $setting->key }}]" class="form-input w-full max-w-xs rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm py-2">
-                                                    <option value="1" {{ $setting->value == '1' ? 'selected' : '' }}>Aktif (Ya)</option>
-                                                    <option value="0" {{ $setting->value == '0' ? 'selected' : '' }}>Nonaktif (Tidak)</option>
+                                                    <option value="1" {{ $setting->value == '1' ? 'selected' : '' }}>🟢 Aktif (ON / Tampil)</option>
+                                                    <option value="0" {{ $setting->value == '0' ? 'selected' : '' }}>🔴 Nonaktif (OFF / Sembunyi)</option>
                                                 </select>
                                             </div>
                                         @elseif($setting->type === 'textarea')
