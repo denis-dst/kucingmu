@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Set Carbon locale and default timezone (GMT+7)
+        \Carbon\Carbon::setLocale(config('app.locale', 'id'));
+        date_default_timezone_set(config('app.timezone', 'Asia/Jakarta'));
+
         // Force HTTPS in production or if accessed via HTTPS proxy / Cloudflare
         if (config('app.env') === 'production' || request()->header('X-Forwarded-Proto') === 'https' || request()->server('HTTPS') === 'on') {
             URL::forceScheme('https');
