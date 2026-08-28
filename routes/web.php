@@ -92,6 +92,7 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/cat/{cat}/edit', [DashboardController::class, 'editCat'])->name('cat.edit');
     Route::put('/cat/{cat}', [DashboardController::class, 'updateCat'])->name('cat.update');
+    Route::delete('/cat/{cat}', [DashboardController::class, 'destroyCat'])->name('cat.destroy');
     Route::post('/cat/{cat}/toggle-status', [DashboardController::class, 'toggleCatStatus'])->name('cat.toggle-status');
     Route::get('/cat/{cat}/download-ktam', [DashboardController::class, 'downloadKtam'])->name('ktam.download');
     Route::get('/cat/{cat}/preview-ktam', [DashboardController::class, 'previewKtam'])->name('ktam.preview');

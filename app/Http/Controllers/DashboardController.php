@@ -133,7 +133,7 @@ class DashboardController extends Controller
             ->latest()
             ->get();
             
-        $appointments = Appointment::with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
+        $appointments = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
 
         return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments', 'sort', 'direction', 'statusFilter'));
     }
@@ -144,14 +144,14 @@ class DashboardController extends Controller
     protected function dokterDashboard()
     {
         // Queue for today
-        $queue = Appointment::with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
+        $queue = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
             ->whereIn('status', ['scheduled', 'checked_in'])
             ->whereDate('date', Carbon::today())
             ->orderBy('status', 'desc') // checked_in first
             ->orderBy('id', 'asc')
             ->get();
 
-        $recentRecords = MedicalRecord::with(['cat.owner', 'cat.photos', 'appointment'])
+        $recentRecords = MedicalRecord::whereHas('cat')->with(['cat.owner', 'cat.photos', 'appointment'])
             ->where('vet_id', Auth::id())
             ->latest()
             ->take(10)
@@ -165,7 +165,7 @@ class DashboardController extends Controller
      */
     protected function volunteerDashboard()
     {
-        $todayAppointments = Appointment::with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
+        $todayAppointments = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
             ->whereDate('date', Carbon::today())
             ->orderBy('id', 'desc')
             ->get();
@@ -485,6 +485,25 @@ class DashboardController extends Controller
         }
 
         return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil diperbarui.');
+    }
+
+    /**
+     * Delete (Soft Delete) cat profile (for Member or Admin).
+     */
+    public function destroyCat(Cat $cat)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ((int) $cat->user_id !== (int) $user->id && !$user->isAdmin()) {
+            abort(403);
+        }
+
+        $catName = $cat->name;
+        $cat->deleted_by = $user->id;
+        $cat->save();
+        $cat->delete();
+
+        return redirect()->route('dashboard')->with('success', "Data kucing \"{$catName}\" berhasil dihapus.");
     }
 
     /**
@@ -815,24 +834,54 @@ class DashboardController extends Controller
     {
         $card = KtamCard::where('ktam_number', $number)
             ->orWhereHas('cat', function($q) use ($number) {
-                $q->where('unique_code', $number);
+                $q->withTrashed()->where('unique_code', $number);
             })
             ->with('verifier')
             ->first();
 
         if (!$card) {
-            $cat = Cat::where('unique_code', $number)->firstOrFail();
+            $cat = Cat::withTrashed()->where('unique_code', $number)->firstOrFail();
             $card = $cat->ktamCard ?? new KtamCard([
                 'ktam_number' => $cat->formatted_unique_code,
                 'issue_date' => $cat->created_at,
             ]);
         } else {
-            $cat = $card->cat()->with(['owner', 'photos', 'wilayah'])->first();
+            $cat = $card->cat; // Using withTrashed relation defined on KtamCard
         }
 
-        $records = MedicalRecord::where('cat_id', $cat->id)->with('vet')->latest()->get();
+        if ($cat) {
+            $cat->loadMissing(['owner', 'photos', 'wilayah', 'deleter']);
+        } else if ($card && $card->cat_id) {
+            $cat = Cat::withTrashed()->with(['owner', 'photos', 'wilayah', 'deleter'])->find($card->cat_id);
+        }
 
-        return view('ktam-verify', compact('card', 'cat', 'records'));
+        if (!$cat) {
+            abort(404, 'Data Kucing atau KTAM tidak ditemukan.');
+        }
+
+        $isDeleted = $cat->trashed();
+        $deletedByName = '-';
+        $deletedAtFormatted = '-';
+
+        if ($isDeleted) {
+            $deleter = $cat->deleter;
+            if ($deleter) {
+                $roleLabel = match(strtolower($deleter->role ?? '')) {
+                    'admin' => 'Admin',
+                    'superadmin' => 'Superadmin',
+                    'member' => 'Pemilik',
+                    default => ucfirst($deleter->role ?? 'Pengguna')
+                };
+                $deletedByName = $deleter->name . ' (' . $roleLabel . ')';
+            } else {
+                $deletedByName = 'Administrator / Pemilik';
+            }
+            $deletedAtFormatted = $cat->deleted_at ? $cat->deleted_at->translatedFormat('d F Y, H:i') . ' WIB' : '-';
+        }
+
+        $records = $isDeleted ? collect([]) : MedicalRecord::where('cat_id', $cat->id)->with('vet')->latest()->get();
+
+        return view('ktam-verify', compact('card', 'cat', 'records', 'isDeleted', 'deletedByName', 'deletedAtFormatted'));
     }
 
     /**
@@ -852,7 +901,7 @@ class DashboardController extends Controller
             "Expires"             => "0"
         ];
 
-        $cards = KtamCard::with(['cat.owner', 'verifier'])->get();
+        $cards = KtamCard::whereHas('cat')->with(['cat.owner', 'verifier'])->get();
 
         $callback = function() use($cards) {
             $file = fopen('php://output', 'w');

@@ -402,13 +402,19 @@
                     </div>
 
                     <!-- Tombol Aksi -->
-                    <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
-                        <a href="{{ route('dashboard') }}" class="button-secondary px-5 py-2.5">
-                            Batal
-                        </a>
-                        <button type="submit" class="button-primary px-6 py-2.5">
-                            Simpan Perubahan
+                    <div class="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-slate-100">
+                        <button type="submit" form="delete-cat-form-{{ $cat->id }}" class="button-danger px-4 py-2.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl">
+                            <span>🗑</span> Hapus Kucing Ini
                         </button>
+
+                        <div class="flex items-center gap-3">
+                            <a href="{{ route('dashboard') }}" class="button-secondary px-5 py-2.5">
+                                Batal
+                            </a>
+                            <button type="submit" class="button-primary px-6 py-2.5">
+                                Simpan Perubahan
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -455,6 +461,12 @@
         </div>
 
     </div>
+
+    <!-- Hidden form for cat delete action -->
+    <form id="delete-cat-form-{{ $cat->id }}" action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="hidden" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
+        @csrf
+        @method('DELETE')
+    </form>
 
     <!-- Hidden forms for set-primary and delete photo actions -->
     @foreach($cat->photos as $photo)

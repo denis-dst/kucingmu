@@ -177,39 +177,60 @@
                                                     <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 block">KTAM RESMI</span>
                                                     <span class="text-xs font-mono font-bold text-slate-800">{{ $cat->ktamCard->ktam_number }}</span>
                                                 </div>
-                                                <div class="flex items-center gap-2">
+                                                <div class="flex flex-wrap items-center gap-2">
                                                     <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs min-h-[38px]">
                                                         Ubah
                                                     </a>
                                                     <a href="{{ route('ktam.download', $cat->id) }}" class="button-primary px-3 py-1.5 text-xs min-h-[38px]">
                                                         Unduh PDF
                                                     </a>
+                                                    <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="button-secondary px-2.5 py-1.5 text-xs min-h-[38px] text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" title="Hapus Kucing">
+                                                            <span>🗑</span> Hapus
+                                                        </button>
+                                                    </form>
                                                 </div>
                                             @elseif($cat->medicalRecords->isNotEmpty())
                                                 <div class="text-left">
                                                     <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">PROSES VERIFIKASI ADMIN</span>
                                                     <span class="text-[11px] text-slate-600">Pemeriksaan Dokter Selesai</span>
                                                 </div>
-                                                <div class="flex items-center gap-2">
+                                                <div class="flex flex-wrap items-center gap-2">
                                                     <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-secondary px-3 py-1.5 text-xs min-h-[38px] border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100">
                                                         Lihat Draft
                                                     </button>
                                                     <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs min-h-[38px]">
                                                         Ubah
                                                     </a>
+                                                    <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="button-secondary px-2.5 py-1.5 text-xs min-h-[38px] text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" title="Hapus Kucing">
+                                                            <span>🗑</span> Hapus
+                                                        </button>
+                                                    </form>
                                                 </div>
                                             @else
                                                 <div class="text-left">
                                                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">STATUS KTAM</span>
                                                     <span class="text-[11px] text-slate-600">Belum Periksa Dokter</span>
                                                 </div>
-                                                <div class="flex items-center gap-2">
+                                                <div class="flex flex-wrap items-center gap-2">
                                                     <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-secondary px-3 py-1.5 text-xs min-h-[38px]">
                                                         Lihat Draft
                                                     </button>
                                                     <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs min-h-[38px]">
                                                         Ubah
                                                     </a>
+                                                    <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="button-secondary px-2.5 py-1.5 text-xs min-h-[38px] text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" title="Hapus Kucing">
+                                                            <span>🗑</span> Hapus
+                                                        </button>
+                                                    </form>
                                                 </div>
                                             @endif
                                         </div>

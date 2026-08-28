@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Auth;
 
 class Cat extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'user_id',
@@ -29,6 +31,7 @@ class Cat extends Model
         'photo_embedding',
         'color_fingerprint',
         'spatial_fingerprint',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -113,6 +116,13 @@ class Cat extends Model
                 }
             }
         });
+
+        static::deleting(function ($cat) {
+            if (Auth::check() && empty($cat->deleted_by)) {
+                $cat->deleted_by = Auth::id();
+                $cat->saveQuietly();
+            }
+        });
     }
 
     /**
@@ -148,6 +158,11 @@ class Cat extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function deleter()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function appointments()

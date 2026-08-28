@@ -180,13 +180,20 @@
                                 </div>
 
                                 <div class="pt-2 border-t border-slate-100 flex items-center gap-2" style="margin-top: 8px;">
-                                    <a href="{{ route('cat.edit', $cat->id) }}" class="btn-action-secondary flex-1 py-2 text-center text-xs font-semibold">
-                                        <span>✏️</span> Edit & Foto
+                                    <a href="{{ route('cat.edit', $cat->id) }}" class="btn-action-secondary py-2 px-2.5 text-center text-xs font-semibold">
+                                        <span>✏️</span> Ubah
                                     </a>
                                     <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="flex-1">
                                         @csrf
                                         <button type="submit" onclick="return confirm('Apakah Anda yakin ingin memverifikasi dan menerbitkan kartu KTAM untuk {{ $cat->name }}?')" class="btn-action-primary w-full py-2 text-center text-xs font-semibold">
                                             <span>✓</span> Terbitkan KTAM
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-action-danger py-2 px-2.5 text-xs font-semibold" title="Hapus Kucing">
+                                            <span>🗑</span>
                                         </button>
                                     </form>
                                 </div>
@@ -435,6 +442,13 @@
                                                                 </button>
                                                             </form>
                                                         @endif
+                                                        <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn-action-danger" title="Hapus Data Kucing">
+                                                                <span>🗑</span> Hapus
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </td>
                                             </tr>

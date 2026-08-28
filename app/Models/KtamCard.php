@@ -27,7 +27,7 @@ class KtamCard extends Model
 
     public function cat()
     {
-        return $this->belongsTo(Cat::class);
+        return $this->belongsTo(Cat::class)->withTrashed();
     }
 
     public function verifier()
