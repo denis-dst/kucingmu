@@ -14,6 +14,7 @@ class Cat extends Model
         'name',
         'breed',
         'gender',
+        'status',
         'date_of_birth',
         'wilayah_code',
         'unique_code',
@@ -36,6 +37,56 @@ class Cat extends Model
         'color_fingerprint' => 'array',
         'spatial_fingerprint' => 'array',
     ];
+
+    /**
+     * Check if cat is currently alive.
+     */
+    public function isAlive(): bool
+    {
+        return empty($this->status) || in_array(strtolower(trim($this->status)), ['alive', 'hidup']);
+    }
+
+    /**
+     * Check if cat is deceased.
+     */
+    public function isDeceased(): bool
+    {
+        return !$this->isAlive();
+    }
+
+    /**
+     * Human readable status label.
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->isAlive() ? 'Hidup' : 'Mati';
+    }
+
+    /**
+     * Human readable age text (e.g. "1 thn 3 bln" or "4 bln").
+     */
+    public function getAgeTextAttribute(): string
+    {
+        if (!$this->date_of_birth) {
+            return '-';
+        }
+
+        $now = now();
+        $years = (int) $this->date_of_birth->diffInYears($now);
+        $months = (int) ($this->date_of_birth->diffInMonths($now) % 12);
+
+        if ($years > 0) {
+            return $years . ' thn' . ($months > 0 ? ' ' . $months . ' bln' : '');
+        }
+
+        $totalMonths = (int) $this->date_of_birth->diffInMonths($now);
+        if ($totalMonths > 0) {
+            return $totalMonths . ' bln';
+        }
+
+        $days = (int) $this->date_of_birth->diffInDays($now);
+        return $days . ' hari';
+    }
 
     protected static function booted()
     {

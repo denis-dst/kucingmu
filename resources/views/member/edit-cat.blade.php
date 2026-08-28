@@ -87,7 +87,7 @@
                         </div>
                     </div>
 
-                    <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="grid gap-6 sm:grid-cols-3">
                         <!-- Jenis Kelamin -->
                         <div>
                             <label for="cat_gender" class="form-label font-semibold text-slate-700">Jenis Kelamin</label>
@@ -103,6 +103,20 @@
                             <label for="cat_dob" class="form-label font-semibold text-slate-700">Tanggal Lahir</label>
                             <input type="date" id="cat_dob" name="date_of_birth" value="{{ old('date_of_birth', $cat->date_of_birth ? $cat->date_of_birth->format('Y-m-d') : '') }}" required class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
                             <x-input-error :messages="$errors->get('date_of_birth')" class="mt-1" />
+                        </div>
+
+                        <!-- Status Kucing (Hidup / Mati) -->
+                        <div>
+                            <label for="cat_status" class="form-label font-semibold text-slate-700">Status Kehidupan Kucing</label>
+                            @php
+                                $currStatus = old('status', $cat->status ?: 'alive');
+                            @endphp
+                            <select id="cat_status" name="status" required class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm py-2 font-medium {{ $currStatus === 'deceased' ? 'bg-slate-100 text-slate-700 border-slate-300' : 'bg-teal-50/50 text-teal-900 border-teal-200' }}">
+                                <option value="alive" {{ in_array($currStatus, ['alive', 'hidup']) ? 'selected' : '' }}>🟢 Hidup (Aktif)</option>
+                                <option value="deceased" {{ in_array($currStatus, ['deceased', 'mati']) ? 'selected' : '' }}>⚪ Mati (Meninggal)</option>
+                            </select>
+                            <span class="text-[11px] text-slate-500 mt-1 block">Status hidup/mati untuk pencatatan KTAM & data anggota.</span>
+                            <x-input-error :messages="$errors->get('status')" class="mt-1" />
                         </div>
                     </div>
 

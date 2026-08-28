@@ -35,30 +35,112 @@
                     
                     <!-- Cat Profiles Section -->
                     <div class="content-card">
-                        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-5">
-                            <h2 class="font-outfit text-lg font-bold text-slate-900">Daftar Kucing Peliharaan</h2>
-                            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 text-xs font-bold">{{ $cats->count() }} Ekor</span>
+                        @php
+                            $mSort = $sort ?? 'created_at';
+                            $mDir = $direction ?? 'desc';
+                            $mStatus = $statusFilter ?? 'all';
+                        @endphp
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 mb-4 gap-3">
+                            <div>
+                                <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight">Daftar Kucing Peliharaan</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Kelola identitas, foto KTAM, dan status kesehatan/kehidupan kucing Anda.</p>
+                            </div>
+                            <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 text-xs font-bold shrink-0 self-start sm:self-auto">
+                                {{ $cats->count() }} Ekor
+                            </span>
                         </div>
+
+                        <!-- Member Filter & Sort Toolbar -->
+                        <form method="GET" action="{{ route('dashboard') }}" class="mb-4 flex flex-wrap items-center gap-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200">
+                            <!-- Search -->
+                            <div class="relative flex-1 min-w-[140px]">
+                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">🔍</span>
+                                <input type="text" 
+                                       name="search" 
+                                       value="{{ request('search') }}" 
+                                       placeholder="Cari nama / ras kucing..." 
+                                       class="w-full text-xs pl-7 pr-6 py-1.5 rounded-lg border border-slate-300 bg-white focus:border-teal-500 focus:ring-teal-500">
+                                @if(request('search'))
+                                    <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</a>
+                                @endif
+                            </div>
+
+                            <!-- Filter Status -->
+                            <div class="flex items-center gap-1">
+                                <label for="member_filter_status" class="text-[11px] font-bold text-slate-500">Status:</label>
+                                <select id="member_filter_status" name="status" onchange="this.form.submit()" class="text-xs py-1.5 px-2 rounded-lg border border-slate-300 bg-white focus:border-teal-500 focus:ring-teal-500">
+                                    <option value="all" {{ $mStatus === 'all' ? 'selected' : '' }}>Semua</option>
+                                    <option value="alive" {{ $mStatus === 'alive' ? 'selected' : '' }}>🟢 Hidup</option>
+                                    <option value="deceased" {{ $mStatus === 'deceased' ? 'selected' : '' }}>⚪ Mati</option>
+                                </select>
+                            </div>
+
+                            <!-- Sort -->
+                            <div class="flex items-center gap-1">
+                                <label for="member_sort_select" class="text-[11px] font-bold text-slate-500">Urutkan:</label>
+                                <select id="member_sort_select" name="sort_direction" onchange="
+                                    const val = this.value.split(':');
+                                    const sInput = this.form.querySelector('input[name=sort]');
+                                    const dInput = this.form.querySelector('input[name=direction]');
+                                    if (sInput && dInput) {
+                                        sInput.value = val[0];
+                                        dInput.value = val[1];
+                                        this.form.submit();
+                                    }
+                                " class="text-xs py-1.5 px-2 rounded-lg border border-slate-300 bg-white focus:border-teal-500 focus:ring-teal-500">
+                                    <option value="created_at:desc" {{ ($mSort == 'created_at' && $mDir == 'desc') ? 'selected' : '' }}>Terbaru</option>
+                                    <option value="name:asc" {{ ($mSort == 'name' && $mDir == 'asc') ? 'selected' : '' }}>Nama (A - Z)</option>
+                                    <option value="name:desc" {{ ($mSort == 'name' && $mDir == 'desc') ? 'selected' : '' }}>Nama (Z - A)</option>
+                                    <option value="date_of_birth:asc" {{ ($mSort == 'date_of_birth' && $mDir == 'asc') ? 'selected' : '' }}>Umur (Tertua)</option>
+                                    <option value="date_of_birth:desc" {{ ($mSort == 'date_of_birth' && $mDir == 'desc') ? 'selected' : '' }}>Umur (Termuda)</option>
+                                    <option value="breed:asc" {{ ($mSort == 'breed' && $mDir == 'asc') ? 'selected' : '' }}>Ras (A - Z)</option>
+                                    <option value="status:asc" {{ ($mSort == 'status' && $mDir == 'asc') ? 'selected' : '' }}>Status (Hidup/Mati)</option>
+                                </select>
+                                <input type="hidden" name="sort" value="{{ $mSort }}">
+                                <input type="hidden" name="direction" value="{{ $mDir }}">
+                            </div>
+
+                            <button type="submit" class="button-primary text-xs font-semibold px-2.5 py-1.5 rounded-lg">
+                                Filter
+                            </button>
+                            @if(request('search') || request('status') || request('sort'))
+                                <a href="{{ route('dashboard') }}" class="button-secondary text-xs px-2 py-1.5 rounded-lg text-slate-500">
+                                    Reset
+                                </a>
+                            @endif
+                        </form>
 
                         @if($cats->isEmpty())
                             <div class="text-center py-10 border border-dashed border-slate-200 rounded-lg bg-slate-50">
                                 <div class="text-3xl" aria-hidden="true">🐱</div>
-                                <h3 class="mt-2 text-sm font-bold text-slate-800">Belum ada kucing yang didaftarkan</h3>
-                                <p class="text-xs text-slate-600 mt-1 max-w-sm mx-auto">Silakan isi formulir di kolom sebelah kanan untuk mendaftarkan kucing kesayangan Anda.</p>
+                                <h3 class="mt-2 text-sm font-bold text-slate-800">Belum ada data kucing yang sesuai</h3>
+                                <p class="text-xs text-slate-600 mt-1 max-w-sm mx-auto">Silakan daftarkan kucing atau ubah filter pencarian di atas.</p>
                             </div>
                         @else
                             <div class="grid gap-4 sm:grid-cols-2">
                                 @foreach($cats as $cat)
-                                    <div class="rounded-xl border border-slate-200 p-4 bg-slate-50 flex flex-col justify-between">
+                                    <div class="rounded-xl border border-slate-200 p-4 bg-slate-50 flex flex-col justify-between {{ $cat->isDeceased() ? 'bg-slate-100/70 border-slate-300' : '' }}">
                                         <div>
                                             <div class="flex items-center gap-3.5">
                                                 <div class="rounded-lg bg-slate-200 border border-slate-300 overflow-hidden flex-shrink-0 w-20 h-20">
-                                                    <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-full h-full object-cover">
+                                                    <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-full h-full object-cover {{ $cat->isDeceased() ? 'grayscale opacity-75' : '' }}">
                                                 </div>
-                                                <div>
-                                                    <h3 class="font-bold text-slate-900 text-base leading-tight">{{ $cat->name }}</h3>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                                        <h3 class="font-bold text-slate-900 text-base leading-tight truncate">{{ $cat->name }}</h3>
+                                                        @if($cat->isAlive())
+                                                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
+                                                                🟢 Hidup
+                                                            </span>
+                                                        @else
+                                                            <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-200 text-slate-700 border border-slate-300">
+                                                                ⚪ Mati
+                                                            </span>
+                                                        @endif
+                                                    </div>
                                                     <p class="text-xs text-slate-600 mt-0.5">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }}</p>
-                                                    <p class="text-xs text-slate-500 mt-0.5">Lahir: {{ $cat->date_of_birth->format('d M Y') }}</p>
+                                                    <p class="text-xs text-slate-500 mt-0.5">Lahir: {{ $cat->date_of_birth ? $cat->date_of_birth->format('d M Y') : '-' }} ({{ $cat->age_text }})</p>
                                                     @if($cat->biometric_type && $cat->biometric_type !== 'none')
                                                         <span class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-900 border border-teal-200">
                                                             Biometrik {{ strtoupper($cat->biometric_type) }}
@@ -254,12 +336,19 @@
                                     @endif
                                 </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-3 gap-2.5">
                                 <div>
                                     <label for="cat_gender" class="form-label text-xs">Jenis Kelamin</label>
                                     <select id="cat_gender" name="gender" required class="form-input text-xs">
                                         <option value="male">Jantan</option>
                                         <option value="female">Betina</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="cat_status_reg" class="form-label text-xs">Status</label>
+                                    <select id="cat_status_reg" name="status" required class="form-input text-xs">
+                                        <option value="alive" selected>🟢 Hidup</option>
+                                        <option value="deceased">⚪ Mati</option>
                                     </select>
                                 </div>
                                 <div>

@@ -33,31 +33,49 @@ class DashboardController extends Controller
         } elseif ($user->isVolunteer()) {
             return $this->volunteerDashboard();
         } else {
-            return $this->memberDashboard();
+            return $this->memberDashboard($request);
         }
     }
 
     /**
-     * Render Admin Dashboard.
+     * Render Admin Dashboard with sorting and status filtering.
      */
     protected function adminDashboard(Request $request)
     {
         $stats = [
             'cats_count' => Cat::count(),
+            'cats_alive_count' => Cat::where(function($q) {
+                $q->whereNull('status')->orWhereIn('status', ['alive', 'hidup']);
+            })->count(),
+            'cats_deceased_count' => Cat::whereIn('status', ['deceased', 'mati'])->count(),
             'appointments_count' => Appointment::count(),
             'records_count' => MedicalRecord::count(),
             'ktam_count' => KtamCard::count(),
             'pending_verification_count' => Cat::whereDoesntHave('ktamCard')->count(),
         ];
 
-        $catQuery = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah'])->latest();
+        $catQuery = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah']);
 
+        // Filter status: all, alive, deceased
+        $statusFilter = $request->filled('status') ? strtolower(trim($request->status)) : 'all';
+        if ($statusFilter === 'alive') {
+            $catQuery->where(function($q) {
+                $q->whereNull('status')->orWhereIn('status', ['alive', 'hidup']);
+            });
+        } elseif ($statusFilter === 'deceased') {
+            $catQuery->whereIn('status', ['deceased', 'mati']);
+        }
+
+        // Search query
         if ($request->filled('search')) {
             $search = trim($request->search);
             $catQuery->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('breed', 'like', "%{$search}%")
-                  ->orWhere('unique_code', 'like', "%{$search}%")
+                $q->where('cats.name', 'like', "%{$search}%")
+                  ->orWhere('cats.breed', 'like', "%{$search}%")
+                  ->orWhere('cats.unique_code', 'like', "%{$search}%")
+                  ->orWhere('cats.color', 'like', "%{$search}%")
+                  ->orWhere('cats.gender', 'like', "%{$search}%")
+                  ->orWhere('cats.status', 'like', "%{$search}%")
                   ->orWhereHas('owner', function($oq) use ($search) {
                       $oq->where('name', 'like', "%{$search}%")
                          ->orWhere('phone', 'like', "%{$search}%")
@@ -70,6 +88,45 @@ class DashboardController extends Controller
             });
         }
 
+        // Sorting
+        $sort = $request->get('sort', 'created_at');
+        $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        switch ($sort) {
+            case 'name':
+                $catQuery->orderBy('cats.name', $direction);
+                break;
+            case 'owner':
+                $catQuery->join('users', 'cats.user_id', '=', 'users.id')
+                    ->select('cats.*')
+                    ->orderBy('users.name', $direction);
+                break;
+            case 'breed':
+                $catQuery->orderBy('cats.breed', $direction);
+                break;
+            case 'gender':
+                $catQuery->orderBy('cats.gender', $direction);
+                break;
+            case 'dob':
+            case 'date_of_birth':
+                $catQuery->orderBy('cats.date_of_birth', $direction);
+                break;
+            case 'unique_code':
+            case 'ktam':
+                $catQuery->orderBy('cats.unique_code', $direction);
+                break;
+            case 'status':
+                $catQuery->orderBy('cats.status', $direction);
+                break;
+            case 'wilayah':
+                $catQuery->orderBy('cats.wilayah_code', $direction);
+                break;
+            case 'created_at':
+            default:
+                $catQuery->orderBy('cats.created_at', $direction);
+                break;
+        }
+
         $cats = $catQuery->paginate(10)->withQueryString();
         $pendingVerificationCats = Cat::whereDoesntHave('ktamCard')
             ->with(['owner', 'photos', 'medicalRecords.vet', 'wilayah'])
@@ -78,7 +135,7 @@ class DashboardController extends Controller
             
         $appointments = Appointment::with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments'));
+        return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments', 'sort', 'direction', 'statusFilter'));
     }
 
     /**
@@ -118,12 +175,62 @@ class DashboardController extends Controller
     }
 
     /**
-     * Render Member Dashboard.
+     * Render Member Dashboard with sorting and status filtering.
      */
-    protected function memberDashboard()
+    protected function memberDashboard(Request $request = null)
     {
-        $cats = Auth::user()->cats()->with(['ktamCard', 'medicalRecords.vet', 'photos', 'wilayah'])->get();
-        $appointments = Appointment::whereIn('cat_id', $cats->pluck('id'))
+        $request = $request ?: request();
+        $catQuery = Auth::user()->cats()->with(['ktamCard', 'medicalRecords.vet', 'photos', 'wilayah']);
+
+        // Filter status: all, alive, deceased
+        $statusFilter = $request->filled('status') ? strtolower(trim($request->status)) : 'all';
+        if ($statusFilter === 'alive') {
+            $catQuery->where(function($q) {
+                $q->whereNull('status')->orWhereIn('status', ['alive', 'hidup']);
+            });
+        } elseif ($statusFilter === 'deceased') {
+            $catQuery->whereIn('status', ['deceased', 'mati']);
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $catQuery->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('breed', 'like', "%{$search}%")
+                  ->orWhere('color', 'like', "%{$search}%")
+                  ->orWhere('unique_code', 'like', "%{$search}%");
+            });
+        }
+
+        // Sorting
+        $sort = $request->get('sort', 'created_at');
+        $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        switch ($sort) {
+            case 'name':
+                $catQuery->orderBy('name', $direction);
+                break;
+            case 'breed':
+                $catQuery->orderBy('breed', $direction);
+                break;
+            case 'gender':
+                $catQuery->orderBy('gender', $direction);
+                break;
+            case 'dob':
+            case 'date_of_birth':
+                $catQuery->orderBy('date_of_birth', $direction);
+                break;
+            case 'status':
+                $catQuery->orderBy('status', $direction);
+                break;
+            case 'created_at':
+            default:
+                $catQuery->orderBy('created_at', $direction);
+                break;
+        }
+
+        $cats = $catQuery->get();
+        $appointments = Appointment::whereIn('cat_id', Auth::user()->cats()->pluck('id'))
             ->with(['cat.photos'])
             ->latest()
             ->get();
@@ -132,7 +239,7 @@ class DashboardController extends Controller
         $masterWilayahs = MasterWilayah::getActiveList();
         $masterBreeds = MasterBreed::getAllBreedNames();
 
-        return view('member.dashboard', compact('cats', 'appointments', 'activeEvents', 'masterWilayahs', 'masterBreeds'));
+        return view('member.dashboard', compact('cats', 'appointments', 'activeEvents', 'masterWilayahs', 'masterBreeds', 'sort', 'direction', 'statusFilter'));
     }
 
     /**
@@ -145,6 +252,7 @@ class DashboardController extends Controller
             'breed' => 'required|string|max:255',
             'breed_custom' => 'nullable|string|max:255|required_if:breed,Lainnya',
             'gender' => 'required|in:male,female',
+            'status' => 'nullable|in:alive,deceased,hidup,mati',
             'date_of_birth' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
@@ -183,6 +291,7 @@ class DashboardController extends Controller
             'name' => $request->name,
             'breed' => $finalBreed,
             'gender' => $request->gender,
+            'status' => in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive',
             'date_of_birth' => $request->date_of_birth,
             'wilayah_code' => $wilayahCode,
             'color' => $request->color,
@@ -261,6 +370,7 @@ class DashboardController extends Controller
             'breed' => 'required|string|max:255',
             'breed_custom' => 'nullable|string|max:255|required_if:breed,Lainnya',
             'gender' => 'required|in:male,female',
+            'status' => 'nullable|in:alive,deceased,hidup,mati',
             'date_of_birth' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
@@ -312,10 +422,13 @@ class DashboardController extends Controller
             $uniqueCode = Cat::generateUniqueCode($newWilayah, $cat->id);
         }
 
+        $catStatus = $request->filled('status') ? (in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive') : ($cat->status ?: 'alive');
+
         $cat->update([
             'name' => $request->name,
             'breed' => $finalBreed,
             'gender' => $request->gender,
+            'status' => $catStatus,
             'date_of_birth' => $request->date_of_birth,
             'wilayah_code' => $newWilayah,
             'unique_code' => $uniqueCode,
@@ -372,6 +485,22 @@ class DashboardController extends Controller
         }
 
         return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil diperbarui.');
+    }
+
+    /**
+     * Toggle cat life status (alive / deceased).
+     */
+    public function toggleCatStatus(Cat $cat)
+    {
+        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
+            abort(403);
+        }
+
+        $newStatus = $cat->isAlive() ? 'deceased' : 'alive';
+        $cat->update(['status' => $newStatus]);
+
+        $label = $newStatus === 'alive' ? 'Hidup (Aktif)' : 'Mati (Meninggal)';
+        return redirect()->back()->with('success', "Status kucing {$cat->name} berhasil diubah menjadi: {$label}.");
     }
 
     /**
@@ -649,6 +778,7 @@ class DashboardController extends Controller
             'name' => $request->cat_name,
             'breed' => $finalBreed,
             'gender' => $request->cat_gender,
+            'status' => 'alive',
             'date_of_birth' => $request->cat_dob,
             'wilayah_code' => $request->wilayah_code ?: '34',
             'color' => $request->color,

@@ -34,7 +34,13 @@
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 
                 <div class="content-card bg-white border border-slate-200 p-4">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Kucing</span>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Kucing</span>
+                        <div class="flex items-center gap-1.5 text-[10px] font-bold">
+                            <span class="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">🟢 {{ $stats['cats_alive_count'] }}</span>
+                            <span class="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">⚪ {{ $stats['cats_deceased_count'] }}</span>
+                        </div>
+                    </div>
                     <div class="mt-1.5 flex items-baseline gap-1.5">
                         <span class="font-outfit text-3xl font-bold text-slate-900">{{ $stats['cats_count'] }}</span>
                         <span class="text-xs font-semibold text-teal-700">Ekor</span>
@@ -196,60 +202,162 @@
                 <!-- Left Section: Cat Registry & Status -->
                 <div class="lg:col-span-2 space-y-6">
                     <div id="cat-registry-table" class="content-card" style="box-sizing: border-box; overflow: hidden; width: 100%; scroll-margin-top: 24px;">
-                        <div style="display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 16px;">
+                        @php
+                            $currentSort = $sort ?? 'created_at';
+                            $currentDir = $direction ?? 'desc';
+                            $currentStatus = $statusFilter ?? 'all';
+                            
+                            $makeSortUrl = function($col) use ($currentSort, $currentDir) {
+                                $newDir = ($currentSort === $col && $currentDir === 'asc') ? 'desc' : 'asc';
+                                return route('dashboard', array_merge(request()->except(['page']), [
+                                    'sort' => $col,
+                                    'direction' => $newDir,
+                                ])) . '#cat-registry-table';
+                            };
+
+                            $getSortIndicator = function($col) use ($currentSort, $currentDir) {
+                                if ($currentSort === $col) {
+                                    return $currentDir === 'asc' ? ' ↑' : ' ↓';
+                                }
+                                return '';
+                            };
+                        @endphp
+
+                        <div style="display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 16px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                 <div>
                                     <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight" style="margin: 0;">Database Anggota KucingMu</h2>
-                                    <p class="text-xs text-slate-500 mt-0.5">Daftar kucing peliharaan yang terdaftar di sistem.</p>
+                                    <p class="text-xs text-slate-500 mt-0.5">Daftar kucing terdaftar lengkap dengan identitas, status kehidupan & sorting.</p>
                                 </div>
-                                
-                                <!-- Clean Server-side Search Form for Cat Registry Table -->
-                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <form method="GET" action="{{ route('dashboard') }}#cat-registry-table" style="display: flex; align-items: center; gap: 6px;">
-                                        <div style="position: relative; width: 220px;">
-                                            <span style="position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px; pointer-events: none;">🔍</span>
-                                            <input type="text" 
-                                                   name="search" 
-                                                   value="{{ request('search') }}" 
-                                                   placeholder="Cari kucing, KTAM, pemilik..." 
-                                                   style="width: 100%; box-sizing: border-box; font-size: 12px; padding: 6px 26px 6px 26px; border-radius: 10px; border: 1px solid #cbd5e1; background-color: #f8fafc; outline: none;">
-                                            @if(request('search'))
-                                                <a href="{{ route('dashboard') }}#cat-registry-table" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px; font-weight: bold; text-decoration: none;" title="Hapus pencarian">✕</a>
-                                            @endif
-                                        </div>
-                                        <button type="submit" class="button-primary text-xs font-semibold" style="padding: 6px 14px; min-height: 32px; border-radius: 10px;">
-                                            Cari
-                                        </button>
-                                    </form>
-                                    <span class="text-[11px] text-slate-400 font-medium whitespace-nowrap hidden sm:inline">Total: {{ $cats->total() }}</span>
-                                </div>
+                                <span class="text-[11px] text-slate-400 font-medium whitespace-nowrap hidden sm:inline">Total Ditemukan: {{ $cats->total() }}</span>
                             </div>
+
+                            <!-- Filter & Search & Sort Bar -->
+                            <form method="GET" action="{{ route('dashboard') }}#cat-registry-table" class="flex flex-wrap items-center gap-2.5">
+                                <!-- Search Input -->
+                                <div class="relative flex-1 min-w-[200px]">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">🔍</span>
+                                    <input type="text" 
+                                           name="search" 
+                                           value="{{ request('search') }}" 
+                                           placeholder="Cari kucing, pemilik, KTAM, ras..." 
+                                           class="w-full text-xs pl-8 pr-7 py-2 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-500 focus:ring-teal-500 shadow-2xs">
+                                    @if(request('search'))
+                                        <a href="{{ route('dashboard', array_merge(request()->except(['search', 'page']))) }}#cat-registry-table" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold" title="Hapus pencarian">✕</a>
+                                    @endif
+                                </div>
+
+                                <!-- Filter Status Dropdown -->
+                                <div class="flex items-center gap-1.5">
+                                    <label for="admin_filter_status" class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Status:</label>
+                                    <select id="admin_filter_status" name="status" onchange="this.form.submit()" class="text-xs py-2 px-2.5 rounded-xl border border-slate-300 bg-white focus:border-teal-500 focus:ring-teal-500 shadow-2xs">
+                                        <option value="all" {{ $currentStatus === 'all' ? 'selected' : '' }}>Semua Status</option>
+                                        <option value="alive" {{ $currentStatus === 'alive' ? 'selected' : '' }}>🟢 Hidup (Aktif)</option>
+                                        <option value="deceased" {{ $currentStatus === 'deceased' ? 'selected' : '' }}>⚪ Mati (Meninggal)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Quick Sort Dropdown -->
+                                <div class="flex items-center gap-1.5">
+                                    <label for="admin_sort_select" class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Urutkan:</label>
+                                    <select id="admin_sort_select" name="sort_direction" onchange="
+                                        const val = this.value.split(':');
+                                        const sortInput = this.form.querySelector('input[name=sort]');
+                                        const dirInput = this.form.querySelector('input[name=direction]');
+                                        if (sortInput && dirInput) {
+                                            sortInput.value = val[0];
+                                            dirInput.value = val[1];
+                                            this.form.submit();
+                                        }
+                                    " class="text-xs py-2 px-2.5 rounded-xl border border-slate-300 bg-white focus:border-teal-500 focus:ring-teal-500 shadow-2xs">
+                                        <option value="created_at:desc" {{ ($currentSort == 'created_at' && $currentDir == 'desc') ? 'selected' : '' }}>Terbaru Terdaftar</option>
+                                        <option value="created_at:asc" {{ ($currentSort == 'created_at' && $currentDir == 'asc') ? 'selected' : '' }}>Terlama Terdaftar</option>
+                                        <option value="name:asc" {{ ($currentSort == 'name' && $currentDir == 'asc') ? 'selected' : '' }}>Nama Kucing (A - Z)</option>
+                                        <option value="name:desc" {{ ($currentSort == 'name' && $currentDir == 'desc') ? 'selected' : '' }}>Nama Kucing (Z - A)</option>
+                                        <option value="owner:asc" {{ ($currentSort == 'owner' && $currentDir == 'asc') ? 'selected' : '' }}>Pemilik (A - Z)</option>
+                                        <option value="owner:desc" {{ ($currentSort == 'owner' && $currentDir == 'desc') ? 'selected' : '' }}>Pemilik (Z - A)</option>
+                                        <option value="breed:asc" {{ ($currentSort == 'breed' && $currentDir == 'asc') ? 'selected' : '' }}>Ras Kucing (A - Z)</option>
+                                        <option value="date_of_birth:asc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'asc') ? 'selected' : '' }}>Umur (Paling Tua)</option>
+                                        <option value="date_of_birth:desc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'desc') ? 'selected' : '' }}>Umur (Paling Muda)</option>
+                                        <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor KTAM (Asc)</option>
+                                        <option value="status:asc" {{ ($currentSort == 'status' && $currentDir == 'asc') ? 'selected' : '' }}>Status Hidup / Mati</option>
+                                    </select>
+                                    <input type="hidden" name="sort" value="{{ $currentSort }}">
+                                    <input type="hidden" name="direction" value="{{ $currentDir }}">
+                                </div>
+
+                                <button type="submit" class="button-primary text-xs font-semibold px-3 py-2 rounded-xl">
+                                    Terapkan
+                                </button>
+                                @if(request('search') || request('status') || request('sort'))
+                                    <a href="{{ route('dashboard') }}#cat-registry-table" class="button-secondary text-xs px-2.5 py-2 rounded-xl text-slate-500 hover:text-slate-700" title="Reset Filter">
+                                        Reset
+                                    </a>
+                                @endif
+                            </form>
                         </div>
 
                         @if($cats->isEmpty())
-                            <p class="text-xs text-slate-500 text-center py-8">Belum ada data kucing terdaftar.</p>
+                            <div class="text-center py-10 border border-dashed border-slate-200 rounded-xl bg-slate-50">
+                                <div class="text-3xl mb-1">🐱</div>
+                                <p class="text-xs font-bold text-slate-700">Tidak ada data kucing yang sesuai filter atau pencarian.</p>
+                                <p class="text-[11px] text-slate-400 mt-1">Coba ubah kata kunci pencarian atau status filter di atas.</p>
+                            </div>
                         @else
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left text-xs" aria-label="Database Anggota Kucing">
                                     <thead>
-                                        <tr class="border-b border-slate-200 text-slate-500 font-bold bg-slate-50/60">
-                                            <th class="py-3 px-3">Kucing / Foto Utama</th>
-                                            <th class="py-3 px-3">Pemilik / NBM</th>
-                                            <th class="py-3 px-3">Biometrik</th>
-                                            <th class="py-3 px-3">Nomor KTAM</th>
+                                        <tr class="border-b border-slate-200 text-slate-500 font-bold bg-slate-50/60 select-none">
+                                            <th class="py-3 px-3">
+                                                <a href="{{ $makeSortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Nama Kucing">
+                                                    Kucing / Foto Utama
+                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('name') }}</span>
+                                                </a>
+                                            </th>
+                                            <th class="py-3 px-3">
+                                                <a href="{{ $makeSortUrl('owner') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Nama Pemilik">
+                                                    Pemilik / NBM
+                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('owner') }}</span>
+                                                </a>
+                                            </th>
+                                            <th class="py-3 px-3">
+                                                <a href="{{ $makeSortUrl('breed') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Ras">
+                                                    Ras & Biometrik
+                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('breed') }}</span>
+                                                </a>
+                                            </th>
+                                            <th class="py-3 px-3">
+                                                <a href="{{ $makeSortUrl('unique_code') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Nomor KTAM">
+                                                    Nomor KTAM
+                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('unique_code') }}</span>
+                                                </a>
+                                            </th>
+                                            <th class="py-3 px-3">
+                                                <a href="{{ $makeSortUrl('status') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Status Hidup/Mati">
+                                                    Status
+                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('status') }}</span>
+                                                </a>
+                                            </th>
                                             <th class="py-3 px-3">Status KTAM</th>
                                             <th class="py-3 px-3 text-right min-w-[220px]">Tindakan</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 text-slate-700">
                                         @foreach($cats as $cat)
-                                            <tr class="hover:bg-slate-50/80 transition">
+                                            <tr class="hover:bg-slate-50/80 transition {{ $cat->isDeceased() ? 'bg-slate-50/40 text-slate-500' : '' }}">
                                                 <td class="py-3.5 px-3">
                                                     <div class="flex items-center gap-2.5">
-                                                        <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-10 h-10 object-cover rounded-lg border border-slate-200 shadow-2xs flex-shrink-0">
+                                                        <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-10 h-10 object-cover rounded-lg border border-slate-200 shadow-2xs flex-shrink-0 {{ $cat->isDeceased() ? 'grayscale opacity-75' : '' }}">
                                                         <div>
-                                                            <div class="font-bold text-slate-900 text-xs">{{ $cat->name }}</div>
-                                                            <div class="text-[11px] text-slate-500">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }}</div>
+                                                            <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                                                                <span>{{ $cat->name }}</span>
+                                                                @if($cat->isDeceased())
+                                                                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-200 text-slate-600">Mati</span>
+                                                                @endif
+                                                            </div>
+                                                            <div class="text-[11px] text-slate-500">
+                                                                {{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }} &bull; {{ $cat->age_text }}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -258,17 +366,42 @@
                                                     <div class="text-[11px] text-slate-500 font-mono">NBM: {{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-') }}</div>
                                                 </td>
                                                 <td class="py-3.5 px-3">
+                                                    <div class="text-[11px] font-semibold text-slate-800">{{ $cat->breed }}</div>
                                                     @if($cat->biometric_type && $cat->biometric_type !== 'none')
-                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase whitespace-nowrap">
+                                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase whitespace-nowrap mt-0.5 inline-block">
                                                             {{ $cat->biometric_type }}
                                                         </span>
                                                     @else
-                                                        <span class="text-slate-400">-</span>
+                                                        <span class="text-slate-400 text-[10px]">-</span>
                                                     @endif
                                                 </td>
                                                 <td class="py-3.5 px-3 font-mono text-[11px] font-semibold text-slate-800 whitespace-nowrap">
                                                     <div class="font-bold text-teal-900">{{ $cat->formatted_unique_code }}</div>
                                                     <div class="text-[10px] text-slate-400 font-sans">{{ $cat->wilayah ? $cat->wilayah->singkatan : 'DIY' }} &bull; {{ $cat->ktamCard ? $cat->ktamCard->ktam_number : 'Draft' }}</div>
+                                                </td>
+                                                <td class="py-3.5 px-3">
+                                                    <div class="inline-flex items-center gap-1.5">
+                                                        @if($cat->isAlive())
+                                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 whitespace-nowrap inline-flex items-center gap-1" title="Kucing Hidup (Aktif)">
+                                                                🟢 Hidup
+                                                            </span>
+                                                        @else
+                                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300 whitespace-nowrap inline-flex items-center gap-1" title="Kucing Mati / Meninggal">
+                                                                ⚪ Mati
+                                                            </span>
+                                                        @endif
+
+                                                        <!-- Quick Toggle Status Button -->
+                                                        <form action="{{ route('cat.toggle-status', $cat->id) }}" method="POST" class="inline">
+                                                            @csrf
+                                                            <button type="submit" 
+                                                                    onclick="return confirm('Ubah status kucing {{ $cat->name }} menjadi {{ $cat->isAlive() ? 'MATI (Meninggal)' : 'HIDUP (Aktif)' }}?')"
+                                                                    class="text-[10px] text-slate-400 hover:text-teal-700 hover:bg-slate-100 p-1 rounded transition" 
+                                                                    title="Klik untuk ubah status hidup/mati">
+                                                                🔄
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </td>
                                                 <td class="py-3.5 px-3">
                                                     @if($cat->ktamCard)
@@ -287,8 +420,8 @@
                                                 </td>
                                                 <td class="py-3.5 px-3 text-right">
                                                     <div class="inline-flex items-center justify-end gap-1.5 flex-wrap">
-                                                        <a href="{{ route('cat.edit', $cat->id) }}" title="Update Foto & Biometrik" class="btn-action-secondary">
-                                                            <span>✏️</span> Biometrik & Foto
+                                                        <a href="{{ route('cat.edit', $cat->id) }}" title="Update Foto, Identitas & Biometrik" class="btn-action-secondary">
+                                                            <span>✏️</span> Ubah / Foto
                                                         </a>
                                                         @if($cat->ktamCard)
                                                             <a href="{{ route('ktam.download', $cat->id) }}" class="btn-action-success">
