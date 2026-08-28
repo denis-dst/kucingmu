@@ -203,316 +203,490 @@
                 @endif
             </div>
 
-            <!-- Grid Content -->
-            <div class="grid gap-6 lg:grid-cols-3">
-                
-                <!-- Left Section: Cat Registry & Status -->
-                <div class="lg:col-span-2 space-y-6">
-                    <div id="cat-registry-table" class="content-card" style="box-sizing: border-box; overflow: hidden; width: 100%; scroll-margin-top: 24px;">
-                        @php
-                            $currentSort = $sort ?? 'created_at';
-                            $currentDir = $direction ?? 'desc';
-                            $currentStatus = $statusFilter ?? 'all';
-                            
-                            $makeSortUrl = function($col) use ($currentSort, $currentDir) {
-                                $newDir = ($currentSort === $col && $currentDir === 'asc') ? 'desc' : 'asc';
-                                return route('dashboard', array_merge(request()->except(['page']), [
-                                    'sort' => $col,
-                                    'direction' => $newDir,
-                                ])) . '#cat-registry-table';
-                            };
+            <!-- Main Full-Width Cat Registry Datatable Card -->
+            <div id="cat-registry-table" class="content-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-6">
+                @php
+                    $currentSort = $sort ?? 'created_at';
+                    $currentDir = $direction ?? 'desc';
+                    $currentStatus = $statusFilter ?? 'all';
+                    
+                    $makeSortUrl = function($col) use ($currentSort, $currentDir) {
+                        $newDir = ($currentSort === $col && $currentDir === 'asc') ? 'desc' : 'asc';
+                        return route('dashboard', array_merge(request()->except(['page']), [
+                            'sort' => $col,
+                            'direction' => $newDir,
+                        ])) . '#cat-registry-table';
+                    };
 
-                            $getSortIndicator = function($col) use ($currentSort, $currentDir) {
-                                if ($currentSort === $col) {
-                                    return $currentDir === 'asc' ? ' ↑' : ' ↓';
-                                }
-                                return '';
-                            };
-                        @endphp
+                    $getSortIndicator = function($col) use ($currentSort, $currentDir) {
+                        if ($currentSort === $col) {
+                            return $currentDir === 'asc' ? ' ↑' : ' ↓';
+                        }
+                        return '';
+                    };
+                @endphp
 
-                        <div style="display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                <div>
-                                    <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight" style="margin: 0;">Database Anggota KucingMu</h2>
-                                    <p class="text-xs text-slate-500 mt-0.5">Daftar kucing terdaftar lengkap dengan identitas, status kehidupan & sorting.</p>
-                                </div>
-                                <span class="text-[11px] text-slate-400 font-medium whitespace-nowrap hidden sm:inline">Total Ditemukan: {{ $cats->total() }}</span>
+                <!-- Toolbar Header -->
+                <div class="p-5 sm:p-6 border-b border-slate-100 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="flex items-center gap-2.5 flex-wrap">
+                                <h2 class="font-outfit text-xl font-bold text-slate-900 leading-tight">Database Anggota KucingMu</h2>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                                    {{ $cats->total() }} Kucing Terdaftar
+                                </span>
                             </div>
-
-                            <!-- Filter & Search & Sort Bar -->
-                            <form method="GET" action="{{ route('dashboard') }}#cat-registry-table" class="flex flex-wrap items-center gap-2.5">
-                                <!-- Search Input -->
-                                <div class="relative flex-1 min-w-[200px]">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">🔍</span>
-                                    <input type="text" 
-                                           name="search" 
-                                           value="{{ request('search') }}" 
-                                           placeholder="Cari kucing, pemilik, KTAM, ras..." 
-                                           class="w-full text-xs pl-8 pr-7 py-2 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-500 focus:ring-teal-500 shadow-2xs">
-                                    @if(request('search'))
-                                        <a href="{{ route('dashboard', array_merge(request()->except(['search', 'page']))) }}#cat-registry-table" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold" title="Hapus pencarian">✕</a>
-                                    @endif
-                                </div>
-
-                                <!-- Filter Status Dropdown -->
-                                <div class="flex items-center gap-1.5">
-                                    <label for="admin_filter_status" class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Status:</label>
-                                    <select id="admin_filter_status" name="status" onchange="this.form.submit()" class="text-xs py-2 px-2.5 rounded-xl border border-slate-300 bg-white focus:border-teal-500 focus:ring-teal-500 shadow-2xs">
-                                        <option value="all" {{ $currentStatus === 'all' ? 'selected' : '' }}>Semua Status</option>
-                                        <option value="alive" {{ $currentStatus === 'alive' ? 'selected' : '' }}>🟢 Hidup (Aktif)</option>
-                                        <option value="deceased" {{ $currentStatus === 'deceased' ? 'selected' : '' }}>⚪ Mati (Meninggal)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Quick Sort Dropdown -->
-                                <div class="flex items-center gap-1.5">
-                                    <label for="admin_sort_select" class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Urutkan:</label>
-                                    <select id="admin_sort_select" name="sort_direction" onchange="
-                                        const val = this.value.split(':');
-                                        const sortInput = this.form.querySelector('input[name=sort]');
-                                        const dirInput = this.form.querySelector('input[name=direction]');
-                                        if (sortInput && dirInput) {
-                                            sortInput.value = val[0];
-                                            dirInput.value = val[1];
-                                            this.form.submit();
-                                        }
-                                    " class="text-xs py-2 px-2.5 rounded-xl border border-slate-300 bg-white focus:border-teal-500 focus:ring-teal-500 shadow-2xs">
-                                        <option value="created_at:desc" {{ ($currentSort == 'created_at' && $currentDir == 'desc') ? 'selected' : '' }}>Terbaru Terdaftar</option>
-                                        <option value="created_at:asc" {{ ($currentSort == 'created_at' && $currentDir == 'asc') ? 'selected' : '' }}>Terlama Terdaftar</option>
-                                        <option value="name:asc" {{ ($currentSort == 'name' && $currentDir == 'asc') ? 'selected' : '' }}>Nama Kucing (A - Z)</option>
-                                        <option value="name:desc" {{ ($currentSort == 'name' && $currentDir == 'desc') ? 'selected' : '' }}>Nama Kucing (Z - A)</option>
-                                        <option value="owner:asc" {{ ($currentSort == 'owner' && $currentDir == 'asc') ? 'selected' : '' }}>Pemilik (A - Z)</option>
-                                        <option value="owner:desc" {{ ($currentSort == 'owner' && $currentDir == 'desc') ? 'selected' : '' }}>Pemilik (Z - A)</option>
-                                        <option value="breed:asc" {{ ($currentSort == 'breed' && $currentDir == 'asc') ? 'selected' : '' }}>Ras Kucing (A - Z)</option>
-                                        <option value="date_of_birth:asc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'asc') ? 'selected' : '' }}>Umur (Paling Tua)</option>
-                                        <option value="date_of_birth:desc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'desc') ? 'selected' : '' }}>Umur (Paling Muda)</option>
-                                        <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor KTAM (Asc)</option>
-                                        <option value="status:asc" {{ ($currentSort == 'status' && $currentDir == 'asc') ? 'selected' : '' }}>Status Hidup / Mati</option>
-                                    </select>
-                                    <input type="hidden" name="sort" value="{{ $currentSort }}">
-                                    <input type="hidden" name="direction" value="{{ $currentDir }}">
-                                </div>
-
-                                <button type="submit" class="button-primary text-xs font-semibold px-3 py-2 rounded-xl">
-                                    Terapkan
-                                </button>
-                                @if(request('search') || request('status') || request('sort'))
-                                    <a href="{{ route('dashboard') }}#cat-registry-table" class="button-secondary text-xs px-2.5 py-2 rounded-xl text-slate-500 hover:text-slate-700" title="Reset Filter">
-                                        Reset
-                                    </a>
-                                @endif
-                            </form>
+                            <p class="text-xs text-slate-500 mt-1">Kelola data identitas, status kehidupan, kartu KTAM, serta aksi verifikasi & penghapusan.</p>
                         </div>
 
-                        @if($cats->isEmpty())
-                            <div class="text-center py-10 border border-dashed border-slate-200 rounded-xl bg-slate-50">
-                                <div class="text-3xl mb-1">🐱</div>
-                                <p class="text-xs font-bold text-slate-700">Tidak ada data kucing yang sesuai filter atau pencarian.</p>
-                                <p class="text-[11px] text-slate-400 mt-1">Coba ubah kata kunci pencarian atau status filter di atas.</p>
-                            </div>
-                        @else
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs" aria-label="Database Anggota Kucing">
-                                    <thead>
-                                        <tr class="border-b border-slate-200 text-slate-500 font-bold bg-slate-50/60 select-none">
-                                            <th class="py-3 px-3">
-                                                <a href="{{ $makeSortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Nama Kucing">
-                                                    Kucing / Foto Utama
-                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('name') }}</span>
-                                                </a>
-                                            </th>
-                                            <th class="py-3 px-3">
-                                                <a href="{{ $makeSortUrl('owner') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Nama Pemilik">
-                                                    Pemilik / NBM
-                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('owner') }}</span>
-                                                </a>
-                                            </th>
-                                            <th class="py-3 px-3">
-                                                <a href="{{ $makeSortUrl('breed') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Ras">
-                                                    Ras & Biometrik
-                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('breed') }}</span>
-                                                </a>
-                                            </th>
-                                            <th class="py-3 px-3">
-                                                <a href="{{ $makeSortUrl('unique_code') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Nomor KTAM">
-                                                    Nomor KTAM
-                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('unique_code') }}</span>
-                                                </a>
-                                            </th>
-                                            <th class="py-3 px-3">
-                                                <a href="{{ $makeSortUrl('status') }}" class="inline-flex items-center gap-1 hover:text-teal-700 transition" title="Urutkan berdasarkan Status Hidup/Mati">
-                                                    Status
-                                                    <span class="text-teal-700 font-bold text-[11px]">{{ $getSortIndicator('status') }}</span>
-                                                </a>
-                                            </th>
-                                            <th class="py-3 px-3">Status KTAM</th>
-                                            <th class="py-3 px-3 text-right min-w-[220px]">Tindakan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 text-slate-700">
-                                        @foreach($cats as $cat)
-                                            <tr class="hover:bg-slate-50/80 transition {{ $cat->isDeceased() ? 'bg-slate-50/40 text-slate-500' : '' }}">
-                                                <td class="py-3.5 px-3">
-                                                    <div class="flex items-center gap-2.5">
-                                                        <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-10 h-10 object-cover rounded-lg border border-slate-200 shadow-2xs flex-shrink-0 {{ $cat->isDeceased() ? 'grayscale opacity-75' : '' }}">
-                                                        <div>
-                                                            <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                                                                <span>{{ $cat->name }}</span>
-                                                                @if($cat->isDeceased())
-                                                                    <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-200 text-slate-600">Mati</span>
-                                                                @endif
-                                                            </div>
-                                                            <div class="text-[11px] text-slate-500">
-                                                                {{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }} &bull; {{ $cat->age_text }}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="py-3.5 px-3">
-                                                    <div class="text-slate-900 font-semibold">{{ $cat->owner->name }}</div>
-                                                    <div class="text-[11px] text-slate-500 font-mono">NBM: {{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-') }}</div>
-                                                </td>
-                                                <td class="py-3.5 px-3">
-                                                    <div class="text-[11px] font-semibold text-slate-800">{{ $cat->breed }}</div>
-                                                    @if($cat->biometric_type && $cat->biometric_type !== 'none')
-                                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase whitespace-nowrap mt-0.5 inline-block">
-                                                            {{ $cat->biometric_type }}
-                                                        </span>
-                                                    @else
-                                                        <span class="text-slate-400 text-[10px]">-</span>
-                                                    @endif
-                                                </td>
-                                                <td class="py-3.5 px-3 font-mono text-[11px] font-semibold text-slate-800 whitespace-nowrap">
-                                                    <div class="font-bold text-teal-900">{{ $cat->formatted_unique_code }}</div>
-                                                    <div class="text-[10px] text-slate-400 font-sans">{{ $cat->wilayah ? $cat->wilayah->singkatan : 'DIY' }} &bull; {{ $cat->ktamCard ? $cat->ktamCard->ktam_number : 'Draft' }}</div>
-                                                </td>
-                                                <td class="py-3.5 px-3">
-                                                    <div class="inline-flex items-center gap-1.5">
-                                                        @if($cat->isAlive())
-                                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 whitespace-nowrap inline-flex items-center gap-1" title="Kucing Hidup (Aktif)">
-                                                                🟢 Hidup
-                                                            </span>
-                                                        @else
-                                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300 whitespace-nowrap inline-flex items-center gap-1" title="Kucing Mati / Meninggal">
-                                                                ⚪ Mati
-                                                            </span>
-                                                        @endif
-
-                                                        <!-- Quick Toggle Status Button -->
-                                                        <form action="{{ route('cat.toggle-status', $cat->id) }}" method="POST" class="inline">
-                                                            @csrf
-                                                            <button type="submit" 
-                                                                    onclick="return confirm('Ubah status kucing {{ $cat->name }} menjadi {{ $cat->isAlive() ? 'MATI (Meninggal)' : 'HIDUP (Aktif)' }}?')"
-                                                                    class="text-[10px] text-slate-400 hover:text-teal-700 hover:bg-slate-100 p-1 rounded transition" 
-                                                                    title="Klik untuk ubah status hidup/mati">
-                                                                🔄
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                                <td class="py-3.5 px-3">
-                                                    @if($cat->ktamCard)
-                                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 whitespace-nowrap inline-flex items-center gap-1">
-                                                            <span>✓</span> KTAM Terbit
-                                                        </span>
-                                                    @elseif($cat->medicalRecords->isNotEmpty())
-                                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 whitespace-nowrap inline-flex items-center gap-1">
-                                                            <span>⏳</span> Perlu Verifikasi
-                                                        </span>
-                                                    @else
-                                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap inline-flex items-center gap-1">
-                                                            <span>•</span> Terdaftar
-                                                        </span>
-                                                    @endif
-                                                </td>
-                                                <td class="py-3.5 px-3 text-right">
-                                                    <div class="inline-flex items-center justify-end gap-1.5 flex-wrap">
-                                                        <a href="{{ route('cat.edit', $cat->id) }}" title="Update Foto, Identitas & Biometrik" class="btn-action-secondary">
-                                                            <span>✏️</span> Ubah / Foto
-                                                        </a>
-                                                        @if($cat->ktamCard)
-                                                            <a href="{{ route('ktam.download', $cat->id) }}" class="btn-action-success">
-                                                                <span>📄</span> Unduh PDF
-                                                            </a>
-                                                        @else
-                                                            <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="inline">
-                                                                @csrf
-                                                                <button type="submit" onclick="return confirm('Verifikasi & terbitkan kartu KTAM untuk {{ $cat->name }}?')" class="btn-action-primary">
-                                                                    <span>✓</span> Verifikasi KTAM
-                                                                </button>
-                                                            </form>
-                                                        @endif
-                                                        <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn-action-danger" title="Hapus Data Kucing">
-                                                                <span>🗑</span> Hapus
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="mt-4 border-t border-slate-100 pt-3">
-                                {{ $cats->fragment('cat-registry-table')->links() }}
-                            </div>
+                        @if(request('search') || request('status') || request('sort'))
+                            <a href="{{ route('dashboard') }}#cat-registry-table" class="button-secondary text-xs px-3 py-1.5 rounded-xl text-slate-600 hover:text-slate-900 self-start sm:self-auto shrink-0 inline-flex items-center gap-1">
+                                <span>✕</span> Reset Semua Filter
+                            </a>
                         @endif
                     </div>
-                </div>
 
-                @if(request()->has('search') || request()->has('page'))
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function() {
-                            const tableEl = document.getElementById('cat-registry-table');
-                            if (tableEl) {
-                                tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                        });
-                    </script>
-                @endif
+                    <!-- Filter, Search, & Sort Bar -->
+                    <form method="GET" action="{{ route('dashboard') }}#cat-registry-table" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-2">
+                        <!-- Search Input (Span 5 on LG) -->
+                        <div class="sm:col-span-2 lg:col-span-5 relative">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <input type="text" 
+                                   name="search" 
+                                   value="{{ request('search') }}" 
+                                   placeholder="Cari nama kucing, pemilik, KTAM, ras, NBM..." 
+                                   class="w-full text-xs pl-10 pr-8 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-100 transition placeholder:text-slate-400">
+                            @if(request('search'))
+                                <a href="{{ route('dashboard', array_merge(request()->except(['search', 'page']))) }}#cat-registry-table" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs font-bold" title="Hapus pencarian">✕</a>
+                            @endif
+                        </div>
 
-                <!-- Right Section: Verification Scanner Simulation -->
-                <div class="space-y-6">
-                    
-                    <!-- KTAM Verification Card -->
-                    <div class="content-card bg-slate-50/70 border border-slate-200">
-                        <h2 class="font-outfit text-base font-bold text-slate-900 border-b border-slate-200 pb-2.5 mb-3">Cek Keaslian KTAM</h2>
-                        <p class="text-xs text-slate-600 mb-3.5 leading-relaxed">Masukkan nomor KTAM kucing di bawah ini untuk melihat verifikasi admin, foto utama, biometrik, dan riwayat medis secara instan.</p>
+                        <!-- Filter Status Dropdown (Span 3 on LG) -->
+                        <div class="lg:col-span-3">
+                            <select id="admin_filter_status" name="status" onchange="this.form.submit()" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-100 transition font-medium text-slate-700">
+                                <option value="all" {{ $currentStatus === 'all' ? 'selected' : '' }}>Semua Status Kehidupan</option>
+                                <option value="alive" {{ $currentStatus === 'alive' ? 'selected' : '' }}>🟢 Hidup (Aktif)</option>
+                                <option value="deceased" {{ $currentStatus === 'deceased' ? 'selected' : '' }}>⚪ Mati (Meninggal)</option>
+                            </select>
+                        </div>
 
-                        <div class="space-y-3">
-                            <div>
-                                <label for="search-ktam-input" class="form-label text-xs">Nomor Kartu KTAM</label>
-                                <input id="search-ktam-input" type="text" x-model="searchKtam" placeholder="Contoh: KM-20260707-0001" class="form-input text-xs font-mono font-bold">
-                            </div>
-                            
-                            <button type="button" @click="if(searchKtam.trim()) { window.location.href = `/verify/${searchKtam.trim()}` } else { alert('Silakan masukkan nomor KTAM terlebih dahulu.') }" class="w-full button-primary flex justify-center py-2.5 text-xs font-bold">
-                                Periksa Validitas KTAM
+                        <!-- Quick Sort Dropdown (Span 3 on LG) -->
+                        <div class="lg:col-span-3">
+                            <select id="admin_sort_select" name="sort_direction" onchange="
+                                const val = this.value.split(':');
+                                const sortInput = this.form.querySelector('input[name=sort]');
+                                const dirInput = this.form.querySelector('input[name=direction]');
+                                if (sortInput && dirInput) {
+                                    sortInput.value = val[0];
+                                    dirInput.value = val[1];
+                                    this.form.submit();
+                                }
+                            " class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-100 transition font-medium text-slate-700">
+                                <option value="created_at:desc" {{ ($currentSort == 'created_at' && $currentDir == 'desc') ? 'selected' : '' }}>Urutan: Terbaru Terdaftar</option>
+                                <option value="created_at:asc" {{ ($currentSort == 'created_at' && $currentDir == 'asc') ? 'selected' : '' }}>Urutan: Terlama Terdaftar</option>
+                                <option value="name:asc" {{ ($currentSort == 'name' && $currentDir == 'asc') ? 'selected' : '' }}>Nama Kucing (A - Z)</option>
+                                <option value="name:desc" {{ ($currentSort == 'name' && $currentDir == 'desc') ? 'selected' : '' }}>Nama Kucing (Z - A)</option>
+                                <option value="owner:asc" {{ ($currentSort == 'owner' && $currentDir == 'asc') ? 'selected' : '' }}>Pemilik (A - Z)</option>
+                                <option value="owner:desc" {{ ($currentSort == 'owner' && $currentDir == 'desc') ? 'selected' : '' }}>Pemilik (Z - A)</option>
+                                <option value="breed:asc" {{ ($currentSort == 'breed' && $currentDir == 'asc') ? 'selected' : '' }}>Ras Kucing (A - Z)</option>
+                                <option value="date_of_birth:asc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'asc') ? 'selected' : '' }}>Umur (Paling Tua)</option>
+                                <option value="date_of_birth:desc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'desc') ? 'selected' : '' }}>Umur (Paling Muda)</option>
+                                <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor KTAM (Asc)</option>
+                                <option value="status:asc" {{ ($currentSort == 'status' && $currentDir == 'asc') ? 'selected' : '' }}>Status Hidup / Mati</option>
+                            </select>
+                            <input type="hidden" name="sort" value="{{ $currentSort }}">
+                            <input type="hidden" name="direction" value="{{ $currentDir }}">
+                        </div>
+
+                        <!-- Apply Button (Span 1 on LG) -->
+                        <div class="lg:col-span-1">
+                            <button type="submit" class="w-full button-primary text-xs font-bold py-2.5 px-3 rounded-xl shadow-xs">
+                                Cari
                             </button>
                         </div>
-
-                        <!-- Sample copy-paste card numbers helper -->
-                        @if($stats['ktam_count'] > 0)
-                            <div class="mt-4 border-t border-slate-200 pt-3">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Pilihan Cepat Nomor KTAM:</span>
-                                <div class="mt-2 space-y-1.5">
-                                    @foreach($cats->filter(fn($c) => $c->ktamCard)->take(3) as $c)
-                                        <div class="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
-                                            <span class="font-mono text-slate-800 font-bold" x-text="'{{ $c->ktamCard->ktam_number }}'"></span>
-                                            <button type="button" @click="searchKtam = '{{ $c->ktamCard->ktam_number }}'" class="text-teal-700 font-bold hover:underline text-[11px] p-1">Pilih</button>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-
+                    </form>
                 </div>
 
+                <!-- Datatable Content -->
+                @if($cats->isEmpty())
+                    <div class="text-center py-12 px-4">
+                        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">🐱</div>
+                        <h3 class="text-sm font-bold text-slate-800">Tidak ada data kucing yang sesuai</h3>
+                        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Silakan coba ubah kata kunci pencarian atau ubah filter status di atas.</p>
+                        <a href="{{ route('dashboard') }}#cat-registry-table" class="inline-flex items-center gap-1.5 mt-4 text-xs font-bold text-teal-700 hover:text-teal-900 underline">
+                            Tampilkan Semua Data Kucing
+                        </a>
+                    </div>
+                @else
+                    <!-- DESKTOP / TABLET VIEW: Modern Datatable -->
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse" aria-label="Database Anggota Kucing">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-600 font-bold bg-slate-50/80 select-none uppercase tracking-wider text-[11px]">
+                                    <th class="py-3.5 px-4">
+                                        <a href="{{ $makeSortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition" title="Urutkan berdasarkan Nama">
+                                            Identitas Kucing
+                                            <span class="text-teal-700 font-bold">{{ $getSortIndicator('name') }}</span>
+                                        </a>
+                                    </th>
+                                    <th class="py-3.5 px-4">
+                                        <a href="{{ $makeSortUrl('owner') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition" title="Urutkan berdasarkan Pemilik">
+                                            Pemilik & NBM
+                                            <span class="text-teal-700 font-bold">{{ $getSortIndicator('owner') }}</span>
+                                        </a>
+                                    </th>
+                                    <th class="py-3.5 px-4">
+                                        <a href="{{ $makeSortUrl('breed') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition" title="Urutkan berdasarkan Ras">
+                                            Ras & Biometrik
+                                            <span class="text-teal-700 font-bold">{{ $getSortIndicator('breed') }}</span>
+                                        </a>
+                                    </th>
+                                    <th class="py-3.5 px-4">
+                                        <a href="{{ $makeSortUrl('unique_code') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition" title="Urutkan berdasarkan KTAM">
+                                            Nomor KTAM
+                                            <span class="text-teal-700 font-bold">{{ $getSortIndicator('unique_code') }}</span>
+                                        </a>
+                                    </th>
+                                    <th class="py-3.5 px-4">
+                                        <a href="{{ $makeSortUrl('status') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition" title="Urutkan Status Hidup/Mati">
+                                            Status Hidup
+                                            <span class="text-teal-700 font-bold">{{ $getSortIndicator('status') }}</span>
+                                        </a>
+                                    </th>
+                                    <th class="py-3.5 px-4">Status KTAM</th>
+                                    <th class="py-3.5 px-4 text-right whitespace-nowrap">Aksi / Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-700 font-normal">
+                                @foreach($cats as $cat)
+                                    <tr class="hover:bg-teal-50/30 transition-colors {{ $cat->isDeceased() ? 'bg-slate-50/60 text-slate-500' : '' }}">
+                                        <!-- Foto & Nama Kucing -->
+                                        <td class="py-3.5 px-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="relative w-11 h-11 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 shrink-0 shadow-2xs">
+                                                    <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-full h-full object-cover {{ $cat->isDeceased() ? 'grayscale opacity-75' : '' }}">
+                                                    @if($cat->isDeceased())
+                                                        <div class="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                                            <span class="text-[8px] font-bold text-white uppercase bg-black/60 px-1 rounded">Mati</span>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <div class="font-bold text-slate-900 text-sm leading-snug flex items-center gap-1.5 truncate">
+                                                        <span>{{ $cat->name }}</span>
+                                                    </div>
+                                                    <div class="text-[11px] text-slate-500 mt-0.5 truncate">
+                                                        {{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }} &bull; <span class="font-medium text-slate-600">{{ $cat->age_text }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <!-- Pemilik & NBM -->
+                                        <td class="py-3.5 px-4">
+                                            <div class="font-semibold text-slate-900 text-xs">{{ $cat->owner ? $cat->owner->name : '-' }}</div>
+                                            <div class="text-[11px] text-slate-500 font-mono mt-0.5">
+                                                NBM: <span class="text-slate-700 font-medium">{{ $cat->owner ? ($cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-')) : '-' }}</span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Ras & Biometrik -->
+                                        <td class="py-3.5 px-4">
+                                            <div class="text-xs font-semibold text-slate-800">{{ $cat->breed }}</div>
+                                            @if($cat->biometric_type && $cat->biometric_type !== 'none')
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase whitespace-nowrap mt-1 inline-flex items-center gap-1">
+                                                    <span>🐾</span> {{ $cat->biometric_type }}
+                                                </span>
+                                            @else
+                                                <span class="text-[11px] text-slate-400">Standar Foto</span>
+                                            @endif
+                                        </td>
+
+                                        <!-- Nomor KTAM -->
+                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                            <div class="font-mono text-xs font-bold text-teal-900">{{ $cat->formatted_unique_code }}</div>
+                                            <div class="text-[10px] text-slate-500 font-sans mt-0.5">
+                                                {{ $cat->wilayah ? $cat->wilayah->nama : 'PWM DIY' }} &bull; <span class="font-mono">{{ $cat->ktamCard ? $cat->ktamCard->ktam_number : 'Draf' }}</span>
+                                            </div>
+                                        </td>
+
+                                        <!-- Status Hidup / Mati -->
+                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                            <div class="inline-flex items-center gap-1.5">
+                                                @if($cat->isAlive())
+                                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1" title="Kucing Hidup (Aktif)">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hidup
+                                                    </span>
+                                                @else
+                                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300 inline-flex items-center gap-1" title="Kucing Mati / Meninggal">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Mati
+                                                    </span>
+                                                @endif
+
+                                                <!-- Quick Toggle Status Button -->
+                                                <form action="{{ route('cat.toggle-status', $cat->id) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            onclick="return confirm('Ubah status kucing {{ $cat->name }} menjadi {{ $cat->isAlive() ? 'MATI (Meninggal)' : 'HIDUP (Aktif)' }}?')"
+                                                            class="text-xs text-slate-400 hover:text-teal-700 hover:bg-slate-100 p-1.5 rounded-lg transition" 
+                                                            title="Ubah status hidup/mati">
+                                                        🔄
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+
+                                        <!-- Status Penerbitan KTAM -->
+                                        <td class="py-3.5 px-4 whitespace-nowrap">
+                                            @if($cat->ktamCard)
+                                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 inline-flex items-center gap-1">
+                                                    <span>✓</span> KTAM Terbit
+                                                </span>
+                                            @elseif($cat->medicalRecords->isNotEmpty())
+                                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
+                                                    <span>⏳</span> Perlu Verifikasi
+                                                </span>
+                                            @else
+                                                <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
+                                                    <span>•</span> Terdaftar
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        <!-- Aksi / Tindakan -->
+                                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                            <div class="inline-flex items-center justify-end gap-1.5">
+                                                <a href="{{ route('cat.edit', $cat->id) }}" title="Update Foto, Identitas & Biometrik" class="btn-action-secondary py-1.5 px-2.5 text-xs font-semibold">
+                                                    <span>✏️</span> Ubah
+                                                </a>
+                                                
+                                                @if($cat->ktamCard)
+                                                    <a href="{{ route('ktam.download', $cat->id) }}" class="btn-action-success py-1.5 px-2.5 text-xs font-bold" title="Unduh Kartu PDF">
+                                                        <span>📄</span> PDF
+                                                    </a>
+                                                @else
+                                                    <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" onclick="return confirm('Verifikasi & terbitkan kartu KTAM untuk {{ $cat->name }}?')" class="btn-action-primary py-1.5 px-2.5 text-xs font-bold" title="Terbitkan Kartu KTAM">
+                                                            <span>✓</span> Verifikasi
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-action-danger py-1.5 px-2 text-xs font-semibold" title="Hapus Kucing">
+                                                        <span>🗑</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- MOBILE VIEW: Interactive Responsive Cards -->
+                    <div class="block md:hidden divide-y divide-slate-100">
+                        @foreach($cats as $cat)
+                            <div class="p-4 space-y-3.5 {{ $cat->isDeceased() ? 'bg-slate-50/50' : 'bg-white' }}">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="flex items-center gap-3">
+                                        <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs shrink-0 {{ $cat->isDeceased() ? 'grayscale opacity-75' : '' }}">
+                                        <div>
+                                            <h3 class="font-bold text-slate-900 text-sm leading-tight">{{ $cat->name }}</h3>
+                                            <p class="text-xs text-slate-500 mt-0.5">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }}</p>
+                                            <p class="text-[11px] text-slate-400">Umur: {{ $cat->age_text }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col items-end gap-1 shrink-0">
+                                        @if($cat->isAlive())
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                🟢 Hidup
+                                            </span>
+                                        @else
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-300">
+                                                ⚪ Mati
+                                            </span>
+                                        @endif
+
+                                        @if($cat->ktamCard)
+                                            <span class="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                                                KTAM Terbit
+                                            </span>
+                                        @elseif($cat->medicalRecords->isNotEmpty())
+                                            <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                                Perlu Verifikasi
+                                            </span>
+                                        @else
+                                            <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                                Terdaftar
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="bg-slate-50 rounded-xl p-3 text-xs space-y-1.5 border border-slate-100">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Pemilik:</span>
+                                        <span class="font-semibold text-slate-800">{{ $cat->owner ? $cat->owner->name : '-' }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">NBM:</span>
+                                        <span class="font-mono text-slate-700">{{ $cat->owner ? ($cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-')) : '-' }}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500">Nomor KTAM:</span>
+                                        <span class="font-mono font-bold text-teal-800">{{ $cat->formatted_unique_code }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons on Mobile -->
+                                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                                    <div class="flex items-center gap-1.5">
+                                        <!-- Toggle Status -->
+                                        <form action="{{ route('cat.toggle-status', $cat->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" 
+                                                    onclick="return confirm('Ubah status kucing {{ $cat->name }} menjadi {{ $cat->isAlive() ? 'MATI' : 'HIDUP' }}?')"
+                                                    class="button-secondary text-xs py-1.5 px-2.5 rounded-lg text-slate-600" 
+                                                    title="Ubah Status Hidup/Mati">
+                                                🔄 Ubah Status
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="flex items-center gap-1.5">
+                                        <a href="{{ route('cat.edit', $cat->id) }}" class="btn-action-secondary py-1.5 px-2.5 text-xs font-semibold">
+                                            ✏️ Ubah
+                                        </a>
+
+                                        @if($cat->ktamCard)
+                                            <a href="{{ route('ktam.download', $cat->id) }}" class="btn-action-success py-1.5 px-2.5 text-xs font-bold">
+                                                📄 PDF
+                                            </a>
+                                        @else
+                                            <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" onclick="return confirm('Verifikasi KTAM untuk {{ $cat->name }}?')" class="btn-action-primary py-1.5 px-2.5 text-xs font-bold">
+                                                    ✓ Verifikasi
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn-action-danger py-1.5 px-2 text-xs font-semibold" title="Hapus Kucing">
+                                                🗑
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Pagination Links -->
+                    <div class="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50">
+                        {{ $cats->fragment('cat-registry-table')->links() }}
+                    </div>
+                @endif
+            </div>
+
+            <!-- Bottom Utilities Grid: KTAM Verification Simulator & Quick Appointments -->
+            <div class="grid gap-6 lg:grid-cols-2">
+                <!-- KTAM Verification Card -->
+                <div class="content-card bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                        <div>
+                            <h2 class="font-outfit text-base font-bold text-slate-900">Periksa Keaslian KTAM</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Uji verifikasi QR atau lookup kartu KTAM publik.</p>
+                        </div>
+                        <span class="text-2xl">🔍</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label for="search-ktam-input" class="form-label text-xs font-semibold text-slate-700">Nomor Kartu KTAM / NIKuMu</label>
+                            <input id="search-ktam-input" type="text" x-model="searchKtam" placeholder="Contoh: 34.kcg.0001" class="form-input text-xs font-mono font-bold">
+                        </div>
+                        
+                        <button type="button" @click="if(searchKtam.trim()) { window.location.href = `/verify/${searchKtam.trim()}` } else { alert('Silakan masukkan nomor KTAM terlebih dahulu.') }" class="w-full button-primary flex justify-center py-2.5 text-xs font-bold shadow-xs">
+                            Cek Status Validitas KTAM
+                        </button>
+                    </div>
+
+                    @if($stats['ktam_count'] > 0)
+                        <div class="mt-4 border-t border-slate-100 pt-3">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pilihan Cepat Nomor KTAM:</span>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach($cats->filter(fn($c) => $c->ktamCard)->take(4) as $c)
+                                    <button type="button" @click="searchKtam = '{{ $c->ktamCard->ktam_number }}'" class="text-xs font-mono bg-slate-50 hover:bg-teal-50 hover:text-teal-800 px-2.5 py-1 rounded-lg border border-slate-200 font-bold transition">
+                                        {{ $c->ktamCard->ktam_number }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Recent Appointments & Quick Actions -->
+                <div class="content-card bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <h2 class="font-outfit text-base font-bold text-slate-900">Janji Temu Terkini</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Antrian jadwal pemeriksaan kucing.</p>
+                        </div>
+                        <span class="text-2xl">📅</span>
+                    </div>
+
+                    @if($appointments->isEmpty())
+                        <div class="text-center py-6 text-slate-500 text-xs bg-slate-50 rounded-xl border border-slate-100">
+                            Belum ada jadwal janji temu terbaru.
+                        </div>
+                    @else
+                        <div class="space-y-2.5">
+                            @foreach($appointments as $appt)
+                                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-900 font-bold flex items-center justify-center text-xs shrink-0">
+                                            🐱
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-slate-900">{{ $appt->cat ? $appt->cat->name : 'Kucing' }}</div>
+                                            <div class="text-[11px] text-slate-500">{{ $appt->cat && $appt->cat->owner ? $appt->cat->owner->name : '-' }} &bull; {{ $appt->time_slot }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="font-mono text-[11px] font-bold text-slate-700 block">{{ $appt->date ? $appt->date->format('d M Y') : '-' }}</span>
+                                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full {{ $appt->status === 'completed' ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800' }}">
+                                            {{ $appt->status }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </div>
 
         </div>
     </div>
+
+    @if(request()->has('search') || request()->has('page'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const tableEl = document.getElementById('cat-registry-table');
+                if (tableEl) {
+                    tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        </script>
+    @endif
 </x-app-layout>
