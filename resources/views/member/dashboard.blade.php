@@ -320,23 +320,21 @@
 
                             <!-- Master Ras & Warna Kucing -->
                             <div x-data="{ selectedBreed: '{{ old('breed', 'Domestik') }}' }" class="space-y-2.5">
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label for="cat_breed" class="form-label text-xs">Ras / Jenis Kucing <span class="text-rose-500">*</span></label>
-                                        <select id="cat_breed" name="breed" x-model="selectedBreed" required class="form-input text-xs">
-                                            @php
-                                                $breedList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
-                                            @endphp
-                                            @foreach($breedList as $b)
-                                                <option value="{{ $b }}" {{ old('breed', 'Domestik') === $b ? 'selected' : '' }}>{{ $b }}</option>
-                                            @endforeach
-                                            <option value="Lainnya" {{ old('breed') === 'Lainnya' ? 'selected' : '' }}>➕ Lainnya (Input Sendiri)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label for="cat_color" class="form-label text-xs">Warna / Pola Bulu</label>
-                                        <input type="text" id="cat_color" name="color" class="form-input text-xs" placeholder="Contoh: Calico / Tabby / Oranye" value="{{ old('color') }}">
-                                    </div>
+                                <div>
+                                    <label for="cat_breed" class="form-label text-xs">Ras / Jenis Kucing <span class="text-rose-500">*</span></label>
+                                    <select id="cat_breed" name="breed" x-model="selectedBreed" required class="form-input text-xs">
+                                        @php
+                                            $breedList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
+                                        @endphp
+                                        @foreach($breedList as $b)
+                                            <option value="{{ $b }}" {{ old('breed', 'Domestik') === $b ? 'selected' : '' }}>{{ $b }}</option>
+                                        @endforeach
+                                        <option value="Lainnya" {{ old('breed') === 'Lainnya' ? 'selected' : '' }}>➕ Lainnya (Input Sendiri)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="cat_color" class="form-label text-xs">Warna / Pola Bulu</label>
+                                    <input type="text" id="cat_color" name="color" class="form-input text-xs" placeholder="Contoh: Calico / Tabby / Oranye" value="{{ old('color') }}">
                                 </div>
 
                                 <!-- Input Kustom Ras Baru jika pilih Lainnya -->
