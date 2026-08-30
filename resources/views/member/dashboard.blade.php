@@ -362,25 +362,23 @@
                                     @endif
                                 </select>
                             </div>
-                            <div class="grid grid-cols-3 gap-2.5">
-                                <div>
-                                    <label for="cat_gender" class="form-label text-xs">Jenis Kelamin</label>
-                                    <select id="cat_gender" name="gender" required class="form-input text-xs">
-                                        <option value="male">Jantan</option>
-                                        <option value="female">Betina</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="cat_status_reg" class="form-label text-xs">Status</label>
-                                    <select id="cat_status_reg" name="status" required class="form-input text-xs">
-                                        <option value="alive" selected>🟢 Hidup</option>
-                                        <option value="deceased">⚪ Mati</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="cat_dob" class="form-label text-xs">Tanggal Lahir</label>
-                                    <input type="date" id="cat_dob" name="date_of_birth" required class="form-input text-xs">
-                                </div>
+                            <div>
+                                <label for="cat_gender" class="form-label text-xs">Jenis Kelamin</label>
+                                <select id="cat_gender" name="gender" required class="form-input text-xs">
+                                    <option value="male">Jantan</option>
+                                    <option value="female">Betina</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="cat_status_reg" class="form-label text-xs">Status</label>
+                                <select id="cat_status_reg" name="status" required class="form-input text-xs">
+                                    <option value="alive" selected>🟢 Hidup</option>
+                                    <option value="deceased">⚪ Mati</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="cat_dob" class="form-label text-xs">Tanggal Lahir</label>
+                                <input type="date" id="cat_dob" name="date_of_birth" required class="form-input text-xs">
                             </div>
                             <div>
                                 <label for="cat_photo" class="form-label text-xs">Foto Kucing (Galeri / Kamera)</label>
