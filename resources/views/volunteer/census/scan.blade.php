@@ -65,7 +65,7 @@
                         <!-- 1. Mode Kamera -->
                         <div x-show="inputMode === 'camera'" class="space-y-3">
                             <div class="relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-700 flex items-center justify-center shadow-inner">
-                                <video id="scannerVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
+                                <video id="scannerVideo" autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover"></video>
                                 <canvas id="scannerCanvas" class="hidden"></canvas>
 
                                 <!-- Viewfinder Reticle Overlay -->
@@ -494,8 +494,41 @@
                     this.cameraStarting = true;
                     this.cameraError = null;
 
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        this.cameraStarting = false;
+                        this.cameraError = 'Peramban Anda tidak mendukung akses kamera langsung. Silakan gunakan mode Unggah Foto.';
+                        return;
+                    }
+
+                    const setupScannerVideo = (stream) => {
+                        this.mediaStream = stream;
+                        const video = document.getElementById('scannerVideo');
+                        if (video) {
+                            video.setAttribute('playsinline', 'true');
+                            video.setAttribute('webkit-playsinline', 'true');
+                            video.muted = true;
+                            video.srcObject = stream;
+                            video.onloadedmetadata = () => {
+                                const p = video.play();
+                                if (p !== undefined) {
+                                    p.then(() => {
+                                        this.cameraActive = true;
+                                        this.cameraStarting = false;
+                                    }).catch(e => {
+                                        console.warn('Safari scanner video play:', e);
+                                        this.cameraActive = true;
+                                        this.cameraStarting = false;
+                                    });
+                                } else {
+                                    this.cameraActive = true;
+                                    this.cameraStarting = false;
+                                }
+                            };
+                        }
+                    };
+
                     try {
-                        this.mediaStream = await navigator.mediaDevices.getUserMedia({
+                        const stream = await navigator.mediaDevices.getUserMedia({
                             video: {
                                 facingMode: { ideal: this.facingMode },
                                 width: { ideal: 1280 },
@@ -503,21 +536,17 @@
                             },
                             audio: false
                         });
-
-                        const video = document.getElementById('scannerVideo');
-                        if (video) {
-                            video.srcObject = this.mediaStream;
-                            video.onloadedmetadata = () => {
-                                video.play();
-                                this.cameraActive = true;
-                                this.cameraStarting = false;
-                            };
-                        }
+                        setupScannerVideo(stream);
                     } catch (err) {
-                        this.cameraStarting = false;
-                        this.cameraActive = false;
-                        this.cameraError = 'Izin kamera tidak diberikan atau perangkat kamera tidak ditemukan.';
-                        console.error(err);
+                        try {
+                            const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                            setupScannerVideo(fallbackStream);
+                        } catch (fallbackErr) {
+                            this.cameraStarting = false;
+                            this.cameraActive = false;
+                            this.cameraError = 'Izin kamera tidak diberikan di Safari atau perangkat kamera tidak ditemukan.';
+                            console.error(fallbackErr);
+                        }
                     }
                 },
 
@@ -585,8 +614,16 @@
                     if (this.netModel) {
                         try {
                             const img = new Image();
+                            const imgPromise = new Promise((resolve, reject) => {
+                                img.onload = () => resolve();
+                                img.onerror = (e) => reject(e);
+                            });
                             img.src = this.scannedImagePreview;
-                            await img.decode();
+                            if (img.decode) {
+                                await img.decode().catch(() => imgPromise);
+                            } else {
+                                await imgPromise;
+                            }
 
                             const activation = this.netModel.infer(img, true);
                             const rawArr = await activation.data();

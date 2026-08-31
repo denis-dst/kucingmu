@@ -68,6 +68,7 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
 
 use App\Http\Controllers\MasterWilayahController;
 use App\Http\Controllers\ActivityAlbumController;
+use App\Http\Controllers\AdminUserController;
 
 // Admin & Superadmin Routes
 Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
@@ -86,7 +87,18 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::post('/superadmin/albums/seed-default', [ActivityAlbumController::class, 'seedDefault'])->name('superadmin.albums.seed-default');
     Route::post('/superadmin/albums/{album}/toggle-status', [ActivityAlbumController::class, 'toggleStatus'])->name('superadmin.albums.toggle-status');
     Route::resource('/superadmin/albums', ActivityAlbumController::class, ['names' => 'superadmin.albums']);
+
+    // Admin & Superadmin User Management & Impersonate
+    Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+    Route::put('/admin/users/{user}/role', [AdminUserController::class, 'updateRole'])->name('admin.users.update-role');
+    Route::post('/admin/users/{user}/impersonate', [AdminUserController::class, 'impersonate'])->name('admin.users.impersonate');
 });
+
+// Impersonation Exit Route (Accessible by any authenticated user who has an active impersonation session)
+Route::post('/impersonate/leave', [AdminUserController::class, 'leaveImpersonation'])
+    ->middleware('auth')
+    ->name('impersonate.leave');
+
 
 // Shared Cat Management, KTAM Download & Preview & Photo Routes
 Route::middleware(['auth'])->group(function () {

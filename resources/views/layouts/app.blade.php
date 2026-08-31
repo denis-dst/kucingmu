@@ -31,6 +31,7 @@
 
         <div class="min-h-screen bg-slate-50 flex flex-col justify-between">
             <div>
+                @include('partials.impersonation-banner')
                 @include('layouts.navigation')
 
                 <!-- Page Heading -->

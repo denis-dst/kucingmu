@@ -1273,53 +1273,61 @@ function surGetLocation() {
     mapLink.style.display = 'none';
     showLocStatus('info', '⏳ Meminta izin akses lokasi…');
 
+    const handleSuccess = (pos) => {
+        const lat = pos.coords.latitude.toFixed(7);
+        const lng = pos.coords.longitude.toFixed(7);
+        const acc = Math.round(pos.coords.accuracy);
+
+        latInput.value = lat;
+        lngInput.value = lng;
+
+        // Highlight inputs briefly
+        [latInput, lngInput].forEach(el => {
+            el.style.borderColor = 'var(--sur-success)';
+            el.style.background  = '#edfaf3';
+            setTimeout(() => {
+                el.style.borderColor = '';
+                el.style.background  = '';
+            }, 2000);
+        });
+
+        showLocStatus('success', `Lokasi berhasil didapatkan: akurasi ±${acc} meter`);
+
+        // Maps link
+        mapAnchor.href = `https://www.google.com/maps?q=${lat},${lng}`;
+        mapLink.style.display = 'block';
+
+        // Reset button
+        btnIcon.textContent = '✅';
+        btnText.textContent = 'Perbarui Lokasi';
+        btn.disabled        = false;
+        btn.style.opacity   = '1';
+    };
+
+    const handleError = (err) => {
+        const msgs = {
+            1: 'Izin akses lokasi ditolak. Aktifkan izin lokasi di pengaturan browser Safari Anda.',
+            2: 'Posisi tidak tersedia. Pastikan GPS/koneksi aktif.',
+            3: 'Waktu permintaan habis. Coba lagi.',
+        };
+        showLocStatus('error', '❌ ' + (msgs[err.code] || 'Gagal mendapatkan lokasi.'));
+        btnIcon.textContent = '📍';
+        btnText.textContent = 'Dapatkan Lokasi Saat Ini';
+        btn.disabled        = false;
+        btn.style.opacity   = '1';
+    };
+
     navigator.geolocation.getCurrentPosition(
-        // ── SUCCESS ──
-        (pos) => {
-            const lat = pos.coords.latitude.toFixed(7);
-            const lng = pos.coords.longitude.toFixed(7);
-            const acc = Math.round(pos.coords.accuracy);
-
-            latInput.value = lat;
-            lngInput.value = lng;
-
-            // Highlight inputs briefly
-            [latInput, lngInput].forEach(el => {
-                el.style.borderColor = 'var(--sur-success)';
-                el.style.background  = '#edfaf3';
-                setTimeout(() => {
-                    el.style.borderColor = '';
-                    el.style.background  = '';
-                }, 2000);
-            });
-
-            showLocStatus('success',
-                `Lokasi berhasil didapatkan: akurasi ±${acc} meter`);
-
-            // Maps link
-            mapAnchor.href = `https://www.google.com/maps?q=${lat},${lng}`;
-            mapLink.style.display = 'block';
-
-            // Reset button
-            btnIcon.textContent = '✅';
-            btnText.textContent = 'Perbarui Lokasi';
-            btn.disabled        = false;
-            btn.style.opacity   = '1';
+        handleSuccess,
+        () => {
+            // Safari fallback if high accuracy times out
+            navigator.geolocation.getCurrentPosition(
+                handleSuccess,
+                handleError,
+                { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+            );
         },
-        // ── ERROR ──
-        (err) => {
-            const msgs = {
-                1: 'Izin akses lokasi ditolak. Aktifkan izin lokasi di pengaturan browser Anda.',
-                2: 'Posisi tidak tersedia. Pastikan GPS/koneksi aktif.',
-                3: 'Waktu permintaan habis. Coba lagi.',
-            };
-            showLocStatus('error', '❌ ' + (msgs[err.code] || 'Gagal mendapatkan lokasi.'));
-            btnIcon.textContent = '📍';
-            btnText.textContent = 'Dapatkan Lokasi Saat Ini';
-            btn.disabled        = false;
-            btn.style.opacity   = '1';
-        },
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
 }
 
@@ -1357,47 +1365,55 @@ function soilGetLocation() {
     mapLink.style.display   = 'none';
     showSoilLocStatus('info', '⏳ Meminta izin akses lokasi…');
 
+    const handleSoilSuccess = (pos) => {
+        const lat = pos.coords.latitude.toFixed(7);
+        const lng = pos.coords.longitude.toFixed(7);
+        const acc = Math.round(pos.coords.accuracy);
+
+        latInput.value = lat;
+        lngInput.value = lng;
+
+        // Highlight inputs briefly
+        [latInput, lngInput].forEach(el => {
+            el.style.borderColor = 'var(--sur-success)';
+            el.style.background  = '#edfaf3';
+            setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 2000);
+        });
+
+        showSoilLocStatus('success', `Koordinat sampling berhasil didapatkan: akurasi ±${acc} meter`);
+
+        mapAnchor.href        = `https://www.google.com/maps?q=${lat},${lng}`;
+        mapLink.style.display = 'block';
+
+        btnIcon.textContent = '✅';
+        btnText.textContent = 'Perbarui Koordinat';
+        btn.disabled        = false;
+        btn.style.opacity   = '1';
+    };
+
+    const handleSoilError = (err) => {
+        const msgs = {
+            1: 'Izin akses lokasi ditolak. Aktifkan izin lokasi di pengaturan browser Safari Anda.',
+            2: 'Posisi tidak tersedia. Pastikan GPS/koneksi aktif.',
+            3: 'Waktu permintaan habis. Coba lagi.',
+        };
+        showSoilLocStatus('error', '❌ ' + (msgs[err.code] || 'Gagal mendapatkan lokasi.'));
+        btnIcon.textContent = '📍';
+        btnText.textContent = 'Dapatkan Koordinat Sampling';
+        btn.disabled        = false;
+        btn.style.opacity   = '1';
+    };
+
     navigator.geolocation.getCurrentPosition(
-        // ── SUCCESS ──
-        (pos) => {
-            const lat = pos.coords.latitude.toFixed(7);
-            const lng = pos.coords.longitude.toFixed(7);
-            const acc = Math.round(pos.coords.accuracy);
-
-            latInput.value = lat;
-            lngInput.value = lng;
-
-            // Highlight inputs briefly
-            [latInput, lngInput].forEach(el => {
-                el.style.borderColor = 'var(--sur-success)';
-                el.style.background  = '#edfaf3';
-                setTimeout(() => { el.style.borderColor = ''; el.style.background = ''; }, 2000);
-            });
-
-            showSoilLocStatus('success', `Koordinat sampling berhasil didapatkan: akurasi ±${acc} meter`);
-
-            mapAnchor.href        = `https://www.google.com/maps?q=${lat},${lng}`;
-            mapLink.style.display = 'block';
-
-            btnIcon.textContent = '✅';
-            btnText.textContent = 'Perbarui Koordinat';
-            btn.disabled        = false;
-            btn.style.opacity   = '1';
+        handleSoilSuccess,
+        () => {
+            navigator.geolocation.getCurrentPosition(
+                handleSoilSuccess,
+                handleSoilError,
+                { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+            );
         },
-        // ── ERROR ──
-        (err) => {
-            const msgs = {
-                1: 'Izin akses lokasi ditolak. Aktifkan izin lokasi di pengaturan browser Anda.',
-                2: 'Posisi tidak tersedia. Pastikan GPS/koneksi aktif.',
-                3: 'Waktu permintaan habis. Coba lagi.',
-            };
-            showSoilLocStatus('error', '❌ ' + (msgs[err.code] || 'Gagal mendapatkan lokasi.'));
-            btnIcon.textContent = '📍';
-            btnText.textContent = 'Dapatkan Koordinat Sampling';
-            btn.disabled        = false;
-            btn.style.opacity   = '1';
-        },
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
 }
 

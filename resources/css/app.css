@@ -103,3 +103,36 @@
         @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap leading-none;
     }
 }
+
+/* ── Safari & WebKit Compatibility Layer ── */
+@layer utilities {
+    /* Safari Backdrop Filter Support */
+    .backdrop-blur-xs {
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+    }
+    .backdrop-blur-sm {
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+    .backdrop-blur-md {
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+    }
+    .backdrop-blur {
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+    }
+
+    /* iOS Safari Smooth Scrolling */
+    .overflow-x-auto, .overflow-y-auto {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Safari Video Container Fix */
+    video {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+    }
+}
+

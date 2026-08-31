@@ -694,7 +694,7 @@
 
                     <!-- Video Viewfinder -->
                     <div class="relative aspect-video rounded-xl bg-slate-900 overflow-hidden flex items-center justify-center border border-slate-800">
-                        <video id="censusEditWebcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+                        <video id="censusEditWebcamVideo" autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover"></video>
                         <canvas id="censusEditWebcamCanvas" class="hidden"></canvas>
                         
                         <div x-show="cameraLoading" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center text-white text-xs space-y-2">
@@ -767,21 +767,31 @@
                         return;
                     }
 
+                    const successGps = (position) => {
+                        this.latitude = position.coords.latitude.toFixed(7);
+                        this.longitude = position.coords.longitude.toFixed(7);
+                        const acc = Math.round(position.coords.accuracy);
+                        this.gettingGps = false;
+                        this.gpsStatusMessage = `Koordinat diperbarui (Akurasi: ±${acc}m)`;
+                        this.gpsStatusClass = 'text-emerald-700';
+                    };
+
+                    const fallbackGps = () => {
+                        navigator.geolocation.getCurrentPosition(
+                            successGps,
+                            (error) => {
+                                this.gettingGps = false;
+                                this.gpsStatusMessage = 'Gagal mendapatkan GPS. Pastikan izin lokasi aktif di Safari.';
+                                this.gpsStatusClass = 'text-slate-500';
+                            },
+                            { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+                        );
+                    };
+
                     navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            this.latitude = position.coords.latitude.toFixed(7);
-                            this.longitude = position.coords.longitude.toFixed(7);
-                            const acc = Math.round(position.coords.accuracy);
-                            this.gettingGps = false;
-                            this.gpsStatusMessage = `Koordinat diperbarui (Akurasi: ±${acc}m)`;
-                            this.gpsStatusClass = 'text-emerald-700';
-                        },
-                        (error) => {
-                            this.gettingGps = false;
-                            this.gpsStatusMessage = 'Gagal mendapatkan GPS. Pastikan izin lokasi aktif.';
-                            this.gpsStatusClass = 'text-slate-500';
-                        },
-                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                        successGps,
+                        fallbackGps,
+                        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
                     );
                 },
 
@@ -819,20 +829,47 @@
                     this.cameraModalOpen = true;
                     this.cameraLoading = true;
 
-                    try {
-                        this.mediaStream = await navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-                        });
-                        const video = document.getElementById('censusEditWebcamVideo');
-                        video.srcObject = this.mediaStream;
-                        video.onloadedmetadata = () => {
-                            video.play();
-                            this.cameraLoading = false;
-                        };
-                    } catch (err) {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                         this.cameraLoading = false;
-                        alert('Tidak dapat mengakses kamera: ' + err.message);
+                        alert('Browser Anda tidak mendukung akses kamera langsung. Silakan gunakan tombol Unggah Galeri.');
                         this.closeCamera();
+                        return;
+                    }
+
+                    const setupVideo = (stream) => {
+                        this.mediaStream = stream;
+                        const video = document.getElementById('censusEditWebcamVideo');
+                        if (video) {
+                            video.setAttribute('playsinline', 'true');
+                            video.setAttribute('webkit-playsinline', 'true');
+                            video.muted = true;
+                            video.srcObject = stream;
+                            video.onloadedmetadata = () => {
+                                const p = video.play();
+                                if (p !== undefined) {
+                                    p.then(() => { this.cameraLoading = false; }).catch(() => { this.cameraLoading = false; });
+                                } else {
+                                    this.cameraLoading = false;
+                                }
+                            };
+                        }
+                    };
+
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                            audio: false
+                        });
+                        setupVideo(stream);
+                    } catch (err) {
+                        try {
+                            const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                            setupVideo(fallbackStream);
+                        } catch (fallbackErr) {
+                            this.cameraLoading = false;
+                            alert('Tidak dapat mengakses kamera: ' + fallbackErr.message + '. Silakan pastikan izin kamera telah diberikan di Safari.');
+                            this.closeCamera();
+                        }
                     }
                 },
 
@@ -841,10 +878,12 @@
                     const canvas = document.getElementById('censusEditWebcamCanvas');
                     if (!video || !canvas) return;
 
-                    canvas.width = video.videoWidth || 640;
-                    canvas.height = video.videoHeight || 480;
+                    const width = video.videoWidth || 640;
+                    const height = video.videoHeight || 480;
+                    canvas.width = width;
+                    canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(video, 0, 0, width, height);
 
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
                     if (this.activeCameraSlot && this.photos[this.activeCameraSlot]) {

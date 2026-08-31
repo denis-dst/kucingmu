@@ -270,15 +270,15 @@ class DashboardController extends Controller
         ]);
 
         $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $file = $request->file('photo');
-            $photoPath = $this->compressAndStorePhoto($file);
+        $mainPhotoInput = $request->file('photo') ?: $request->input('photo_cam');
+        if ($mainPhotoInput) {
+            $photoPath = $this->compressAndStorePhoto($mainPhotoInput);
         }
 
         $biometricPhotoPath = null;
-        if ($request->hasFile('biometric_photo')) {
-            $file = $request->file('biometric_photo');
-            $biometricPhotoPath = $this->compressAndStorePhoto($file, 'biometrics');
+        $biometricInput = $request->file('biometric_photo') ?: $request->input('biometric_photo_cam');
+        if ($biometricInput) {
+            $biometricPhotoPath = $this->compressAndStorePhoto($biometricInput, 'biometrics');
         }
 
         $wilayahCode = $request->wilayah_code ?: '34';
@@ -314,13 +314,19 @@ class DashboardController extends Controller
             ]);
         }
 
-        if ($request->hasFile('photos')) {
-            $uploadedPhotos = $request->file('photos');
+        $uploadedPhotos = $request->file('photos', []);
+        $cameraPhotos = $request->input('photos_cam', []);
+        $allPhotoKeys = array_unique(array_merge(array_keys($uploadedPhotos), array_keys($cameraPhotos)));
+
+        if (!empty($allPhotoKeys)) {
             $labels = $request->input('photo_labels', []);
             $primaryIdx = (int) $request->input('primary_photo_index', -1);
 
-            foreach ($uploadedPhotos as $index => $uploadedFile) {
-                $savedPath = $this->compressAndStorePhoto($uploadedFile);
+            foreach ($allPhotoKeys as $index) {
+                $rawFile = $uploadedPhotos[$index] ?? ($cameraPhotos[$index] ?? null);
+                if (!$rawFile) continue;
+
+                $savedPath = $this->compressAndStorePhoto($rawFile);
                 $label = isset($labels[$index]) && !empty($labels[$index]) ? $labels[$index] : 'Foto ' . ($index + 1);
                 $isPrimary = ($index === $primaryIdx) || (!$photoPath && $index === 0);
 
@@ -390,12 +396,12 @@ class DashboardController extends Controller
         MasterBreed::registerBreedIfNotExists($finalBreed);
 
         $photoPath = $cat->photo_path;
-        if ($request->hasFile('photo')) {
+        $mainPhotoInput = $request->file('photo') ?: $request->input('photo_cam');
+        if ($mainPhotoInput) {
             if ($cat->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($cat->photo_path)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
             }
-            $file = $request->file('photo');
-            $photoPath = $this->compressAndStorePhoto($file);
+            $photoPath = $this->compressAndStorePhoto($mainPhotoInput);
 
             CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
             CatPhoto::create([
@@ -407,12 +413,12 @@ class DashboardController extends Controller
         }
 
         $biometricPhotoPath = $cat->biometric_photo_path;
-        if ($request->hasFile('biometric_photo')) {
+        $biometricInput = $request->file('biometric_photo') ?: $request->input('biometric_photo_cam');
+        if ($biometricInput) {
             if ($cat->biometric_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($cat->biometric_photo_path)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->biometric_photo_path);
             }
-            $file = $request->file('biometric_photo');
-            $biometricPhotoPath = $this->compressAndStorePhoto($file, 'biometrics');
+            $biometricPhotoPath = $this->compressAndStorePhoto($biometricInput, 'biometrics');
         }
 
         $oldWilayah = $cat->wilayah_code;
@@ -443,14 +449,18 @@ class DashboardController extends Controller
             'notes' => $request->notes,
         ]);
 
-        if ($request->hasFile('photos')) {
-            $uploadedPhotos = $request->file('photos');
+        $uploadedPhotos = $request->file('photos', []);
+        $cameraPhotos = $request->input('photos_cam', []);
+        $allPhotoKeys = array_unique(array_merge(array_keys($uploadedPhotos), array_keys($cameraPhotos)));
+
+        if (!empty($allPhotoKeys)) {
             $labels = $request->input('photo_labels', []);
 
-            foreach ($uploadedPhotos as $key => $uploadedFile) {
-                if (!$uploadedFile) continue;
+            foreach ($allPhotoKeys as $key) {
+                $rawFile = $uploadedPhotos[$key] ?? ($cameraPhotos[$key] ?? null);
+                if (!$rawFile) continue;
 
-                $savedPath = $this->compressAndStorePhoto($uploadedFile);
+                $savedPath = $this->compressAndStorePhoto($rawFile);
                 $label = isset($labels[$key]) && !empty($labels[$key]) ? $labels[$key] : 'Foto Kucing';
 
                 $existingForLabel = CatPhoto::where('cat_id', $cat->id)

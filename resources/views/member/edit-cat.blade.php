@@ -286,6 +286,7 @@
                                         </div>
 
                                         <input type="hidden" name="photo_labels[{{ $pos['key'] }}]" value="{{ $pos['label'] }}">
+                                        <input type="hidden" name="photos_cam[{{ $pos['key'] }}]" :value="cameraPhotos['{{ $pos['key'] }}'] || ''">
                                         
                                         <p class="text-[10px] text-teal-600 font-medium text-center">Format: JPG/PNG/WEBP (Auto-kompres maks 200 KB)</p>
                                     </div>
@@ -368,6 +369,7 @@
                                        capture="environment"
                                        @change="validateAndPreview($event, 'biometric', 'biometric_preview')"
                                        class="form-input mt-1 block w-full text-xs border-slate-300 rounded-xl">
+                                <input type="hidden" name="biometric_photo_cam" :value="cameraPhotos['biometric'] || ''">
                                 <img id="biometric_preview" class="hidden w-20 h-20 object-cover rounded-lg border border-teal-500 mt-2 shadow-xs">
                             </div>
 
@@ -433,7 +435,7 @@
 
                 <!-- Video Stream Preview -->
                 <div class="relative bg-black rounded-2xl overflow-hidden aspect-square flex items-center justify-center shadow-inner">
-                    <video x-ref="videoElement" autoplay playsinline class="w-full h-full object-cover" x-show="!capturedImage"></video>
+                    <video x-ref="videoElement" autoplay playsinline webkit-playsinline muted class="w-full h-full object-cover" x-show="!capturedImage"></video>
                     <img :src="capturedImage" x-show="capturedImage" class="w-full h-full object-cover">
                     <canvas x-ref="canvasElement" class="hidden"></canvas>
                 </div>
@@ -491,17 +493,26 @@
                 previewKey: null,
                 previewImageId: null,
                 previews: {},
+                cameraPhotos: {},
 
                 validateAndPreview(event, key, directPreviewId = null) {
                     const input = event.target;
                     const file = input.files && input.files[0];
                     if (!file) return;
 
-                    // Validate file type (JPG/PNG only)
-                    const validMimes = ['image/jpeg', 'image/png', 'image/jpg'];
-                    const isValidType = validMimes.includes(file.type) || file.name.match(/\.(jpe?g|png)$/i);
+                    // Clear any previous camera capture for this slot so file takes priority
+                    if (key) {
+                        this.cameraPhotos[key] = null;
+                    }
+                    if (directPreviewId) {
+                        this.cameraPhotos['biometric'] = null;
+                    }
+
+                    // Validate file type (JPG/PNG/WEBP)
+                    const validMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+                    const isValidType = validMimes.includes(file.type) || file.name.match(/\.(jpe?g|png|webp)$/i);
                     if (!isValidType) {
-                        alert('Format file tidak didukung! Harap unggah foto dengan format JPG atau PNG.');
+                        alert('Format file tidak didukung! Harap unggah foto dengan format JPG, PNG, atau WEBP.');
                         input.value = '';
                         if (key) this.previews[key] = null;
                         if (directPreviewId) {
@@ -544,6 +555,7 @@
 
                 clearSelectedPhoto(key, inputId) {
                     this.previews[key] = null;
+                    this.cameraPhotos[key] = null;
                     const input = document.getElementById(inputId);
                     if (input) input.value = '';
                 },
@@ -556,16 +568,48 @@
                     this.showModal = true;
 
                     this.$nextTick(() => {
-                        navigator.mediaDevices.getUserMedia({
-                            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
-                        }).then(s => {
+                        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                            alert('Browser Anda tidak mendukung akses kamera. Silakan gunakan tombol Unggah File / Galeri.');
+                            this.showModal = false;
+                            return;
+                        }
+
+                        const constraints = {
+                            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                            audio: false
+                        };
+
+                        navigator.mediaDevices.getUserMedia(constraints).then(s => {
                             this.stream = s;
-                            if (this.$refs.videoElement) {
-                                this.$refs.videoElement.srcObject = s;
+                            const video = this.$refs.videoElement;
+                            if (video) {
+                                video.setAttribute('playsinline', 'true');
+                                video.setAttribute('webkit-playsinline', 'true');
+                                video.muted = true;
+                                video.srcObject = s;
+                                video.onloadedmetadata = () => {
+                                    const p = video.play();
+                                    if (p !== undefined) p.catch(e => console.warn('Safari video play:', e));
+                                };
                             }
                         }).catch(err => {
-                            alert('Tidak dapat mengoperasikan kamera: ' + err.message + '\nPastikan izin akses kamera telah diberikan di browser.');
-                            this.showModal = false;
+                            navigator.mediaDevices.getUserMedia({ video: true, audio: false }).then(s => {
+                                this.stream = s;
+                                const video = this.$refs.videoElement;
+                                if (video) {
+                                    video.setAttribute('playsinline', 'true');
+                                    video.setAttribute('webkit-playsinline', 'true');
+                                    video.muted = true;
+                                    video.srcObject = s;
+                                    video.onloadedmetadata = () => {
+                                        const p = video.play();
+                                        if (p !== undefined) p.catch(e => console.warn('Safari fallback video play:', e));
+                                    };
+                                }
+                            }).catch(fallbackErr => {
+                                alert('Tidak dapat mengoperasikan kamera: ' + fallbackErr.message + '\nPastikan izin akses kamera telah diizinkan di Safari.');
+                                this.showModal = false;
+                            });
                         });
                     });
                 },
@@ -589,34 +633,40 @@
                 usePhoto() {
                     if (!this.capturedImage || !this.targetInputId) return;
 
-                    const arr = this.capturedImage.split(',');
-                    const mime = arr[0].match(/:(.*?);/)[1];
-                    const bstr = atob(arr[1]);
-                    let n = bstr.length;
-                    const u8arr = new Uint8Array(n);
-                    while (n--) {
-                        u8arr[n] = bstr.charCodeAt(n);
-                    }
-                    const file = new File([u8arr], 'camera_photo_' + Date.now() + '.jpg', { type: mime });
-
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-
-                    const inputElem = document.getElementById(this.targetInputId);
-                    if (inputElem) {
-                        inputElem.files = dataTransfer.files;
-                    }
-
                     if (this.previewKey) {
+                        this.cameraPhotos[this.previewKey] = this.capturedImage;
                         this.previews[this.previewKey] = this.capturedImage;
                     }
 
                     if (this.previewImageId) {
+                        this.cameraPhotos['biometric'] = this.capturedImage;
                         const prevElem = document.getElementById(this.previewImageId);
                         if (prevElem) {
                             prevElem.src = this.capturedImage;
                             prevElem.classList.remove('hidden');
                         }
+                    }
+
+                    try {
+                        const arr = this.capturedImage.split(',');
+                        const mime = arr[0].match(/:(.*?);/)[1];
+                        const bstr = atob(arr[1]);
+                        let n = bstr.length;
+                        const u8arr = new Uint8Array(n);
+                        while (n--) {
+                            u8arr[n] = bstr.charCodeAt(n);
+                        }
+                        const file = new File([u8arr], 'camera_photo_' + Date.now() + '.jpg', { type: mime });
+
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+
+                        const inputElem = document.getElementById(this.targetInputId);
+                        if (inputElem) {
+                            inputElem.files = dataTransfer.files;
+                        }
+                    } catch (e) {
+                        console.warn('Safari DataTransfer fallback handled via base64 input:', e);
                     }
 
                     this.closeCamera();

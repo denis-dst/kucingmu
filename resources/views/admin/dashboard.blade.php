@@ -14,8 +14,11 @@
                     </p>
                     
                     <div class="mt-4 flex flex-wrap gap-3">
-                        <a href="{{ route('export-data') }}" class="button-primary text-xs font-bold px-4 py-2.5 shadow-sm">
-                            <span>📊</span> Ekspor Semua Data (CSV)
+                        <a href="{{ route('admin.users.index') }}" class="button-primary text-xs font-bold px-4 py-2.5 shadow-sm bg-teal-800 hover:bg-teal-900">
+                            <span>👥</span> Kelola & Rekrut Pengguna
+                        </a>
+                        <a href="{{ route('export-data') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
+                            <span>📊</span> Ekspor Data (CSV)
                         </a>
                         <a href="{{ route('superadmin.wilayah.index') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
                             <span>🏛️</span> Master Wilayah
@@ -386,7 +389,17 @@
 
                                         <!-- Pemilik & NBM -->
                                         <td class="py-3.5 px-4">
-                                            <div class="font-semibold text-slate-900 text-xs">{{ $cat->owner ? $cat->owner->name : '-' }}</div>
+                                            <div class="flex items-center gap-1.5 justify-between">
+                                                <div class="font-semibold text-slate-900 text-xs">{{ $cat->owner ? $cat->owner->name : '-' }}</div>
+                                                @if($cat->owner && Auth::id() !== $cat->owner->id)
+                                                    <form action="{{ route('admin.users.impersonate', $cat->owner->id) }}" method="POST" class="inline" onsubmit="return confirm('Masuk sebagai pemilik {{ $cat->owner->name }}?')">
+                                                        @csrf
+                                                        <button type="submit" class="text-[10px] bg-slate-100 hover:bg-teal-100 hover:text-teal-900 text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 font-bold transition flex items-center gap-0.5" title="Login Sebagai Pemilik (Impersonate)">
+                                                            <span>🎭</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                             <div class="text-[11px] text-slate-500 font-mono mt-0.5">
                                                 NBM: <span class="text-slate-700 font-medium">{{ $cat->owner ? ($cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-')) : '-' }}</span>
                                             </div>
