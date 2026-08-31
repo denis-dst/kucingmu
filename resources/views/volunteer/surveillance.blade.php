@@ -933,7 +933,7 @@
                             {{-- Foto dokumentasi --}}
                             <hr class="sur-divider">
                             <div>
-                                <label class="sur-label" for="photo">Foto Dokumentasi Area <span style="color:#9ca3af;">(opsional, maks 5 MB)</span></label>
+                                <label class="sur-label" for="photo">Foto Dokumentasi Area <span style="color:#0d9488;font-weight:600;">(opsional, auto-kompres maks 200 KB)</span></label>
                                 <input type="file" id="photo" name="photo" accept="image/*" capture="environment"
                                     class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-teal-50 file:px-4 file:py-2 file:font-semibold file:text-teal-700 hover:file:bg-teal-100 mt-1">
                                 @error('photo')<p class="text-rose-500 text-xs mt-1">{{ $message }}</p>@enderror

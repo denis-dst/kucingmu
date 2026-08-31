@@ -287,7 +287,7 @@
 
                                         <input type="hidden" name="photo_labels[{{ $pos['key'] }}]" value="{{ $pos['label'] }}">
                                         
-                                        <p class="text-[10px] text-slate-400 text-center">Format: JPG/PNG (Maks 1 MB)</p>
+                                        <p class="text-[10px] text-teal-600 font-medium text-center">Format: JPG/PNG/WEBP (Auto-kompres maks 200 KB)</p>
                                     </div>
                                 </div>
                             @endforeach
@@ -340,7 +340,7 @@
                             <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
                                 🐾 Data Biometrik Kucing (Paw Print / Nose Print)
                             </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Sistem mendukung penyimpanan identifikasi biometrik telapak kaki (*paw*) atau hidung (*nose print*). Maks. 1 MB (JPG/PNG).</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Sistem mendukung penyimpanan identifikasi biometrik telapak kaki (*paw*) atau hidung (*nose print*). Server otomatis mengompresi foto menjadi $\le$ 200 KB.</p>
                         </div>
 
                         <div class="grid gap-4 sm:grid-cols-3">
@@ -511,11 +511,11 @@
                         return;
                     }
 
-                    // Validate file size: Max 1 MB (1024 * 1024 bytes)
-                    const maxSizeBytes = 1024 * 1024;
+                    // Validate file size: Max 20 MB (auto-compressed on server to <= 200 KB)
+                    const maxSizeBytes = 20 * 1024 * 1024;
                     if (file.size > maxSizeBytes) {
                         const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
-                        alert(`Ukuran file terlalu besar (${sizeMb} MB)! Maksimal ukuran 1 foto adalah 1 MB (JPG/PNG).`);
+                        alert(`Ukuran file terlalu besar (${sizeMb} MB)! Maksimal ukuran 1 file sebelum kompresi adalah 20 MB.`);
                         input.value = '';
                         if (key) this.previews[key] = null;
                         if (directPreviewId) {
@@ -598,11 +598,6 @@
                         u8arr[n] = bstr.charCodeAt(n);
                     }
                     const file = new File([u8arr], 'camera_photo_' + Date.now() + '.jpg', { type: mime });
-
-                    if (file.size > 1024 * 1024) {
-                        alert('Ukuran foto kamera melebihi 1 MB. Silakan ulangi pemotretan.');
-                        return;
-                    }
 
                     const dataTransfer = new DataTransfer();
                     dataTransfer.items.add(file);

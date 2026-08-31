@@ -381,6 +381,7 @@
                             <div>
                                 <label for="cat_photo" class="form-label text-xs">Foto Kucing (Galeri / Kamera)</label>
                                 <input type="file" id="cat_photo" name="photo" accept="image/*" class="form-input text-xs">
+                                <p class="text-[10px] text-teal-600 font-medium mt-1">Format JPG/PNG/WEBP (Auto-kompres maks 200 KB)</p>
                             </div>
                             <div>
                                 <label for="cat_allergies" class="form-label text-xs">Alergi Kucing <span class="text-slate-500 font-normal">(Opsional)</span></label>

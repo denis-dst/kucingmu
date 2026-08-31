@@ -11,6 +11,7 @@ use App\Models\MasterWilayah;
 use App\Models\MasterBreed;
 use App\Models\User;
 use App\Services\KtamService;
+use App\Services\ImageCompressionService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -256,12 +257,12 @@ class DashboardController extends Controller
             'date_of_birth' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
-            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'photo_labels.*' => 'nullable|string|max:255',
             'primary_photo_index' => 'nullable|integer',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
-            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'biometric_code' => 'nullable|string|max:255',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
@@ -374,11 +375,11 @@ class DashboardController extends Controller
             'date_of_birth' => 'required|date',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
-            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'photo_labels.*' => 'nullable|string|max:255',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
-            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg|max:1024',
+            'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'biometric_code' => 'nullable|string|max:255',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
@@ -532,7 +533,7 @@ class DashboardController extends Controller
         }
 
         $request->validate([
-            'photo' => 'required|image|mimes:jpeg,png,jpg|max:1024',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,webp|max:20480',
             'label' => 'required|string|max:255',
             'is_primary' => 'nullable|boolean',
         ]);
@@ -991,51 +992,20 @@ class DashboardController extends Controller
     }
 
     /**
-     * Compress and store an uploaded photo using native PHP GD.
-     * Scales down to max 800x800, converts to JPEG, compresses under 512KB.
+     * Compress and store an uploaded photo using ImageCompressionService (guaranteed <= 200KB).
      *
-     * @param \Illuminate\Http\UploadedFile $file
+     * @param mixed $file \Illuminate\Http\UploadedFile|string
      * @param string $dir
      * @return string The relative storage path (e.g. 'cats/xxxxx.jpg')
      */
     private function compressAndStorePhoto($file, string $dir = 'cats'): string
     {
-        $binary = file_get_contents($file->getPathname());
-        $sourceImage = imagecreatefromstring($binary);
+        $savedPath = ImageCompressionService::compressAndStore($file, $dir, 'public', 200);
 
-        if (!$sourceImage) {
-            throw new \RuntimeException('Gagal membaca file gambar. Pastikan file adalah gambar yang valid.');
+        if (!$savedPath) {
+            throw new \RuntimeException('Gagal mengompres dan menyimpan file foto.');
         }
 
-        $origWidth = imagesx($sourceImage);
-        $origHeight = imagesy($sourceImage);
-
-        $maxDim = 800;
-        $newWidth = $origWidth;
-        $newHeight = $origHeight;
-
-        if ($origWidth > $maxDim || $origHeight > $maxDim) {
-            $ratio = min($maxDim / $origWidth, $maxDim / $origHeight);
-            $newWidth = (int) round($origWidth * $ratio);
-            $newHeight = (int) round($origHeight * $ratio);
-        }
-
-        $resized = imagecreatetruecolor($newWidth, $newHeight);
-        $white = imagecolorallocate($resized, 255, 255, 255);
-        imagefill($resized, 0, 0, $white);
-
-        imagecopyresampled($resized, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
-        imagedestroy($sourceImage);
-
-        $filename = $dir . '/' . uniqid() . '.jpg';
-        $fullPath = storage_path('app/public/' . $filename);
-        if (!file_exists(dirname($fullPath))) {
-            mkdir(dirname($fullPath), 0755, true);
-        }
-
-        imagejpeg($resized, $fullPath, 70);
-        imagedestroy($resized);
-
-        return $filename;
+        return $savedPath;
     }
 }

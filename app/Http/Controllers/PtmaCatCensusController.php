@@ -8,6 +8,7 @@ use App\Models\CatPhoto;
 use App\Models\MasterBreed;
 use App\Models\StrayCatSurvey;
 use App\Services\CatBiometricService;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -602,10 +603,10 @@ class PtmaCatCensusController extends Controller
             'catatan'               => 'nullable|string|max:2000',
 
             // Photos validation
-            'foto_wajah'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
-            'foto_atas'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
-            'foto_samping_kiri'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
-            'foto_opsional'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
+            'foto_wajah'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'foto_atas'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'foto_samping_kiri'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'foto_opsional'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'foto_wajah_cam'        => 'nullable|string',
             'foto_atas_cam'         => 'nullable|string',
             'foto_samping_kiri_cam' => 'nullable|string',
@@ -783,10 +784,10 @@ class PtmaCatCensusController extends Controller
             'catatan'               => 'nullable|string|max:2000',
 
             // Photos validation
-            'foto_wajah'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
-            'foto_atas'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
-            'foto_samping_kiri'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
-            'foto_opsional'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:8192',
+            'foto_wajah'            => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'foto_atas'             => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'foto_samping_kiri'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'foto_opsional'         => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'foto_wajah_cam'        => 'nullable|string',
             'foto_atas_cam'         => 'nullable|string',
             'foto_samping_kiri_cam' => 'nullable|string',
@@ -1024,47 +1025,18 @@ class PtmaCatCensusController extends Controller
     }
 
     /**
-     * Resize and save image to storage under 1000px width.
+     * Resize and save image to storage under 200KB.
      */
     private function compressAndSaveImage(string $binaryData): string
     {
-        $sourceImage = @imagecreatefromstring($binaryData);
-        $filename = 'ptma-census/' . uniqid('census_', true) . '.jpg';
-        $fullPath = storage_path('app/public/' . $filename);
+        $saved = ImageCompressionService::compressAndStore($binaryData, 'ptma-census', 'public', 200);
 
-        if (!file_exists(dirname($fullPath))) {
-            mkdir(dirname($fullPath), 0755, true);
-        }
-
-        if (!$sourceImage) {
-            // Fallback raw save if GD fails
-            file_put_contents($fullPath, $binaryData);
+        if (!$saved) {
+            $filename = 'ptma-census/' . uniqid('census_', true) . '.jpg';
+            Storage::disk('public')->put($filename, $binaryData);
             return $filename;
         }
 
-        $origWidth = imagesx($sourceImage);
-        $origHeight = imagesy($sourceImage);
-        $maxDim = 1000;
-
-        if ($origWidth > $maxDim || $origHeight > $maxDim) {
-            $ratio = min($maxDim / $origWidth, $maxDim / $origHeight);
-            $newWidth = (int) round($origWidth * $ratio);
-            $newHeight = (int) round($origHeight * $ratio);
-        } else {
-            $newWidth = $origWidth;
-            $newHeight = $origHeight;
-        }
-
-        $resized = imagecreatetruecolor($newWidth, $newHeight);
-        $white = imagecolorallocate($resized, 255, 255, 255);
-        imagefill($resized, 0, 0, $white);
-
-        imagecopyresampled($resized, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
-        imagejpeg($resized, $fullPath, 75);
-
-        imagedestroy($sourceImage);
-        imagedestroy($resized);
-
-        return $filename;
+        return $saved;
     }
 }

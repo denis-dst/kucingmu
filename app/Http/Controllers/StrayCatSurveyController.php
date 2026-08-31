@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\StrayCatSurvey;
+use App\Services\ImageCompressionService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -141,11 +142,11 @@ class StrayCatSurveyController extends Controller
             'k3l_observation_notes'    => ['nullable', 'string', 'max:3000'],
 
             // Photo
-            'photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:20480'],
         ]);
 
         if ($request->hasFile('photo')) {
-            $data['photo_path'] = $request->file('photo')->store('stray-surveys', 'public');
+            $data['photo_path'] = ImageCompressionService::compressAndStore($request->file('photo'), 'stray-surveys', 'public', 200);
         }
 
         // Decode JSON fields sent from JS

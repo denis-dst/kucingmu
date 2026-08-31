@@ -12,25 +12,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // 1. Update cats.unique_code based on wilayah_code and id
-        // Format: {wilayah_code}.kcg.{4-digit ID}
-        // If wilayah_code is NULL/empty -> set unique_code to NULL
-        DB::statement("
-            UPDATE cats 
-            SET unique_code = CASE 
-                WHEN wilayah_code IS NOT NULL AND TRIM(wilayah_code) != '' 
-                    THEN CONCAT(LOWER(TRIM(wilayah_code)), '.kcg.', LPAD(id, 4, '0'))
-                ELSE NULL 
-            END
-        ");
+        if (DB::getDriverName() === 'mysql') {
+            // 1. Update cats.unique_code based on wilayah_code and id
+            // Format: {wilayah_code}.kcg.{4-digit ID}
+            // If wilayah_code is NULL/empty -> set unique_code to NULL
+            DB::statement("
+                UPDATE cats 
+                SET unique_code = CASE 
+                    WHEN wilayah_code IS NOT NULL AND TRIM(wilayah_code) != '' 
+                        THEN CONCAT(LOWER(TRIM(wilayah_code)), '.kcg.', LPAD(id, 4, '0'))
+                    ELSE NULL 
+                END
+            ");
 
-        // 2. Synchronize existing ktam_cards.ktam_number with cats.unique_code
-        DB::statement("
-            UPDATE ktam_cards k
-            JOIN cats c ON k.cat_id = c.id
-            SET k.ktam_number = c.unique_code
-            WHERE c.unique_code IS NOT NULL AND c.unique_code != ''
-        ");
+            // 2. Synchronize existing ktam_cards.ktam_number with cats.unique_code
+            DB::statement("
+                UPDATE ktam_cards k
+                JOIN cats c ON k.cat_id = c.id
+                SET k.ktam_number = c.unique_code
+                WHERE c.unique_code IS NOT NULL AND c.unique_code != ''
+            ");
+        }
     }
 
     /**
