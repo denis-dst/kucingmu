@@ -16,7 +16,7 @@ Route::get('/', function () {
 
     $stats = [
         'total_cats' => \App\Models\Cat::count(),
-        'ktam_issued' => \App\Models\Cat::whereNotNull('ktam_number')->orWhere('is_ktam_verified', true)->count(),
+        'ktam_issued' => \App\Models\KtamCard::count(),
         'medical_records' => \App\Models\MedicalRecord::count(),
         'census_count' => \App\Models\PtmaCatCensus::count() + \App\Models\StrayCatSurvey::count(),
         'total_users' => \App\Models\User::count(),
