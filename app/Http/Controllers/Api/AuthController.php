@@ -8,7 +8,6 @@ use App\Models\Cat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -22,7 +21,7 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $loginInput = $request->email;
+        $loginInput = trim($request->email);
         $user = User::where('email', $loginInput)
             ->orWhere('phone', $loginInput)
             ->first();
@@ -39,16 +38,19 @@ class AuthController extends Controller
 
         // Load registered cats with KTAM
         $cats = Cat::where('user_id', $user->id)
-            ->with('ktamCard')
+            ->with(['ktamCard', 'photos'])
             ->get()
             ->map(function ($cat) {
                 return [
                     'id' => $cat->id,
                     'name' => $cat->name,
-                    'breed' => $cat->breed,
-                    'ktam_number' => $cat->ktamCard?->card_number ?? $cat->ktam_number,
-                    'photo_url' => $cat->photo_url ? url($cat->photo_url) : null,
-                    'is_verified' => $cat->is_verified ?? true,
+                    'breed' => $cat->breed ?: 'Domestik',
+                    'gender' => $cat->gender,
+                    'color' => $cat->color,
+                    'date_of_birth' => $cat->date_of_birth ? $cat->date_of_birth->format('d-m-Y') : null,
+                    'ktam_number' => $cat->formatted_unique_code ?: ($cat->ktamCard?->ktam_number ?? 'KM-' . $cat->id),
+                    'photo_url' => $cat->primary_photo_url,
+                    'is_verified' => true,
                 ];
             });
 
@@ -136,21 +138,24 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
-        $user = User::first(); // Fallback active or token user
+        $user = User::first();
         if (!$user) {
             return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
         }
 
         $cats = Cat::where('user_id', $user->id)
-            ->with('ktamCard')
+            ->with(['ktamCard', 'photos'])
             ->get()
             ->map(function ($cat) {
                 return [
                     'id' => $cat->id,
                     'name' => $cat->name,
-                    'breed' => $cat->breed,
-                    'ktam_number' => $cat->ktamCard?->card_number ?? $cat->ktam_number,
-                    'photo_url' => $cat->photo_url ? url($cat->photo_url) : null,
+                    'breed' => $cat->breed ?: 'Domestik',
+                    'gender' => $cat->gender,
+                    'color' => $cat->color,
+                    'date_of_birth' => $cat->date_of_birth ? $cat->date_of_birth->format('d-m-Y') : null,
+                    'ktam_number' => $cat->formatted_unique_code ?: ($cat->ktamCard?->ktam_number ?? 'KM-' . $cat->id),
+                    'photo_url' => $cat->primary_photo_url,
                     'is_verified' => true,
                 ];
             });

@@ -22,6 +22,7 @@ Route::prefix('auth')->group(function () {
 
 // Social Feed & Posts
 Route::get('/posts', [FeedController::class, 'index']);
+Route::post('/posts', [FeedController::class, 'store']);
 Route::get('/posts/{id}/comments', [FeedController::class, 'comments']);
 Route::post('/posts/{id}/comments', [FeedController::class, 'addComment']);
 Route::post('/posts/{id}/like', [FeedController::class, 'like']);
@@ -29,6 +30,7 @@ Route::post('/posts/{id}/save', [FeedController::class, 'save']);
 
 // 24-Hour Ephemeral Stories
 Route::get('/stories', [StoryApiController::class, 'index']);
+Route::post('/stories', [StoryApiController::class, 'store']);
 
 // Explore & Search
 Route::get('/social/explore', [ExploreApiController::class, 'explore']);
