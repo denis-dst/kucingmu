@@ -589,12 +589,12 @@
             <div class="max-w-md mx-auto px-4 text-center space-y-5">
                 <span class="eyebrow">Validasi Data</span>
                 <h2 class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900 leading-snug">Periksa Keaslian Kartu KTAKuMu</h2>
-                <p class="text-xs text-slate-600 leading-relaxed">Masukkan nomor NIAKuMu Kucing (contoh: 34.kcg.0001 / KM-YYYYMMDD-XXXX) untuk memeriksa status registrasi dan riwayat pemeriksaan medis resmi.</p>
+                <p class="text-xs text-slate-600 leading-relaxed">Masukkan nomor NIAKuMu Kucing (contoh: 34.kcg.0001) untuk memeriksa status registrasi dan riwayat pemeriksaan medis resmi.</p>
                 
                 <form onsubmit="event.preventDefault(); const val = document.getElementById('verify-input').value.trim(); if(val) { window.location.href = '/verify/' + val; } else { alert('Silakan masukkan nomor NIAKuMu.'); }" class="space-y-3 bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
                     <div>
                         <label for="verify-input" class="form-label text-left text-xs">Nomor NIAKuMu Kucing</label>
-                        <input type="text" id="verify-input" placeholder="e.g. 34.kcg.0001 / KM-20260707-0001" class="form-input text-center font-mono text-sm" required>
+                        <input type="text" id="verify-input" placeholder="e.g. 34.kcg.0001" class="form-input text-center font-mono text-sm" required>
                     </div>
                     <button type="submit" class="w-full button-primary flex justify-center py-2.5 text-xs font-semibold">
                         Periksa Validitas Kartu
