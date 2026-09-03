@@ -6,7 +6,7 @@
     </button>
 
     <!-- Menu Options -->
-    <div x-show="open" @click.outside="open = false" x-transition role="dialog" aria-label="Pengaturan Aksesibilitas" class="absolute bottom-16 left-0 bg-white border border-slate-200 rounded-xl p-4 shadow-xl w-64 space-y-3.5 text-slate-800">
+    <div x-show="open" x-cloak @click.outside="open = false" x-transition role="dialog" aria-label="Pengaturan Aksesibilitas" class="absolute bottom-16 left-0 bg-white border border-slate-200 rounded-xl p-4 shadow-xl w-64 space-y-3.5 text-slate-800" style="display: none;">
         <h3 class="font-outfit font-bold text-slate-900 text-sm border-b border-slate-200 pb-2">
             {{ app()->getLocale() == 'en' ? 'Accessibility Settings' : 'Pengaturan Aksesibilitas' }}
         </h3>

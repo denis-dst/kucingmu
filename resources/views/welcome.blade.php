@@ -13,10 +13,21 @@
         <link rel="shortcut icon" href="{{ asset('storage/' . $app_settings['app_favicon']) }}" type="image/x-icon">
     @endif
 
-    <!-- Fonts -->
+    <!-- Google Fonts DNS & Preconnect -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Non-render-blocking Google Fonts with font-display swap -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap">
+    </noscript>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 
     <!-- Styles / Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -34,7 +45,7 @@
             <!-- Brand Logo -->
             <a href="#" class="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-700 rounded-lg p-1">
                 @if(isset($app_settings['app_logo']))
-                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="{{ $app_settings['app_name'] ?? 'KucingMu' }}" class="h-8 w-auto object-contain">
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="{{ $app_settings['app_name'] ?? 'KucingMu' }}" width="32" height="32" class="h-8 w-auto object-contain" decoding="async">
                 @else
                     <span class="text-2xl" aria-hidden="true">🐱</span>
                 @endif
@@ -177,7 +188,15 @@
                                      class="absolute inset-0 w-full h-full"
                                      style="{{ $index === 0 ? '' : 'display: none;' }}">
                                     
-                                    <img src="{{ $album->image_url }}" alt="{{ $album->title }}" class="w-full h-full object-cover" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='{{ asset('images/logo-muhammadiyah.svg') }}';">
+                                    <img src="{{ $album->image_url }}" 
+                                         alt="{{ $album->title }}" 
+                                         width="600" 
+                                         height="400"
+                                         {{ $index === 0 ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"' }}
+                                         decoding="async"
+                                         class="w-full h-full object-cover" 
+                                         style="width: 100%; height: 100%; object-fit: cover;" 
+                                         onerror="this.onerror=null; this.src='{{ asset('images/logo-muhammadiyah.svg') }}';">
                                     
                                     <!-- Gradient Overlay -->
                                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
@@ -257,11 +276,18 @@
                             <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                         </button>
 
-                        <!-- Indicators Dots -->
+                        <!-- Indicators Dots (Zero-CLS pre-rendered in Blade) -->
                         <div class="absolute bottom-3 right-5 z-30 flex items-center gap-1.5">
-                            <template x-for="i in totalSlides" :key="i">
-                                <button type="button" @click.stop="activeIndex = i - 1" :aria-label="'Buka slide ' + i" :class="activeIndex === (i - 1) ? 'w-6 bg-amber-400' : 'w-2 bg-white/40 hover:bg-white/70'" class="h-2 rounded-full transition-all duration-300 shadow-xs"></button>
-                            </template>
+                            @php
+                                $totalAlbumSlides = (isset($activityAlbums) && count($activityAlbums) > 0) ? count($activityAlbums) : 3;
+                            @endphp
+                            @for($i = 0; $i < $totalAlbumSlides; $i++)
+                                <button type="button" 
+                                        @click.stop="activeIndex = {{ $i }}" 
+                                        aria-label="Buka slide {{ $i + 1 }}" 
+                                        :class="activeIndex === {{ $i }} ? 'w-6 bg-amber-400' : 'w-2 bg-white/40 hover:bg-white/70'" 
+                                        class="h-2 rounded-full transition-all duration-300 shadow-xs {{ $i === 0 ? 'w-6 bg-amber-400' : 'w-2 bg-white/40' }}"></button>
+                            @endfor
                         </div>
                     </div>
 
@@ -465,7 +491,7 @@
                                     <!-- Banner -->
                                     <div class="h-44 w-full bg-slate-100 rounded-lg overflow-hidden relative border border-slate-200">
                                         @if($event->banner_path)
-                                            <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" class="h-full w-full object-cover">
+                                            <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" width="400" height="176" loading="lazy" decoding="async" class="h-full w-full object-cover">
                                         @else
                                             <div class="h-full w-full flex flex-col items-center justify-center text-slate-400">
                                                 <span class="text-3xl" aria-hidden="true">📅</span>
@@ -599,7 +625,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
             <div class="flex items-center gap-2">
                 @if(isset($app_settings['app_logo']))
-                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="{{ $app_settings['app_name'] ?? 'KucingMu' }}" class="h-7 w-auto object-contain">
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="{{ $app_settings['app_name'] ?? 'KucingMu' }}" width="28" height="28" loading="lazy" decoding="async" class="h-7 w-auto object-contain">
                 @else
                     <span class="text-2xl" aria-hidden="true">🐱</span>
                 @endif

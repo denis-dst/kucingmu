@@ -52,17 +52,29 @@ class ActivityAlbum extends Model
             return $this->image_path;
         }
 
+        // Check WebP companion first for high performance
+        $webpCandidate = preg_replace('/\.(jpg|jpeg|png|JPG|JPEG|PNG)$/i', '.webp', $this->image_path);
+
         // Path starting with images/albums/
+        if (file_exists(public_path($webpCandidate))) {
+            return asset($webpCandidate);
+        }
         if (file_exists(public_path($this->image_path))) {
             return asset($this->image_path);
         }
 
         // Relative filename inside images/albums/
+        if (file_exists(public_path('images/albums/' . $webpCandidate))) {
+            return asset('images/albums/' . $webpCandidate);
+        }
         if (file_exists(public_path('images/albums/' . $this->image_path))) {
             return asset('images/albums/' . $this->image_path);
         }
 
         // Storage public fallback
+        if (file_exists(storage_path('app/public/' . $webpCandidate))) {
+            return asset('storage/' . $webpCandidate);
+        }
         if (file_exists(storage_path('app/public/' . $this->image_path))) {
             return asset('storage/' . $this->image_path);
         }
