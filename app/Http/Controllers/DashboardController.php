@@ -53,6 +53,13 @@ class DashboardController extends Controller
             'records_count' => MedicalRecord::count(),
             'ktam_count' => KtamCard::count(),
             'pending_verification_count' => Cat::whereDoesntHave('ktamCard')->count(),
+
+            // User Role Statistics matching /admin/users
+            'users_total' => User::count(),
+            'users_member' => User::where('role', 'member')->count(),
+            'users_dokter' => User::where('role', 'dokter')->count(),
+            'users_volunteer' => User::where('role', 'volunteer')->count(),
+            'users_admin' => User::whereIn('role', ['admin', 'superadmin'])->count(),
         ];
 
         $catQuery = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah']);

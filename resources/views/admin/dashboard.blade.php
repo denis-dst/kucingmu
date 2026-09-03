@@ -33,55 +33,129 @@
                 </div>
             </div>
 
-            <!-- Stats Widgets -->
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                
-                <div class="content-card bg-white border border-slate-200 p-4">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Kucing</span>
-                        <div class="flex items-center gap-1.5 text-[10px] font-bold">
-                            <span class="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">🟢 {{ $stats['cats_alive_count'] }}</span>
-                            <span class="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">⚪ {{ $stats['cats_deceased_count'] }}</span>
+            <!-- User Stats Widgets (Sesuai /admin/users) -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Statistik Pengguna & Peran Komunitas</h2>
+                    <a href="{{ route('admin.users.index') }}" class="text-xs font-semibold text-teal-700 hover:text-teal-900 hover:underline">
+                        Kelola Semua Pengguna &rarr;
+                    </a>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <a href="{{ route('admin.users.index', ['role' => 'all']) }}" 
+                       class="content-card p-4 transition hover:border-teal-400 hover:shadow-md bg-white">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            <span>Semua Pengguna</span>
+                            <span>👥</span>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['users_total'] }}</span>
+                            <span class="text-xs font-semibold text-slate-500">Akun</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('admin.users.index', ['role' => 'member']) }}" 
+                       class="content-card p-4 transition hover:border-teal-400 hover:shadow-md bg-white">
+                        <div class="flex items-center justify-between text-xs font-bold text-teal-700 uppercase tracking-wider">
+                            <span>Member Kucing</span>
+                            <span>🐱</span>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-teal-900">{{ $stats['users_member'] }}</span>
+                            <span class="text-xs font-semibold text-teal-700">Orang</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('admin.users.index', ['role' => 'volunteer']) }}" 
+                       class="content-card p-4 transition hover:border-indigo-400 hover:shadow-md bg-white">
+                        <div class="flex items-center justify-between text-xs font-bold text-indigo-700 uppercase tracking-wider">
+                            <span>Relawan (Volunteer)</span>
+                            <span>📋</span>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-indigo-900">{{ $stats['users_volunteer'] }}</span>
+                            <span class="text-xs font-semibold text-indigo-700">Orang</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('admin.users.index', ['role' => 'dokter']) }}" 
+                       class="content-card p-4 transition hover:border-emerald-400 hover:shadow-md bg-white">
+                        <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase tracking-wider">
+                            <span>Dokter Hewan (Vet)</span>
+                            <span>🩺</span>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-emerald-900">{{ $stats['users_dokter'] }}</span>
+                            <span class="text-xs font-semibold text-emerald-700">Dokter</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('admin.users.index', ['role' => 'admin']) }}" 
+                       class="content-card p-4 transition hover:border-amber-400 hover:shadow-md bg-white">
+                        <div class="flex items-center justify-between text-xs font-bold text-amber-700 uppercase tracking-wider">
+                            <span>Pengelola (Admin)</span>
+                            <span>🛡️</span>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-amber-900">{{ $stats['users_admin'] }}</span>
+                            <span class="text-xs font-semibold text-amber-700">Admin</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Widgets: Kucing & Medis -->
+            <div class="space-y-2">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Statistik Data Kucing & Layanan Medis</h2>
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                    
+                    <div class="content-card bg-white border border-slate-200 p-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Kucing</span>
+                            <div class="flex items-center gap-1.5 text-[10px] font-bold">
+                                <span class="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">🟢 {{ $stats['cats_alive_count'] }}</span>
+                                <span class="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">⚪ {{ $stats['cats_deceased_count'] }}</span>
+                            </div>
+                        </div>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['cats_count'] }}</span>
+                            <span class="text-xs font-semibold text-teal-700">Ekor</span>
                         </div>
                     </div>
-                    <div class="mt-1.5 flex items-baseline gap-1.5">
-                        <span class="font-outfit text-3xl font-bold text-slate-900">{{ $stats['cats_count'] }}</span>
-                        <span class="text-xs font-semibold text-teal-700">Ekor</span>
+                    
+                    <div class="content-card bg-white border border-slate-200 p-4">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pemeriksaan Dokter</span>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['records_count'] }}</span>
+                            <span class="text-xs font-semibold text-teal-700">Selesai</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="content-card bg-white border border-slate-200 p-4">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pemeriksaan Dokter</span>
-                    <div class="mt-1.5 flex items-baseline gap-1.5">
-                        <span class="font-outfit text-3xl font-bold text-slate-900">{{ $stats['records_count'] }}</span>
-                        <span class="text-xs font-semibold text-teal-700">Selesai</span>
-                    </div>
-                </div>
 
-                <div class="content-card bg-amber-50/70 border border-amber-200 p-4">
-                    <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Pending Verifikasi</span>
-                    <div class="mt-1.5 flex items-baseline gap-1.5">
-                        <span class="font-outfit text-3xl font-bold text-amber-900">{{ $stats['pending_verification_count'] }}</span>
-                        <span class="text-xs font-semibold text-amber-700">Perlu KTAKuMu</span>
+                    <div class="content-card bg-amber-50/70 border border-amber-200 p-4">
+                        <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Pending Verifikasi</span>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-amber-900">{{ $stats['pending_verification_count'] }}</span>
+                            <span class="text-xs font-semibold text-amber-700">Perlu KTAKuMu</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="content-card bg-white border border-slate-200 p-4">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">KTAKuMu Terbit</span>
-                    <div class="mt-1.5 flex items-baseline gap-1.5">
-                        <span class="font-outfit text-3xl font-bold text-teal-800">{{ $stats['ktam_count'] }}</span>
-                        <span class="text-xs font-semibold text-teal-700">Kartu</span>
+                    <div class="content-card bg-white border border-slate-200 p-4">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">KTAKuMu Terbit</span>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-teal-800">{{ $stats['ktam_count'] }}</span>
+                            <span class="text-xs font-semibold text-teal-700">Kartu</span>
+                        </div>
                     </div>
-                </div>
 
-                <div class="content-card bg-white border border-slate-200 p-4">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Janji Temu</span>
-                    <div class="mt-1.5 flex items-baseline gap-1.5">
-                        <span class="font-outfit text-3xl font-bold text-slate-900">{{ $stats['appointments_count'] }}</span>
-                        <span class="text-xs font-semibold text-slate-500">Janji</span>
+                    <div class="content-card bg-white border border-slate-200 p-4">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Janji Temu</span>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['appointments_count'] }}</span>
+                            <span class="text-xs font-semibold text-slate-500">Janji</span>
+                        </div>
                     </div>
-                </div>
 
+                </div>
             </div>
 
             <!-- Admin Verification Alert Section (Pending KTAKuMu Verification) -->
