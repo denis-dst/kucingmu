@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Verifikasi KTAM KucingMu - {{ $card->ktam_number }}</title>
+    <title>Verifikasi KTAKuMu KucingMu - {{ $card->ktam_number }}</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,7 +35,7 @@
                         <h2 class="font-outfit text-lg font-bold text-rose-950">Kartu Tanda Anggota Ini Tidak Lagi Aktif</h2>
                         <div class="p-4 bg-white rounded-xl border border-rose-200 text-xs text-rose-900 leading-relaxed text-left space-y-2">
                             <div class="flex items-start gap-2">
-                                <span class="font-semibold text-rose-950 min-w-[90px]">Nomor KTAM:</span>
+                                <span class="font-semibold text-rose-950 min-w-[90px]">Nomor NIAKuMu:</span>
                                 <span class="font-mono font-bold text-slate-800">{{ $card->ktam_number }}</span>
                             </div>
                             <div class="flex items-start gap-2">
@@ -58,7 +58,7 @@
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-teal-800 border border-teal-700 text-teal-100 text-xs font-semibold uppercase tracking-wider">
                         Status: Resmi Terverifikasi
                     </span>
-                    <h1 class="font-outfit text-2xl font-bold mt-2.5 text-white tracking-tight">KTAM KucingMu Valid</h1>
+                    <h1 class="font-outfit text-2xl font-bold mt-2.5 text-white tracking-tight">KTAKuMu KucingMu Valid</h1>
                     <p class="text-teal-100 text-xs mt-1 font-mono tracking-wider">{{ $card->ktam_number }}</p>
                     <p class="text-xs text-teal-200 mt-2 font-medium">
                         Diterbitkan: {{ $card->verified_at ? $card->verified_at->format('d F Y') : $card->issue_date->format('d F Y') }}
@@ -125,7 +125,7 @@
                                 <span class="font-bold text-slate-900 text-sm">{{ $cat->name }}</span>
                             </div>
                             <div>
-                                <span class="text-slate-500 block font-medium">Kode Unik KTAM (NIKuMu)</span>
+                                <span class="text-slate-500 block font-medium">Nomor NIAKuMu</span>
                                 <span class="font-bold font-mono text-teal-800 text-sm">{{ $cat->formatted_unique_code }}</span>
                             </div>
                             <div>
@@ -220,7 +220,7 @@
 
             <!-- Footer brand signature -->
             <div class="bg-slate-100 border-t border-slate-200 px-6 py-3.5 text-center text-xs text-slate-600">
-                Pemeriksaan kesehatan kucing & penerbitan KTAM diselenggarakan oleh Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.
+                Pemeriksaan kesehatan kucing & penerbitan KTAKuMu diselenggarakan oleh Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.
             </div>
         </div>
 

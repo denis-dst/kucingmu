@@ -351,7 +351,7 @@
                                     <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                                         <span>🐱</span> Member / Pemilik Kucing
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Dapat mendaftarkan kucing, mengajukan janji temu, dan mencetak Kartu Tanda Anggota Muhammadiyah (KTAM).</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Dapat mendaftarkan kucing, mengajukan janji temu, dan mencetak Kartu Tanda Anggota KucingMu (KTAKuMu).</p>
                                 </div>
                             </label>
 
@@ -387,7 +387,7 @@
                                     <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                                         <span>🛡️</span> Administrator Sistem
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Memiliki akses verifikasi KTAM resmi, ekspor basis data, kelola event, dan manajemen pengguna.</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Memiliki akses verifikasi KTAKuMu resmi, ekspor basis data, kelola event, dan manajemen pengguna.</p>
                                 </div>
                             </label>
                         </div>

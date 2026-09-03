@@ -49,7 +49,7 @@
                     <a href="#events" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</a>
                 @endif
                 <a href="#faq" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">FAQ</a>
-                <a href="#verifikasi" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'KTAM Verification' : 'Verifikasi KTAM' }}</a>
+                <a href="#verifikasi" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'KTAKuMu Verification' : 'Verifikasi KTAKuMu' }}</a>
                 <a href="#kontak" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</a>
             </nav>
 
@@ -99,7 +99,7 @@
                 <a href="#events" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</a>
             @endif
             <a href="#faq" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">FAQ</a>
-            <a href="#verifikasi" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'KTAM Verification' : 'Verifikasi KTAM' }}</a>
+            <a href="#verifikasi" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'KTAKuMu Verification' : 'Verifikasi KTAKuMu' }}</a>
             <a href="#kontak" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</a>
         </div>
     </header>
@@ -116,14 +116,14 @@
                         {{ $app_settings['app_name'] ?? 'KucingMu' }}
                     </h1>
                     <p class="text-base sm:text-lg text-teal-100/90 leading-relaxed max-w-xl">
-                        {{ $app_settings['app_description'] ?? 'Platform terpadu untuk pendataan kesehatan kucing, surveilans populasi kucing liar, dan penerbitan Kartu Tanda Anggota Muhammadiyah (KTAM) Kucing secara digital.' }}
+                        {{ $app_settings['app_description'] ?? 'Platform terpadu untuk pendataan kesehatan kucing, surveilans populasi kucing liar, dan penerbitan Kartu Tanda Anggota KucingMu (KTAKuMu) secara digital.' }}
                     </p>
                     <div class="pt-2 flex flex-wrap gap-3.5">
                         <a href="{{ route('register') }}" class="min-h-[44px] inline-flex items-center justify-center rounded-xl bg-white text-teal-950 px-6 py-3 text-sm font-bold shadow-md hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-white">
                             Daftarkan Kucing Peliharaan
                         </a>
                         <a href="#verifikasi" class="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white px-5 py-3 text-sm font-semibold hover:bg-white/20 backdrop-blur focus-visible:ring-2 focus-visible:ring-white">
-                            Periksa Nomor KTAM
+                            Periksa Nomor NIAKuMu
                         </a>
                     </div>
                 </div>
@@ -242,8 +242,8 @@
                                 </div>
                                 <div class="text-center py-6">
                                     <div class="text-5xl mb-2">🪪</div>
-                                    <h4 class="font-outfit text-lg font-bold text-white">Penerbitan Kartu KTAM Digital</h4>
-                                    <p class="text-xs text-emerald-100 mt-1">Kartu Tanda Anggota Muhammadiyah Kucing dilengkapi kode unik wilayah dan QR code verifikasi instan.</p>
+                                    <h4 class="font-outfit text-lg font-bold text-white">Penerbitan Kartu KTAKuMu Digital</h4>
+                                    <p class="text-xs text-emerald-100 mt-1">Kartu Tanda Anggota KucingMu dilengkapi kode unik wilayah dan QR code verifikasi instan.</p>
                                 </div>
                                 <div class="text-[11px] text-emerald-300 font-semibold">📅 Kartu Terverifikasi Digital</div>
                             </div>
@@ -288,7 +288,7 @@
                         </p>
                     </div>
 
-                    <!-- Stat 2: KTAM Digital Terbit -->
+                    <!-- Stat 2: KTAKuMu Digital Terbit -->
                     <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
                         <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">🪪</div>
                         <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
@@ -296,7 +296,7 @@
                             <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Kartu</span>
                         </div>
                         <div class="text-xs text-slate-800 font-bold uppercase tracking-wide mt-1.5">
-                            KTAM Kucing Terbit
+                            KTAKuMu Terbit
                         </div>
                         <p class="text-[11px] text-slate-500 mt-0.5 font-medium">
                             Identitas Digital Terverifikasi
@@ -358,9 +358,9 @@
 
                     <div class="content-card">
                         <div class="text-2xl" aria-hidden="true">🎫</div>
-                        <h3 class="font-bold text-slate-900 mt-3 text-base">Penerbitan KTAM Kucing</h3>
+                        <h3 class="font-bold text-slate-900 mt-3 text-base">Penerbitan KTAKuMu Kucing</h3>
                         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-                            Penerbitan nomor identitas resmi KucingMu lengkap dengan QR code validasi verifikasi digital.
+                            Penerbitan nomor identitas resmi KTAKuMu lengkap dengan QR code validasi verifikasi digital.
                         </p>
                     </div>
 
@@ -417,7 +417,7 @@
                             <span class="text-xl" aria-hidden="true">🐱</span>
                             <div>
                                 <strong class="text-sm block text-slate-900">Pemilik Kucing (Member)</strong>
-                                <span class="text-xs text-slate-600">Mendaftarkan kucing peliharaan, memilih jadwal periksa, dan mengunduh kartu KTAM.</span>
+                                <span class="text-xs text-slate-600">Mendaftarkan kucing peliharaan, memilih jadwal periksa, dan mengunduh kartu KTAKuMu.</span>
                             </div>
                         </div>
                         <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex items-center gap-3.5">
@@ -438,7 +438,7 @@
                             <span class="text-xl" aria-hidden="true">🛡️</span>
                             <div>
                                 <strong class="text-sm block text-slate-900">Majelis & Pengelola (Admin)</strong>
-                                <span class="text-xs text-slate-600">Memverifikasi berkas, mengesahkan penerbitan KTAM, dan mengelola jadwal kegiatan.</span>
+                                <span class="text-xs text-slate-600">Memverifikasi berkas, mengesahkan penerbitan KTAKuMu, dan mengelola jadwal kegiatan.</span>
                             </div>
                         </div>
                     </div>
@@ -517,7 +517,7 @@
                         {{ app()->getLocale() == 'en' ? 'Frequently Asked Questions' : 'Pertanyaan Yang Sering Diajukan' }}
                     </h2>
                     <p class="mt-3 text-sm text-slate-600 leading-relaxed">
-                        {{ app()->getLocale() == 'en' ? 'Frequently asked questions about the KucingMu platform and verification.' : 'Jawaban seputar pendaftaran, pemeriksaan kesehatan hewan, dan kartu KTAM Kucing.' }}
+                        {{ app()->getLocale() == 'en' ? 'Frequently asked questions about the KucingMu platform and verification.' : 'Jawaban seputar pendaftaran, pemeriksaan kesehatan hewan, dan kartu KTAKuMu Kucing.' }}
                     </p>
                 </div>
 
@@ -529,46 +529,46 @@
                             <span class="text-teal-800 font-bold text-base transition-transform" :class="activeFaq === 1 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
                         </button>
                         <div x-show="activeFaq === 1" class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
-                            {{ app()->getLocale() == 'en' ? 'KucingMu is a community platform for registering pet cats, recording veterinary checkups, and issuing digital KTAM cards.' : 'KucingMu adalah platform web terpadu bagi warga komunitas untuk mendaftarkan kucing peliharaan, mencatat riwayat pemeriksaan dokter hewan, serta menerbitkan Kartu Tanda Anggota Muhammadiyah Kucing (KTAM) secara digital.' }}
+                            {{ app()->getLocale() == 'en' ? 'KucingMu is a community platform for registering pet cats, recording veterinary checkups, and issuing digital KTAKuMu cards.' : 'KucingMu adalah platform web terpadu bagi warga komunitas untuk mendaftarkan kucing peliharaan, mencatat riwayat pemeriksaan dokter hewan, serta menerbitkan Kartu Tanda Anggota KucingMu (KTAKuMu) secara digital.' }}
                         </div>
                     </div>
 
                     <!-- FAQ Item 2 -->
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
                         <button type="button" @click="activeFaq = activeFaq === 2 ? null : 2" class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
-                            <span>{{ app()->getLocale() == 'en' ? 'How can my cat get a KTAM Card?' : 'Bagaimana cara kucing saya mendapatkan kartu KTAM?' }}</span>
+                            <span>{{ app()->getLocale() == 'en' ? 'How can my cat get a KTAKuMu Card?' : 'Bagaimana cara kucing saya mendapatkan kartu KTAKuMu?' }}</span>
                             <span class="text-teal-800 font-bold text-base transition-transform" :class="activeFaq === 2 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
                         </button>
                         <div x-show="activeFaq === 2" class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
-                            {{ app()->getLocale() == 'en' ? 'Register your cat profile, upload photos, and complete a health checkup with a partner veterinarian. Admin will review and issue the verified card.' : 'Daftarkan profil kucing di dashboard, unggah foto/biometrik, dan ikuti sesi pemeriksaan kesehatan bersama dokter hewan mitra. Administrator akan meninjau data sebelum menerbitkan kartu KTAM resmi.' }}
+                            {{ app()->getLocale() == 'en' ? 'Register your cat profile, upload photos, and complete a health checkup with a partner veterinarian. Admin will review and issue the verified card.' : 'Daftarkan profil kucing di dashboard, unggah foto/biometrik, dan ikuti sesi pemeriksaan kesehatan bersama dokter hewan mitra. Administrator akan meninjau data sebelum menerbitkan kartu KTAKuMu resmi.' }}
                         </div>
                     </div>
 
                     <!-- FAQ Item 3 -->
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
                         <button type="button" @click="activeFaq = activeFaq === 3 ? null : 3" class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
-                            <span>{{ app()->getLocale() == 'en' ? 'Are the clinic checkups and KTAM cards free?' : 'Apakah pemeriksaan klinik dan kartu KTAM ini gratis?' }}</span>
+                            <span>{{ app()->getLocale() == 'en' ? 'Are the clinic checkups and KTAKuMu cards free?' : 'Apakah pemeriksaan klinik dan kartu KTAKuMu ini gratis?' }}</span>
                             <span class="text-teal-800 font-bold text-base transition-transform" :class="activeFaq === 3 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
                         </button>
                         <div x-show="activeFaq === 3" class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
-                            {{ app()->getLocale() == 'en' ? 'Yes, the pilot project checkups and digital card issuance are provided free of charge for community members.' : 'Ya, pemeriksaan kesehatan dasar (obat cacing, obat kutu, vitamin) serta penerbitan kartu KTAM digital pada program percontohan ini disediakan gratis untuk warga komunitas.' }}
+                            {{ app()->getLocale() == 'en' ? 'Yes, the pilot project checkups and digital card issuance are provided free of charge for community members.' : 'Ya, pemeriksaan kesehatan dasar (obat cacing, obat kutu, vitamin) serta penerbitan kartu KTAKuMu digital pada program percontohan ini disediakan gratis untuk warga komunitas.' }}
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Verification Section (Verifikasi KTAM) -->
+        <!-- Verification Section (Verifikasi KTAKuMu) -->
         <section id="verifikasi" class="py-16 bg-slate-50 border-t border-slate-200">
             <div class="max-w-md mx-auto px-4 text-center space-y-5">
                 <span class="eyebrow">Validasi Data</span>
-                <h2 class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900 leading-snug">Periksa Keaslian Kartu KTAM</h2>
-                <p class="text-xs text-slate-600 leading-relaxed">Masukkan nomor kartu KTAM Kucing (contoh: KM-YYYYMMDD-XXXX) untuk memeriksa status registrasi dan riwayat pemeriksaan medis resmi.</p>
+                <h2 class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900 leading-snug">Periksa Keaslian Kartu KTAKuMu</h2>
+                <p class="text-xs text-slate-600 leading-relaxed">Masukkan nomor NIAKuMu Kucing (contoh: 34.kcg.0001 / KM-YYYYMMDD-XXXX) untuk memeriksa status registrasi dan riwayat pemeriksaan medis resmi.</p>
                 
-                <form onsubmit="event.preventDefault(); const val = document.getElementById('verify-input').value.trim(); if(val) { window.location.href = '/verify/' + val; } else { alert('Silakan masukkan nomor KTAM.'); }" class="space-y-3 bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+                <form onsubmit="event.preventDefault(); const val = document.getElementById('verify-input').value.trim(); if(val) { window.location.href = '/verify/' + val; } else { alert('Silakan masukkan nomor NIAKuMu.'); }" class="space-y-3 bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
                     <div>
-                        <label for="verify-input" class="form-label text-left text-xs">Nomor KTAM Kucing</label>
-                        <input type="text" id="verify-input" placeholder="e.g. KM-20260707-0001" class="form-input text-center font-mono text-sm" required>
+                        <label for="verify-input" class="form-label text-left text-xs">Nomor NIAKuMu Kucing</label>
+                        <input type="text" id="verify-input" placeholder="e.g. 34.kcg.0001 / KM-20260707-0001" class="form-input text-center font-mono text-sm" required>
                     </div>
                     <button type="submit" class="w-full button-primary flex justify-center py-2.5 text-xs font-semibold">
                         Periksa Validitas Kartu

@@ -81,7 +81,7 @@
                                 @endif
                             </select>
                             <span class="text-[11px] text-slate-500 mt-1 block">
-                                Kode Unik KTAM: <strong class="font-mono text-teal-800">{{ $cat->formatted_unique_code }}</strong>
+                                Nomor NIAKuMu: <strong class="font-mono text-teal-800">{{ $cat->formatted_unique_code }}</strong>
                             </span>
                             <x-input-error :messages="$errors->get('wilayah_code')" class="mt-1" />
                         </div>
@@ -115,7 +115,7 @@
                                 <option value="alive" {{ in_array($currStatus, ['alive', 'hidup']) ? 'selected' : '' }}>🟢 Hidup (Aktif)</option>
                                 <option value="deceased" {{ in_array($currStatus, ['deceased', 'mati']) ? 'selected' : '' }}>⚪ Mati (Meninggal)</option>
                             </select>
-                            <span class="text-[11px] text-slate-500 mt-1 block">Status hidup/mati untuk pencatatan KTAM & data anggota.</span>
+                            <span class="text-[11px] text-slate-500 mt-1 block">Status hidup/mati untuk pencatatan KTAKuMu & data anggota.</span>
                             <x-input-error :messages="$errors->get('status')" class="mt-1" />
                         </div>
                     </div>
@@ -139,7 +139,7 @@
                                 [
                                     'key' => 'depan',
                                     'label' => 'Tampak Depan',
-                                    'subtitle' => 'Wajah / Pose Depan (Utama KTAM)',
+                                    'subtitle' => 'Wajah / Pose Depan (Utama KTAKuMu)',
                                     'icon' => '🐱',
                                     'is_primary_candidate' => true,
                                 ],
@@ -202,7 +202,7 @@
 
                                         @if($existingPhoto && $existingPhoto->is_primary)
                                             <span class="bg-teal-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow-xs whitespace-nowrap">
-                                                ★ UTAMA KTAM
+                                                ★ UTAMA KTAKuMu
                                             </span>
                                         @elseif($existingPhoto)
                                             <span class="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-200 whitespace-nowrap">
@@ -249,7 +249,7 @@
                                         <div x-show="!previews['{{ $pos['key'] }}']" class="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60">
                                             @if(!$existingPhoto->is_primary)
                                                 <button type="submit" form="set-primary-form-{{ $existingPhoto->id }}" class="text-[11px] font-bold text-teal-700 hover:text-teal-900 hover:underline">
-                                                    ★ Jadikan Utama KTAM
+                                                    ★ Jadikan Utama KTAKuMu
                                                 </button>
                                             @else
                                                 <span class="text-[11px] text-teal-700 font-bold">Foto Utama Saat Ini</span>
@@ -310,7 +310,7 @@
                                                 <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->label }}" class="h-full w-full object-cover">
                                                 @if($photo->is_primary)
                                                     <span class="absolute top-1 left-1 bg-teal-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">
-                                                        ★ UTAMA KTAM
+                                                        ★ UTAMA KTAKuMu
                                                     </span>
                                                 @endif
                                             </div>

@@ -79,7 +79,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>KTAM KucingMu - {{ $cat->name }}</title>
+    <title>KTAKuMu KucingMu - {{ $cat->name }}</title>
     <style>
         @font-face {
             font-family: 'Finger Paint';
@@ -498,7 +498,7 @@
                         <td align="center" valign="middle">
                             <img class="back-qr-img" src="{{ $card->qr_code_payload }}" alt="QR Verifikasi"
                                 style="width: 14.5mm; height: 14.5mm;">
-                            <div class="slot-tag" style="font-size: 3.8pt; margin-top: 0.4mm;">Scan Verifikasi KTAM</div>
+                            <div class="slot-tag" style="font-size: 3.8pt; margin-top: 0.4mm;">Scan Verifikasi KTAKuMu</div>
                         </td>
                     @elseif($pawPhotoData)
                         <td align="center" valign="middle">

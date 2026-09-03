@@ -34,7 +34,7 @@
                         Master Wilayah (PWM Muhammadiyah)
                     </h1>
                     <p class="card-copy max-w-2xl">
-                        Kelola data master kode wilayah, singkatan PWM, dan format generator penomoran unik KTAM (<span class="font-mono font-bold text-teal-800 bg-teal-100/70 px-1.5 py-0.5 rounded text-xs">kode_wilayah.kcg.xxxx</span>) se-Indonesia.
+                        Kelola data master kode wilayah, singkatan PWM, dan format generator penomoran unik NIAKuMu (<span class="font-mono font-bold text-teal-800 bg-teal-100/70 px-1.5 py-0.5 rounded text-xs">kode_wilayah.kcg.xxxx</span>) se-Indonesia.
                     </p>
 
                     <div class="mt-4 flex flex-wrap items-center gap-3">
@@ -287,7 +287,7 @@
                             Kode Wilayah <span class="text-rose-500">*</span>
                         </label>
                         <input type="text" name="kode" required placeholder="Contoh: 34 atau 00" maxlength="10" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-teal-600 focus:ring-1 focus:ring-teal-600 text-sm font-mono uppercase">
-                        <p class="text-[11px] text-slate-400 mt-1">Digunakan untuk awalan nomor kode unik KTAM (<code class="font-mono">kode.kcg.xxxx</code>).</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Digunakan untuk awalan nomor kode unik NIAKuMu (<code class="font-mono">kode.kcg.xxxx</code>).</p>
                     </div>
 
                     <div>

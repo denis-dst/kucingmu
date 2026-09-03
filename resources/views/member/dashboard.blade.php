@@ -10,7 +10,7 @@
                         Selamat Datang, {{ Auth::user()->name }}
                     </h1>
                     <p class="text-xs sm:text-sm text-teal-100 mt-2 leading-relaxed">
-                        Kelola data profil kucing, jadwalkan pemeriksaan kesehatan gratis bersama dokter hewan mitra, dan pantau status penerbitan Kartu KTAM Kucing.
+                        Kelola data profil kucing, jadwalkan pemeriksaan kesehatan gratis bersama dokter hewan mitra, dan pantau status penerbitan Kartu KTAKuMu Kucing.
                     </p>
                     @if(Auth::user()->muhammadiyah_id)
                         <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-md bg-teal-800 border border-teal-700 text-teal-100 text-xs font-medium">
@@ -44,7 +44,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 mb-4 gap-3">
                             <div>
                                 <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight">Daftar Kucing Peliharaan</h2>
-                                <p class="text-xs text-slate-500 mt-0.5">Kelola identitas, foto KTAM, dan status kesehatan/kehidupan kucing Anda.</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Kelola identitas, foto KTAKuMu, dan status kesehatan/kehidupan kucing Anda.</p>
                             </div>
                             <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 text-xs font-bold shrink-0 self-start sm:self-auto">
                                 {{ $cats->count() }} Ekor
@@ -151,7 +151,7 @@
                                             <!-- Additional Attributes -->
                                             <div class="space-y-1.5 border-t border-slate-100 pt-3 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl">
                                                 <div class="flex justify-between items-center text-[11px]">
-                                                    <span class="text-slate-400">Kode Unik / KTAM:</span>
+                                                    <span class="text-slate-400">Nomor NIAKuMu:</span>
                                                     <span class="font-mono font-bold text-teal-900">{{ $cat->formatted_unique_code }}</span>
                                                 </div>
                                                 @if($cat->photos->count() > 1)
@@ -179,7 +179,7 @@
                                         <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
                                             @if($cat->ktamCard)
                                                 <div class="text-left">
-                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 block">KTAM RESMI</span>
+                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 block">KTAKuMu RESMI</span>
                                                     <span class="text-xs font-mono font-bold text-slate-800">{{ $cat->ktamCard->ktam_number }}</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
@@ -219,7 +219,7 @@
                                                 </div>
                                             @else
                                                 <div class="text-left">
-                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">STATUS KTAM</span>
+                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">STATUS KTAKuMu</span>
                                                     <span class="text-[11px] text-slate-600 font-medium">Belum Periksa Dokter</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
@@ -498,13 +498,13 @@
         <div x-show="openDraftModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="draft-modal-title" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/75 backdrop-blur-xs p-3">
             <div @click.away="openDraftModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full max-w-md max-h-[92vh] border border-slate-200">
                 <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                    <h3 id="draft-modal-title" class="font-outfit font-bold text-slate-900 text-sm">Pratinjau Kartu KTAM</h3>
+                    <h3 id="draft-modal-title" class="font-outfit font-bold text-slate-900 text-sm">Pratinjau Kartu KTAKuMu</h3>
                     <button type="button" @click="openDraftModal = false" aria-label="Tutup pratinjau" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
                 <div class="flex-1 bg-slate-950 flex items-center justify-center p-0 overflow-y-auto">
-                    <iframe :src="draftUrl" title="Pratinjau Kartu KTAM" class="w-full h-[520px] border-0" scrolling="auto"></iframe>
+                    <iframe :src="draftUrl" title="Pratinjau Kartu KTAKuMu" class="w-full h-[520px] border-0" scrolling="auto"></iframe>
                 </div>
             </div>
         </div>

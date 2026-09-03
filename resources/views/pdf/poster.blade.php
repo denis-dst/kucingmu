@@ -152,8 +152,8 @@
                     <div class="feature-desc">Asupan gizi tambahan dan vitamin untuk menjaga daya tahan tubuh kucing tetap prima.</div>
                 </div>
                 <div class="feature-item">
-                    <div class="feature-title">🎫 Penerbitan Kartu KTAM Kucing</div>
-                    <div class="feature-desc">Dapatkan Kartu Tanda Anggota Muhammadiyah Kucing digital dengan QR Code verifikasi medis.</div>
+                    <div class="feature-title">🎫 Penerbitan Kartu KTAKuMu Kucing</div>
+                    <div class="feature-desc">Dapatkan Kartu Tanda Anggota KucingMu digital dengan QR Code verifikasi medis.</div>
                 </div>
             </div>
             

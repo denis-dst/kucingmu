@@ -8,7 +8,7 @@
 
 ## 📌 1. Ikhtisar & Arsitektur
 
-**KucingMu Social Apps** adalah platform media sosial komunitas yang terintegrasi dengan ekosistem **kucingmu.online**. Mengadopsi pola interaksi familiar dari **Instagram** (Feed, Carousel, Likes, Comments, Saved, Stories, Direct Chat) yang dipadukan dengan fitur inti KucingMu seperti **Profil KTAM Digital, Edukasi Dokter Hewan, serta Sensus & Rescue Kucing Liar Relawan**.
+**KucingMu Social Apps** adalah platform media sosial komunitas yang terintegrasi dengan ekosistem **kucingmu.online**. Mengadopsi pola interaksi familiar dari **Instagram** (Feed, Carousel, Likes, Comments, Saved, Stories, Direct Chat) yang dipadukan dengan fitur inti KucingMu seperti **Profil KTAKuMu Digital, Edukasi Dokter Hewan, serta Sensus & Rescue Kucing Liar Relawan**.
 
 ```mermaid
 graph TD
@@ -18,7 +18,7 @@ graph TD
     Gateway --> RoleM["Role-Specific Modules"]
     Gateway --> InteractM["Engagement Service (Like, Comment, Save)"]
     
-    RoleM --> Member["Member: KTAM Showcase & Cat Diary"]
+    RoleM --> Member["Member: KTAKuMu Showcase & Cat Diary"]
     RoleM --> Dokter["Dokter: Verified Health Tips & Q&A"]
     RoleM --> Relawan["Relawan: Feeding Station & Rescue Alert"]
 ```
@@ -26,7 +26,7 @@ graph TD
 ### Role & Badges Ekosistem
 | Role | Badge UI | Hak Akses Utama |
 | :--- | :--- | :--- |
-| **Member** | 🐱 *Cat Lover / Owner* | Membuat posting showcase kucing, tag kartu KTAM, interaksi sosial, tanya dokter |
+| **Member** | 🐱 *Cat Lover / Owner* | Membuat posting showcase kucing, tag kartu KTAKuMu, interaksi sosial, tanya dokter |
 | **Dokter** | 🩺 *Verified Vet (Centang Medis)* | Menerbitkan artikel edukasi resmi, badge jawaban dokter di komentar, konsultasi Q&A |
 | **Relawan** | 📋 *Verified Volunteer* | Posting laporan sensus/feeding station, broadcast SOS Rescue, open adopsi |
 | **Admin** | 🛡️ *Community Moderator* | Moderasi konten, pin post pengumuman, verifikasi badge |
@@ -209,7 +209,7 @@ graph TD
         "avatar_url": "https://kucingmu.online/storage/avatars/u5.jpg",
         "is_verified": false
       },
-      "caption": "Alhamdulillah kartu KTAM digital Mimi sudah resmi terbit! Nomor regis: KM-20260815-0012. Terima kasih tim relawan KucingMu! 😻",
+      "caption": "Alhamdulillah kartu KTAKuMu digital Mimi sudah resmi terbit! Nomor NIAKuMu: KM-20260815-0012. Terima kasih tim relawan KucingMu! 😻",
       "media": [
         {
           "type": "image",

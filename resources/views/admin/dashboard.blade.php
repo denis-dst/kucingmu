@@ -10,7 +10,7 @@
                         Selamat Datang, Admin KucingMu!
                     </h1>
                     <p class="card-copy max-w-xl">
-                        Verifikasi pendaftaran dan pemeriksaan kesehatan kucing, tinjau sampel biometrik dan galeri foto, lalu terbitkan Kartu Tanda Anggota Muhammadiyah Kucing (KTAM).
+                        Verifikasi pendaftaran dan pemeriksaan kesehatan kucing, tinjau sampel biometrik dan galeri foto, lalu terbitkan Kartu Tanda Anggota KucingMu (KTAKuMu).
                     </p>
                     
                     <div class="mt-4 flex flex-wrap gap-3">
@@ -62,12 +62,12 @@
                     <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Pending Verifikasi</span>
                     <div class="mt-1.5 flex items-baseline gap-1.5">
                         <span class="font-outfit text-3xl font-bold text-amber-900">{{ $stats['pending_verification_count'] }}</span>
-                        <span class="text-xs font-semibold text-amber-700">Perlu KTAM</span>
+                        <span class="text-xs font-semibold text-amber-700">Perlu KTAKuMu</span>
                     </div>
                 </div>
 
                 <div class="content-card bg-white border border-slate-200 p-4">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">KTAM Terbit</span>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">KTAKuMu Terbit</span>
                     <div class="mt-1.5 flex items-baseline gap-1.5">
                         <span class="font-outfit text-3xl font-bold text-teal-800">{{ $stats['ktam_count'] }}</span>
                         <span class="text-xs font-semibold text-teal-700">Kartu</span>
@@ -84,7 +84,7 @@
 
             </div>
 
-            <!-- Admin Verification Alert Section (Pending KTAM Verification) -->
+            <!-- Admin Verification Alert Section (Pending KTAKuMu Verification) -->
             <div class="content-card border-l-4 border-amber-500 bg-white" style="box-sizing: border-box; overflow: hidden; width: 100%;">
                 <!-- Header Toolbar -->
                 <div style="display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 16px;">
@@ -92,7 +92,7 @@
                         <div style="flex: 1 1 300px; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight" style="margin: 0;">
-                                    Permintaan Verifikasi & Penerbitan KTAM
+                                    Permintaan Verifikasi & Penerbitan KTAKuMu
                                 </h2>
                                 @if($pendingVerificationCats->count() > 0)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
@@ -100,7 +100,7 @@
                                     </span>
                                 @endif
                             </div>
-                            <p class="text-xs text-slate-500 mt-1">Kucing di bawah ini telah diperiksa dokter dan menunggu peninjauan Admin untuk penerbitan Kartu KTAM resmi.</p>
+                            <p class="text-xs text-slate-500 mt-1">Kucing di bawah ini telah diperiksa dokter dan menunggu peninjauan Admin untuk penerbitan Kartu KTAKuMu resmi.</p>
                         </div>
 
                         @if($pendingVerificationCats->count() > 0)
@@ -188,8 +188,8 @@
                                     </a>
                                     <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="flex-1">
                                         @csrf
-                                        <button type="submit" onclick="return confirm('Apakah Anda yakin ingin memverifikasi dan menerbitkan kartu KTAM untuk {{ $cat->name }}?')" class="btn-action-primary w-full py-2 text-center text-xs font-semibold">
-                                            <span>✓</span> Terbitkan KTAM
+                                        <button type="submit" onclick="return confirm('Apakah Anda yakin ingin memverifikasi dan menerbitkan kartu KTAKuMu untuk {{ $cat->name }}?')" class="btn-action-primary w-full py-2 text-center text-xs font-semibold">
+                                            <span>✓</span> Terbitkan KTAKuMu
                                         </button>
                                     </form>
                                     <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
@@ -239,7 +239,7 @@
                                     {{ $cats->total() }} Kucing Terdaftar
                                 </span>
                             </div>
-                            <p class="text-xs text-slate-500 mt-1">Kelola data identitas, status kehidupan, kartu KTAM, serta aksi verifikasi & penghapusan.</p>
+                            <p class="text-xs text-slate-500 mt-1">Kelola data identitas, status kehidupan, kartu KTAKuMu, serta aksi verifikasi & penghapusan.</p>
                         </div>
 
                         @if(request('search') || request('status') || request('sort'))
@@ -259,7 +259,7 @@
                             <input type="text" 
                                    name="search" 
                                    value="{{ request('search') }}" 
-                                   placeholder="Cari nama kucing, pemilik, KTAM, ras, NBM..." 
+                                   placeholder="Cari nama kucing, pemilik, NIAKuMu, ras, NBM..." 
                                    class="w-full text-xs pl-10 pr-8 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-100 transition placeholder:text-slate-400">
                             @if(request('search'))
                                 <a href="{{ route('dashboard', array_merge(request()->except(['search', 'page']))) }}#cat-registry-table" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs font-bold" title="Hapus pencarian">✕</a>
@@ -296,7 +296,7 @@
                                 <option value="breed:asc" {{ ($currentSort == 'breed' && $currentDir == 'asc') ? 'selected' : '' }}>Ras Kucing (A - Z)</option>
                                 <option value="date_of_birth:asc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'asc') ? 'selected' : '' }}>Umur (Paling Tua)</option>
                                 <option value="date_of_birth:desc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'desc') ? 'selected' : '' }}>Umur (Paling Muda)</option>
-                                <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor KTAM (Asc)</option>
+                                <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor NIAKuMu (Asc)</option>
                                 <option value="status:asc" {{ ($currentSort == 'status' && $currentDir == 'asc') ? 'selected' : '' }}>Status Hidup / Mati</option>
                             </select>
                             <input type="hidden" name="sort" value="{{ $currentSort }}">
@@ -331,7 +331,7 @@
                                     <th class="py-3.5 px-4">
                                         <a href="{{ $makeSortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition" title="Urutkan berdasarkan Nama">
                                             Identitas Kucing
-                                            <span class="text-teal-700 font-bold">{{ $getSortIndicator('name') }}</span>
+                                             <span class="text-teal-700 font-bold">{{ $getSortIndicator('name') }}</span>
                                         </a>
                                     </th>
                                     <th class="py-3.5 px-4">
@@ -347,8 +347,8 @@
                                         </a>
                                     </th>
                                     <th class="py-3.5 px-4">
-                                        <a href="{{ $makeSortUrl('unique_code') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition" title="Urutkan berdasarkan KTAM">
-                                            Nomor KTAM
+                                        <a href="{{ $makeSortUrl('unique_code') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition" title="Urutkan berdasarkan NIAKuMu">
+                                            Nomor NIAKuMu
                                             <span class="text-teal-700 font-bold">{{ $getSortIndicator('unique_code') }}</span>
                                         </a>
                                     </th>
@@ -358,7 +358,7 @@
                                             <span class="text-teal-700 font-bold">{{ $getSortIndicator('status') }}</span>
                                         </a>
                                     </th>
-                                    <th class="py-3.5 px-4">Status KTAM</th>
+                                    <th class="py-3.5 px-4">Status KTAKuMu</th>
                                     <th class="py-3.5 px-4 text-right whitespace-nowrap">Aksi / Tindakan</th>
                                 </tr>
                             </thead>
@@ -451,11 +451,11 @@
                                             </div>
                                         </td>
 
-                                        <!-- Status Penerbitan KTAM -->
+                                        <!-- Status Penerbitan KTAKuMu -->
                                         <td class="py-3.5 px-4 whitespace-nowrap">
                                             @if($cat->ktamCard)
                                                 <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 inline-flex items-center gap-1">
-                                                    <span>✓</span> KTAM Terbit
+                                                    <span>✓</span> KTAKuMu Terbit
                                                 </span>
                                             @elseif($cat->medicalRecords->isNotEmpty())
                                                 <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
@@ -482,7 +482,7 @@
                                                 @else
                                                     <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="inline">
                                                         @csrf
-                                                        <button type="submit" onclick="return confirm('Verifikasi & terbitkan kartu KTAM untuk {{ $cat->name }}?')" class="btn-action-primary py-1.5 px-2.5 text-xs font-bold" title="Terbitkan Kartu KTAM">
+                                                        <button type="submit" onclick="return confirm('Verifikasi & terbitkan kartu KTAKuMu untuk {{ $cat->name }}?')" class="btn-action-primary py-1.5 px-2.5 text-xs font-bold" title="Terbitkan Kartu KTAKuMu">
                                                             <span>✓</span> Verifikasi
                                                         </button>
                                                     </form>
@@ -530,7 +530,7 @@
 
                                         @if($cat->ktamCard)
                                             <span class="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                                                KTAM Terbit
+                                                KTAKuMu Terbit
                                             </span>
                                         @elseif($cat->medicalRecords->isNotEmpty())
                                             <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
@@ -554,7 +554,7 @@
                                         <span class="font-mono text-slate-700">{{ $cat->owner ? ($cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? '-')) : '-' }}</span>
                                     </div>
                                     <div class="flex justify-between items-center">
-                                        <span class="text-slate-500">Nomor KTAM:</span>
+                                        <span class="text-slate-500">Nomor NIAKuMu:</span>
                                         <span class="font-mono font-bold text-teal-800">{{ $cat->formatted_unique_code }}</span>
                                     </div>
                                 </div>
@@ -586,7 +586,7 @@
                                         @else
                                             <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" onclick="return confirm('Verifikasi KTAM untuk {{ $cat->name }}?')" class="btn-action-primary py-1.5 px-2.5 text-xs font-bold">
+                                                <button type="submit" onclick="return confirm('Verifikasi KTAKuMu untuk {{ $cat->name }}?')" class="btn-action-primary py-1.5 px-2.5 text-xs font-bold">
                                                     ✓ Verifikasi
                                                 </button>
                                             </form>
@@ -612,32 +612,32 @@
                 @endif
             </div>
 
-            <!-- Bottom Utilities Grid: KTAM Verification Simulator & Quick Appointments -->
+            <!-- Bottom Utilities Grid: KTAKuMu Verification Simulator & Quick Appointments -->
             <div class="grid gap-6 lg:grid-cols-2">
-                <!-- KTAM Verification Card -->
+                <!-- KTAKuMu Verification Card -->
                 <div class="content-card bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
                         <div>
-                            <h2 class="font-outfit text-base font-bold text-slate-900">Periksa Keaslian KTAM</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Uji verifikasi QR atau lookup kartu KTAM publik.</p>
+                            <h2 class="font-outfit text-base font-bold text-slate-900">Periksa Keaslian KTAKuMu</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Uji verifikasi QR atau lookup kartu KTAKuMu publik.</p>
                         </div>
                         <span class="text-2xl">🔍</span>
                     </div>
 
                     <div class="space-y-3">
                         <div>
-                            <label for="search-ktam-input" class="form-label text-xs font-semibold text-slate-700">Nomor Kartu KTAM / NIKuMu</label>
+                            <label for="search-ktam-input" class="form-label text-xs font-semibold text-slate-700">Nomor Kartu KTAKuMu / NIAKuMu</label>
                             <input id="search-ktam-input" type="text" x-model="searchKtam" placeholder="Contoh: 34.kcg.0001" class="form-input text-xs font-mono font-bold">
                         </div>
                         
-                        <button type="button" @click="if(searchKtam.trim()) { window.location.href = `/verify/${searchKtam.trim()}` } else { alert('Silakan masukkan nomor KTAM terlebih dahulu.') }" class="w-full button-primary flex justify-center py-2.5 text-xs font-bold shadow-xs">
-                            Cek Status Validitas KTAM
+                        <button type="button" @click="if(searchKtam.trim()) { window.location.href = `/verify/${searchKtam.trim()}` } else { alert('Silakan masukkan nomor NIAKuMu terlebih dahulu.') }" class="w-full button-primary flex justify-center py-2.5 text-xs font-bold shadow-xs">
+                            Cek Status Validitas KTAKuMu
                         </button>
                     </div>
 
                     @if($stats['ktam_count'] > 0)
                         <div class="mt-4 border-t border-slate-100 pt-3">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pilihan Cepat Nomor KTAM:</span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Pilihan Cepat Nomor NIAKuMu:</span>
                             <div class="mt-2 flex flex-wrap gap-2">
                                 @foreach($cats->filter(fn($c) => $c->ktamCard)->take(4) as $c)
                                     <button type="button" @click="searchKtam = '{{ $c->ktamCard->ktam_number }}'" class="text-xs font-mono bg-slate-50 hover:bg-teal-50 hover:text-teal-800 px-2.5 py-1 rounded-lg border border-slate-200 font-bold transition">
