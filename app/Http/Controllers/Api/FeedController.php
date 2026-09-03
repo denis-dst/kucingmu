@@ -10,6 +10,7 @@ use App\Models\SocialPost;
 use App\Models\SocialPostMedia;
 use App\Models\SocialComment;
 use App\Models\SocialLike;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
@@ -29,11 +30,11 @@ class FeedController extends Controller
             $userPosts = SocialPost::with(['user', 'taggedCat.ktamCard', 'media', 'comments.user'])
                 ->where('is_active', true)
                 ->latest()
-                ->take(30)
+                ->take(40)
                 ->get();
 
             foreach ($userPosts as $post) {
-                $author = $post->user ?? User::first();
+                $author = $post->user ?: User::first();
                 $mediaItems = $post->media->map(fn($m) => [
                     'url' => $m->url,
                     'type' => $m->media_type,
@@ -191,14 +192,14 @@ class FeedController extends Controller
             'category' => 'nullable|string',
             'tagged_cat_id' => 'nullable|integer',
             'location' => 'nullable|string',
-            'media' => 'nullable|array',
         ]);
 
-        $user = User::first(); // Logged in user / fallback
+        $user = AuthController::getAuthUser($request);
+        $userId = $user ? $user->id : 1;
 
         if (Schema::hasTable('social_posts')) {
             $post = SocialPost::create([
-                'user_id' => $user->id ?? 1,
+                'user_id' => $userId,
                 'category' => $request->category ?: 'general',
                 'caption' => $request->caption,
                 'tagged_cat_id' => $request->tagged_cat_id,
@@ -207,16 +208,54 @@ class FeedController extends Controller
                 'comments_count' => 0,
             ]);
 
-            // Save media paths if present
-            if ($request->has('media') && is_array($request->media)) {
-                foreach ($request->media as $idx => $mPath) {
+            $mediaIndex = 0;
+
+            // 1. Handle uploaded multipart files (media_files array)
+            if ($request->hasFile('media_files')) {
+                foreach ($request->file('media_files') as $file) {
+                    $storedPath = ImageCompressionService::compressAndStore($file, 'social_posts', 'public', 200);
+                    if ($storedPath) {
+                        SocialPostMedia::create([
+                            'social_post_id' => $post->id,
+                            'media_path' => $storedPath,
+                            'media_type' => 'image',
+                            'aspect_ratio' => '1:1',
+                            'sort_order' => $mediaIndex++,
+                        ]);
+                    }
+                }
+            }
+
+            // 2. Handle single photo / media file
+            if ($request->hasFile('photo') || $request->hasFile('media_file')) {
+                $file = $request->file('photo') ?: $request->file('media_file');
+                $storedPath = ImageCompressionService::compressAndStore($file, 'social_posts', 'public', 200);
+                if ($storedPath) {
                     SocialPostMedia::create([
                         'social_post_id' => $post->id,
-                        'media_path' => $mPath,
+                        'media_path' => $storedPath,
                         'media_type' => 'image',
                         'aspect_ratio' => '1:1',
-                        'sort_order' => $idx,
+                        'sort_order' => $mediaIndex++,
                     ]);
+                }
+            }
+
+            // 3. Handle base64 or string array input
+            if ($request->has('media') && is_array($request->media)) {
+                foreach ($request->media as $m) {
+                    if (is_string($m) && (Str::startsWith($m, 'data:image') || Str::startsWith($m, 'http'))) {
+                        $storedPath = Str::startsWith($m, 'http') ? $m : ImageCompressionService::compressAndStore($m, 'social_posts', 'public', 200);
+                        if ($storedPath) {
+                            SocialPostMedia::create([
+                                'social_post_id' => $post->id,
+                                'media_path' => $storedPath,
+                                'media_type' => 'image',
+                                'aspect_ratio' => '1:1',
+                                'sort_order' => $mediaIndex++,
+                            ]);
+                        }
+                    }
                 }
             }
 
@@ -227,6 +266,11 @@ class FeedController extends Controller
                     'id' => $post->id,
                     'category' => $post->category,
                     'caption' => $post->caption,
+                    'author' => [
+                        'id' => $user->id ?? 1,
+                        'name' => $user->name ?? 'Saya',
+                        'avatar_url' => $user->avatar_url ?? null,
+                    ],
                     'created_at' => $post->created_at->toIso8601String(),
                 ],
             ], 201);
@@ -253,46 +297,19 @@ class FeedController extends Controller
                 ->get();
 
             foreach ($dbComments as $c) {
+                $author = $c->user ?: User::first();
                 $comments[] = [
                     'id' => $c->id,
                     'comment' => $c->comment,
                     'author' => [
-                        'id' => $c->user->id ?? 1,
-                        'name' => $c->user->name ?? 'Pengguna',
-                        'avatar_url' => $c->user->avatar_url ?? null,
+                        'id' => $author->id ?? 1,
+                        'name' => $author->name ?? 'Pengguna',
+                        'avatar_url' => $author->avatar_url ?? null,
                     ],
-                    'is_vet_verified' => $c->is_vet_verified || ($c->user && $c->user->isDokter()),
+                    'is_vet_verified' => $c->is_vet_verified || ($author && $author->isDokter()),
                     'created_at' => $c->created_at->toIso8601String(),
                 ];
             }
-        }
-
-        if (empty($comments)) {
-            $vet = User::where('role', 'dokter')->first();
-            $comments = [
-                [
-                    'id' => 1,
-                    'comment' => 'Kucingnya sehat dan terawat dengan baik yaa kak!',
-                    'author' => [
-                        'id' => 3,
-                        'name' => 'Siti Aminah',
-                        'avatar_url' => 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-                    ],
-                    'is_vet_verified' => false,
-                    'created_at' => now()->subHours(2)->toIso8601String(),
-                ],
-                [
-                    'id' => 2,
-                    'comment' => 'Pastikan pemberian vitamin teratur dan jadwalkan kontrol berkala di posko/klinik mitra KucingMu.',
-                    'author' => [
-                        'id' => $vet->id ?? 2,
-                        'name' => $vet->name ?? 'drh. Fatimah Azzahra',
-                        'avatar_url' => 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=100',
-                    ],
-                    'is_vet_verified' => true,
-                    'created_at' => now()->subMinutes(30)->toIso8601String(),
-                ],
-            ];
         }
 
         return response()->json([
@@ -307,12 +324,12 @@ class FeedController extends Controller
     public function addComment(Request $request, $postId)
     {
         $request->validate(['comment' => 'required|string']);
-        $user = User::first();
+        $user = AuthController::getAuthUser($request);
 
         if (Schema::hasTable('social_comments')) {
             $comment = SocialComment::create([
                 'social_post_id' => $postId,
-                'user_id' => $user->id ?? 1,
+                'user_id' => $user ? $user->id : 1,
                 'comment' => $request->comment,
                 'is_vet_verified' => $user ? $user->isDokter() : false,
             ]);
@@ -328,9 +345,9 @@ class FeedController extends Controller
                     'id' => $comment->id,
                     'comment' => $comment->comment,
                     'author' => [
-                        'id' => $user->id ?? 1,
-                        'name' => $user->name ?? 'Saya',
-                        'avatar_url' => null,
+                        'id' => $user ? $user->id : 1,
+                        'name' => $user ? $user->name : 'Saya',
+                        'avatar_url' => $user ? $user->avatar_url : null,
                     ],
                     'is_vet_verified' => $comment->is_vet_verified,
                     'created_at' => $comment->created_at->toIso8601String(),
@@ -344,9 +361,9 @@ class FeedController extends Controller
                 'id' => time(),
                 'comment' => $request->comment,
                 'author' => [
-                    'id' => $user->id ?? 1,
-                    'name' => $user->name ?? 'Saya',
-                    'avatar_url' => null,
+                    'id' => $user ? $user->id : 1,
+                    'name' => $user ? $user->name : 'Saya',
+                    'avatar_url' => $user ? $user->avatar_url : null,
                 ],
                 'is_vet_verified' => $user ? $user->isDokter() : false,
                 'created_at' => now()->toIso8601String(),
@@ -357,17 +374,19 @@ class FeedController extends Controller
     /**
      * Like / Save Post
      */
-    public function like($postId)
+    public function like(Request $request, $postId)
     {
-        $user = User::first();
+        $user = AuthController::getAuthUser($request);
+        $userId = $user ? $user->id : 1;
+
         if (Schema::hasTable('social_likes')) {
-            $existing = SocialLike::where('social_post_id', $postId)->where('user_id', $user->id ?? 1)->first();
+            $existing = SocialLike::where('social_post_id', $postId)->where('user_id', $userId)->first();
             if ($existing) {
                 $existing->delete();
                 SocialPost::where('id', $postId)->decrement('likes_count');
                 return response()->json(['status' => 'success', 'data' => ['is_liked' => false]]);
             } else {
-                SocialLike::create(['social_post_id' => $postId, 'user_id' => $user->id ?? 1]);
+                SocialLike::create(['social_post_id' => $postId, 'user_id' => $userId]);
                 SocialPost::where('id', $postId)->increment('likes_count');
                 return response()->json(['status' => 'success', 'data' => ['is_liked' => true]]);
             }

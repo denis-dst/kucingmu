@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Cat;
 use App\Models\Story;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ class StoryApiController extends Controller
     /**
      * Get 24-hour Ephemeral Stories (Real database + Registered Cats)
      */
-    public function index()
+    public function index(Request $request)
     {
         $groups = [];
 
@@ -29,7 +30,7 @@ class StoryApiController extends Controller
 
             foreach ($stories as $userId => $userStoryList) {
                 $firstStory = $userStoryList->first();
-                $author = $firstStory->user ?? User::find($userId);
+                $author = $firstStory->user ?: User::find($userId);
 
                 if ($author) {
                     $storyItems = $userStoryList->map(fn($s) => [
@@ -112,19 +113,30 @@ class StoryApiController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'media_path' => 'required|string',
-            'media_type' => 'nullable|string',
-            'caption' => 'nullable|string',
-            'duration_seconds' => 'nullable|integer',
-        ]);
+        $user = AuthController::getAuthUser($request);
+        $userId = $user ? $user->id : 1;
 
-        $user = User::first();
+        $storedPath = null;
+
+        // 1. Check multipart file upload
+        if ($request->hasFile('media_file') || $request->hasFile('photo') || $request->hasFile('media')) {
+            $file = $request->file('media_file') ?: ($request->file('photo') ?: $request->file('media'));
+            $storedPath = ImageCompressionService::compressAndStore($file, 'stories', 'public', 200);
+        } elseif ($request->filled('media_path')) {
+            $input = $request->media_path;
+            if (Str::startsWith($input, 'data:image') || Str::startsWith($input, 'http')) {
+                $storedPath = Str::startsWith($input, 'http') ? $input : ImageCompressionService::compressAndStore($input, 'stories', 'public', 200);
+            }
+        }
+
+        if (!$storedPath) {
+            $storedPath = 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600';
+        }
 
         if (Schema::hasTable('stories')) {
             $story = Story::create([
-                'user_id' => $user->id ?? 1,
-                'media_path' => $request->media_path,
+                'user_id' => $userId,
+                'media_path' => $storedPath,
                 'media_type' => $request->media_type ?: 'image',
                 'duration_seconds' => $request->duration_seconds ?: 5,
                 'caption' => $request->caption,
@@ -136,6 +148,8 @@ class StoryApiController extends Controller
                 'message' => 'Cerita berhasil dibagikan!',
                 'data' => [
                     'id' => $story->id,
+                    'media_url' => $story->url,
+                    'caption' => $story->caption,
                     'created_at' => $story->created_at->toIso8601String(),
                 ],
             ], 201);

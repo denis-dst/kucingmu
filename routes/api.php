@@ -17,6 +17,8 @@ Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/profile', [AuthController::class, 'updateProfile']);
+    Route::match(['post', 'put'], '/profile/update', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 
