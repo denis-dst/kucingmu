@@ -270,23 +270,68 @@
         </section>
 
         <!-- Stats Panel -->
-        <section class="bg-white border-b border-slate-200 py-8" aria-label="Ringkasan Program">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-6 grid-cols-2 md:grid-cols-4 text-center">
-                <div class="p-3">
-                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-teal-800">60 Target</div>
-                    <div class="text-xs text-slate-600 font-semibold uppercase tracking-wide mt-1">Pilot Project Komunitas</div>
-                </div>
-                <div class="p-3">
-                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-teal-800">Layanan Gratis</div>
-                    <div class="text-xs text-slate-600 font-semibold uppercase tracking-wide mt-1">Pemeriksaan Dasar</div>
-                </div>
-                <div class="p-3">
-                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-teal-800">4 Peran</div>
-                    <div class="text-xs text-slate-600 font-semibold uppercase tracking-wide mt-1">Kolaborasi Terpadu</div>
-                </div>
-                <div class="p-3">
-                    <div class="font-outfit text-2xl sm:text-3xl font-extrabold text-teal-800">Tercatat Digital</div>
-                    <div class="text-xs text-slate-600 font-semibold uppercase tracking-wide mt-1">Rekam Medis & Kartu</div>
+        <section class="bg-white border-b border-slate-200 py-10 shadow-xs relative z-10" aria-label="Statistik Program & Komunitas">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid gap-5 grid-cols-2 md:grid-cols-4">
+                    <!-- Stat 1: Total Kucing Terdaftar -->
+                    <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
+                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">🐱</div>
+                        <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
+                            {{ number_format($stats['total_cats'] ?? 0) }}
+                            <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Ekor</span>
+                        </div>
+                        <div class="text-xs text-slate-800 font-bold uppercase tracking-wide mt-1.5">
+                            Kucing Terdata
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5 font-medium">
+                            Profil Peliharaan Terdaftar
+                        </p>
+                    </div>
+
+                    <!-- Stat 2: KTAM Digital Terbit -->
+                    <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
+                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">🪪</div>
+                        <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
+                            {{ number_format($stats['ktam_issued'] ?? 0) }}
+                            <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Kartu</span>
+                        </div>
+                        <div class="text-xs text-slate-800 font-bold uppercase tracking-wide mt-1.5">
+                            KTAM Kucing Terbit
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5 font-medium">
+                            Identitas Digital Terverifikasi
+                        </p>
+                    </div>
+
+                    <!-- Stat 3: Pemeriksaan Medis -->
+                    <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
+                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">🩺</div>
+                        <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
+                            {{ number_format($stats['medical_records'] ?? 0) }}
+                            <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Layanan</span>
+                        </div>
+                        <div class="text-xs text-slate-800 font-bold uppercase tracking-wide mt-1.5">
+                            Pemeriksaan Medis
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5 font-medium">
+                            Rekam Medis Dokter Hewan
+                        </p>
+                    </div>
+
+                    <!-- Stat 4: Sensus & Surveilans Kucing Liar -->
+                    <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
+                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">📊</div>
+                        <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
+                            {{ number_format($stats['census_count'] ?? 0) }}
+                            <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Data</span>
+                        </div>
+                        <div class="text-xs text-slate-800 font-bold uppercase tracking-wide mt-1.5">
+                            Sensus & Surveilans
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5 font-medium">
+                            Populasi Kucing PTMA & Lapangan
+                        </p>
+                    </div>
                 </div>
             </div>
         </section>

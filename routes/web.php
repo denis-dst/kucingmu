@@ -13,7 +13,16 @@ Route::get('/', function () {
         ->orderBy('activity_date', 'desc')
         ->orderBy('id', 'desc')
         ->get();
-    return view('welcome', compact('events', 'activityAlbums'));
+
+    $stats = [
+        'total_cats' => \App\Models\Cat::count(),
+        'ktam_issued' => \App\Models\Cat::whereNotNull('ktam_number')->orWhere('is_ktam_verified', true)->count(),
+        'medical_records' => \App\Models\MedicalRecord::count(),
+        'census_count' => \App\Models\PtmaCatCensus::count() + \App\Models\StrayCatSurvey::count(),
+        'total_users' => \App\Models\User::count(),
+    ];
+
+    return view('welcome', compact('events', 'activityAlbums', 'stats'));
 });
 
 use App\Http\Controllers\DashboardController;
