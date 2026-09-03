@@ -311,7 +311,9 @@
                     <!-- Register Cat Form -->
                     <div class="content-card">
                         <h2 class="font-outfit text-base font-bold text-slate-900 border-b border-slate-200 pb-2.5 mb-4">Daftarkan Kucing Baru</h2>
-                        <form method="POST" action="{{ route('cat.store') }}" enctype="multipart/form-data" class="space-y-3.5">
+                        <form method="POST" action="{{ route('cat.store') }}" enctype="multipart/form-data" class="space-y-3.5"
+                              x-data="{ isSubmitting: false }"
+                              @submit="if(isSubmitting) { $event.preventDefault(); return false; } isSubmitting = true;">
                             @csrf
                             <div>
                                 <label for="cat_name" class="form-label text-xs">Nama Kucing <span class="text-rose-500">*</span></label>
@@ -391,8 +393,16 @@
                                 <label for="cat_vaccine" class="form-label text-xs">Riwayat Vaksin <span class="text-slate-500 font-normal">(Opsional)</span></label>
                                 <input type="text" id="cat_vaccine" name="vaccine_history" class="form-input text-xs" placeholder="Contoh: Tricat, Rabies">
                             </div>
-                            <button type="submit" class="w-full button-primary text-xs font-semibold py-2.5">
-                                Daftarkan Data Kucing
+                            <button type="submit" 
+                                    :disabled="isSubmitting"
+                                    class="w-full button-primary text-xs font-semibold py-2.5 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                                <template x-if="isSubmitting">
+                                    <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </template>
+                                <span x-text="isSubmitting ? 'Mendaftarkan Kucing...' : 'Daftarkan Data Kucing'">Daftarkan Data Kucing</span>
                             </button>
                         </form>
                     </div>
@@ -406,7 +416,9 @@
                                     Daftarkan kucing terlebih dahulu sebelum membuat jadwal janji temu pemeriksaan dokter.
                                 </p>
                             @else
-                                <form method="POST" action="{{ route('appointment.store') }}" class="space-y-3.5">
+                                <form method="POST" action="{{ route('appointment.store') }}" class="space-y-3.5"
+                                      x-data="{ isSubmittingApp: false }"
+                                      @submit="if(isSubmittingApp) { $event.preventDefault(); return false; } isSubmittingApp = true;">
                                     @csrf
                                     <div>
                                         <label for="select_cat" class="form-label text-xs">Pilih Kucing</label>
@@ -432,8 +444,16 @@
                                         <label for="app_notes" class="form-label text-xs">Keluhan / Catatan Kunjungan</label>
                                         <textarea id="app_notes" name="notes" rows="2" class="form-input text-xs" placeholder="Tuliskan keluhan atau tujuan pemeriksaan..."></textarea>
                                     </div>
-                                    <button type="submit" class="w-full button-primary text-xs font-semibold py-2.5">
-                                        Konfirmasi Janji Temu
+                                    <button type="submit" 
+                                            :disabled="isSubmittingApp"
+                                            class="w-full button-primary text-xs font-semibold py-2.5 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <template x-if="isSubmittingApp">
+                                            <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        </template>
+                                        <span x-text="isSubmittingApp ? 'Memproses Jadwal...' : 'Konfirmasi Janji Temu'">Konfirmasi Janji Temu</span>
                                     </button>
                                 </form>
                             @endif

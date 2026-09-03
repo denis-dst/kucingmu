@@ -287,6 +287,18 @@ class DashboardController extends Controller
         $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : $request->breed);
         MasterBreed::registerBreedIfNotExists($finalBreed);
 
+        // Anti-double submission safeguard: check if identical cat was registered within the last 15 seconds
+        $duplicateCat = Cat::where('user_id', Auth::id())
+            ->where('name', $request->name)
+            ->where('date_of_birth', $request->date_of_birth)
+            ->where('gender', $request->gender)
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($duplicateCat) {
+            return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil dibuat.');
+        }
+
         $cat = Cat::create([
             'user_id' => Auth::id(),
             'name' => $request->name,
@@ -640,6 +652,17 @@ class DashboardController extends Controller
         $cat = Cat::findOrFail($request->cat_id);
         if ((int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
+        }
+
+        // Anti-double submission safeguard for appointments
+        $duplicateApp = Appointment::where('cat_id', $request->cat_id)
+            ->where('date', $request->date)
+            ->where('time_slot', $request->time_slot)
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($duplicateApp) {
+            return redirect()->route('dashboard')->with('success', 'Jadwal pemeriksaan berhasil dibuat.');
         }
 
         Appointment::create([
