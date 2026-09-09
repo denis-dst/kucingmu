@@ -60,12 +60,13 @@
                                            name="search" 
                                            value="{{ request('search') }}" 
                                            placeholder="Cari nama atau ras kucing..." 
-                                           class="w-full text-xs pl-3.5 pr-10 py-2 rounded-xl border border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition">
-                                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                                           class="w-full text-xs pl-3.5 pr-12 py-2 rounded-xl border border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition"
+                                           style="padding-left: 0.875rem; padding-right: 2.75rem;">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1.5 pointer-events-none" style="position: absolute; right: 0.75rem; top: 0; bottom: 0; display: flex; align-items: center;">
                                         @if(request('search'))
-                                            <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="text-slate-400 hover:text-slate-600 text-xs font-bold" title="Hapus pencarian">✕</a>
+                                            <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="text-slate-400 hover:text-slate-600 text-xs font-bold pointer-events-auto px-1" title="Hapus pencarian">✕</a>
                                         @endif
-                                        <svg class="w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1rem; height: 1rem;">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                         </svg>
                                     </div>
