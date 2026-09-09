@@ -56,17 +56,19 @@
                             <!-- Search & Action -->
                             <div class="sm:col-span-6 flex items-center gap-1.5">
                                 <div class="relative flex-1">
-                                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                    </svg>
                                     <input type="text" 
                                            name="search" 
                                            value="{{ request('search') }}" 
                                            placeholder="Cari nama atau ras kucing..." 
-                                           class="w-full text-xs pl-9.5 pr-8 py-2 rounded-xl border border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition">
-                                    @if(request('search'))
-                                        <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold" title="Hapus pencarian">✕</a>
-                                    @endif
+                                           class="w-full text-xs pl-3.5 pr-10 py-2 rounded-xl border border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition">
+                                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                                        @if(request('search'))
+                                            <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="text-slate-400 hover:text-slate-600 text-xs font-bold" title="Hapus pencarian">✕</a>
+                                        @endif
+                                        <svg class="w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
                                 </div>
                                 <button type="submit" class="button-primary text-xs px-3.5 py-2 rounded-xl shrink-0 min-h-[36px] flex items-center gap-1 shadow-2xs font-semibold">
                                     <span>Cari</span>
