@@ -159,8 +159,8 @@
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="form-label text-xs">Tanggal Lahir / Estimasi</label>
-                                            <input type="date" name="cat_dob" required class="form-input text-xs">
+                                            <label class="form-label text-xs">Tanggal Lahir / Estimasi <span class="text-rose-500">*</span></label>
+                                            <input type="date" name="cat_dob" max="{{ date('Y-m-d') }}" required class="form-input text-xs">
                                         </div>
                                     </div>
                                 </div>

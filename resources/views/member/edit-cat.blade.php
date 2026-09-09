@@ -100,8 +100,8 @@
 
                         <!-- Tanggal Lahir -->
                         <div>
-                            <label for="cat_dob" class="form-label font-semibold text-slate-700">Tanggal Lahir</label>
-                            <input type="date" id="cat_dob" name="date_of_birth" value="{{ old('date_of_birth', $cat->date_of_birth ? $cat->date_of_birth->format('Y-m-d') : '') }}" required class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
+                            <label for="cat_dob" class="form-label font-semibold text-slate-700">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                            <input type="date" id="cat_dob" name="date_of_birth" max="{{ date('Y-m-d') }}" value="{{ old('date_of_birth', $cat->date_of_birth ? $cat->date_of_birth->format('Y-m-d') : '') }}" required class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm">
                             <x-input-error :messages="$errors->get('date_of_birth')" class="mt-1" />
                         </div>
 

@@ -53,19 +53,24 @@
 
                         <!-- Member Filter & Sort Toolbar -->
                         <form method="GET" action="{{ route('dashboard') }}" class="mb-5 grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-slate-50/90 p-3 rounded-2xl border border-slate-200">
-                            <!-- Search -->
-                            <div class="sm:col-span-6 relative">
-                                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                                <input type="text" 
-                                       name="search" 
-                                       value="{{ request('search') }}" 
-                                       placeholder="Cari nama atau ras kucing..." 
-                                       class="w-full text-xs pl-9 pr-7 py-2 rounded-xl border border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition">
-                                @if(request('search'))
-                                    <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</a>
-                                @endif
+                            <!-- Search & Action -->
+                            <div class="sm:col-span-6 flex items-center gap-1.5">
+                                <div class="relative flex-1">
+                                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                    <input type="text" 
+                                           name="search" 
+                                           value="{{ request('search') }}" 
+                                           placeholder="Cari nama atau ras kucing..." 
+                                           class="w-full text-xs pl-9.5 pr-8 py-2 rounded-xl border border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition">
+                                    @if(request('search'))
+                                        <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold" title="Hapus pencarian">✕</a>
+                                    @endif
+                                </div>
+                                <button type="submit" class="button-primary text-xs px-3.5 py-2 rounded-xl shrink-0 min-h-[36px] flex items-center gap-1 shadow-2xs font-semibold">
+                                    <span>Cari</span>
+                                </button>
                             </div>
 
                             <!-- Filter Status -->
@@ -309,10 +314,70 @@
                 <div class="space-y-6">
                     
                     <!-- Register Cat Form -->
-                    <div class="content-card">
+                    <div class="content-card" x-data="{
+                        isSubmitting: false,
+                        photoPreview: null,
+                        photoCompressed: '',
+                        photoSizeText: '',
+                        isCompressing: false,
+                        handlePhotoSelect(event) {
+                            const file = event.target.files && event.target.files[0];
+                            if (!file) return;
+
+                            // Format validation
+                            const validMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+                            if (!validMimes.includes(file.type) && !file.name.match(/\.(jpe?g|png|webp)$/i)) {
+                                alert('Format file tidak didukung! Gunakan format JPG, PNG, atau WEBP.');
+                                event.target.value = '';
+                                return;
+                            }
+
+                            this.isCompressing = true;
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    const maxDim = 1200;
+                                    let w = img.width;
+                                    let h = img.height;
+                                    if (w > maxDim || h > maxDim) {
+                                        const ratio = Math.min(maxDim / w, maxDim / h);
+                                        w = Math.round(w * ratio);
+                                        h = Math.round(h * ratio);
+                                    }
+
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = w;
+                                    canvas.height = h;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, w, h);
+
+                                    const base64 = canvas.toDataURL('image/jpeg', 0.82);
+                                    this.photoCompressed = base64;
+                                    this.photoPreview = base64;
+                                    const approxKb = Math.round((base64.length * 3 / 4) / 1024);
+                                    this.photoSizeText = approxKb + ' KB (Siap diunggah)';
+                                    this.isCompressing = false;
+                                };
+                                img.onerror = () => {
+                                    this.photoPreview = e.target.result;
+                                    this.photoCompressed = e.target.result;
+                                    this.isCompressing = false;
+                                };
+                                img.src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        },
+                        clearPhoto() {
+                            this.photoPreview = null;
+                            this.photoCompressed = '';
+                            this.photoSizeText = '';
+                            const fileInput = document.getElementById('cat_photo');
+                            if (fileInput) fileInput.value = '';
+                        }
+                    }">
                         <h2 class="font-outfit text-base font-bold text-slate-900 border-b border-slate-200 pb-2.5 mb-4">Daftarkan Kucing Baru</h2>
                         <form method="POST" action="{{ route('cat.store') }}" enctype="multipart/form-data" class="space-y-3.5"
-                              x-data="{ isSubmitting: false }"
                               @submit="if(isSubmitting) { $event.preventDefault(); return false; } isSubmitting = true;">
                             @csrf
                             <div>
@@ -363,28 +428,69 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="cat_gender" class="form-label text-xs">Jenis Kelamin</label>
+                                <label for="cat_gender" class="form-label text-xs">Jenis Kelamin <span class="text-rose-500">*</span></label>
                                 <select id="cat_gender" name="gender" required class="form-input text-xs">
                                     <option value="male">Jantan</option>
                                     <option value="female">Betina</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="cat_status_reg" class="form-label text-xs">Status</label>
-                                <select id="cat_status_reg" name="status" required class="form-input text-xs">
-                                    <option value="alive" selected>🟢 Hidup</option>
-                                    <option value="deceased">⚪ Mati</option>
-                                </select>
+                                <label for="cat_dob" class="form-label text-xs">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                                <input type="date" id="cat_dob" name="date_of_birth" max="{{ date('Y-m-d') }}" required class="form-input text-xs">
                             </div>
-                            <div>
-                                <label for="cat_dob" class="form-label text-xs">Tanggal Lahir</label>
-                                <input type="date" id="cat_dob" name="date_of_birth" required class="form-input text-xs">
+                            
+                            <!-- Foto Kucing (Kamera & Galeri dengan Auto Kompresi) -->
+                            <div class="space-y-2">
+                                <label class="form-label text-xs">Foto Kucing (Kamera / Galeri)</label>
+                                
+                                <div class="flex items-center gap-2">
+                                    <!-- Input File Utama -->
+                                    <input type="file" 
+                                           id="cat_photo" 
+                                           name="photo" 
+                                           accept="image/*" 
+                                           class="hidden"
+                                           @change="handlePhotoSelect($event)">
+                                    
+                                    <button type="button" 
+                                            @click="document.getElementById('cat_photo').click()" 
+                                            class="button-secondary text-xs py-2 px-3 flex-1 flex items-center justify-center gap-1.5 bg-white hover:bg-slate-100 shadow-2xs">
+                                        <span>📷</span>
+                                        <span x-text="photoPreview ? 'Ganti Foto' : 'Ambil Kamera / Galeri'">Ambil Kamera / Galeri</span>
+                                    </button>
+
+                                    <template x-if="photoPreview">
+                                        <button type="button" 
+                                                @click="clearPhoto()" 
+                                                class="button-danger text-xs py-2 px-2.5 shrink-0" 
+                                                title="Hapus foto terpilih">
+                                            ✕ Batal
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <input type="hidden" name="photo_cam" :value="photoCompressed">
+
+                                <!-- Preview Thumbnail -->
+                                <template x-if="photoPreview">
+                                    <div class="flex items-center gap-3 p-2.5 bg-teal-50/70 border border-teal-200 rounded-xl mt-2">
+                                        <img :src="photoPreview" alt="Pratinjau Kucing" class="w-14 h-14 object-cover rounded-lg border border-teal-300 shrink-0 shadow-2xs">
+                                        <div class="text-[11px] text-teal-900 min-w-0">
+                                            <span class="font-bold block text-teal-800">✓ Foto Siap Digunakan</span>
+                                            <span class="text-teal-700 block truncate" x-text="photoSizeText || 'Terkonversi optimal'"></span>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="isCompressing">
+                                    <p class="text-[11px] text-teal-700 font-medium flex items-center gap-1.5 animate-pulse">
+                                        <span class="animate-spin">⟳</span> Mengoptimalkan ukuran foto...
+                                    </p>
+                                </template>
+
+                                <p class="text-[10px] text-slate-500">Mendukung kamera HP langsung & galeri (Otomatis dikompres maks 200 KB).</p>
                             </div>
-                            <div>
-                                <label for="cat_photo" class="form-label text-xs">Foto Kucing (Galeri / Kamera)</label>
-                                <input type="file" id="cat_photo" name="photo" accept="image/*" class="form-input text-xs">
-                                <p class="text-[10px] text-teal-600 font-medium mt-1">Format JPG/PNG/WEBP (Auto-kompres maks 200 KB)</p>
-                            </div>
+
                             <div>
                                 <label for="cat_allergies" class="form-label text-xs">Alergi Kucing <span class="text-slate-500 font-normal">(Opsional)</span></label>
                                 <input type="text" id="cat_allergies" name="allergies" class="form-input text-xs" placeholder="Contoh: Alergi makanan tertentu">
@@ -395,14 +501,15 @@
                             </div>
                             <button type="submit" 
                                     :disabled="isSubmitting"
-                                    class="w-full button-primary text-xs font-semibold py-2.5 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                                <template x-if="isSubmitting">
-                                    <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    class="w-full button-primary text-xs font-semibold h-[42px] min-h-[42px] px-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                                <span x-show="isSubmitting" class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                </template>
-                                <span x-text="isSubmitting ? 'Mendaftarkan Kucing...' : 'Daftarkan Data Kucing'">Daftarkan Data Kucing</span>
+                                    <span>Mendaftarkan Kucing...</span>
+                                </span>
+                                <span x-show="!isSubmitting">Daftarkan Data Kucing</span>
                             </button>
                         </form>
                     </div>
@@ -421,7 +528,7 @@
                                       @submit="if(isSubmittingApp) { $event.preventDefault(); return false; } isSubmittingApp = true;">
                                     @csrf
                                     <div>
-                                        <label for="select_cat" class="form-label text-xs">Pilih Kucing</label>
+                                        <label for="select_cat" class="form-label text-xs">Pilih Kucing <span class="text-rose-500">*</span></label>
                                         <select id="select_cat" name="cat_id" required class="form-input text-xs">
                                             @foreach($cats as $cat)
                                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -429,11 +536,11 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label for="app_date" class="form-label text-xs">Tanggal Pemeriksaan</label>
-                                        <input type="date" id="app_date" name="date" required class="form-input text-xs">
+                                        <label for="app_date" class="form-label text-xs">Tanggal Pemeriksaan <span class="text-rose-500">*</span></label>
+                                        <input type="date" id="app_date" name="date" min="{{ date('Y-m-d') }}" required class="form-input text-xs">
                                     </div>
                                     <div>
-                                        <label for="app_slot" class="form-label text-xs">Sesi Waktu</label>
+                                        <label for="app_slot" class="form-label text-xs">Sesi Waktu <span class="text-rose-500">*</span></label>
                                         <select id="app_slot" name="time_slot" required class="form-input text-xs">
                                             <option value="Sesi Pagi (09:00 - 11:30)">Sesi Pagi (09:00 - 11:30)</option>
                                             <option value="Sesi Siang (13:00 - 15:30)">Sesi Siang (13:00 - 15:30)</option>
@@ -446,14 +553,15 @@
                                     </div>
                                     <button type="submit" 
                                             :disabled="isSubmittingApp"
-                                            class="w-full button-primary text-xs font-semibold py-2.5 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                                        <template x-if="isSubmittingApp">
-                                            <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            class="w-full button-primary text-xs font-semibold h-[42px] min-h-[42px] px-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <span x-show="isSubmittingApp" class="inline-flex items-center gap-2">
+                                            <svg class="animate-spin h-4 w-4 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                        </template>
-                                        <span x-text="isSubmittingApp ? 'Memproses Jadwal...' : 'Konfirmasi Janji Temu'">Konfirmasi Janji Temu</span>
+                                            <span>Memproses Jadwal...</span>
+                                        </span>
+                                        <span x-show="!isSubmittingApp">Konfirmasi Janji Temu</span>
                                     </button>
                                 </form>
                             @endif
