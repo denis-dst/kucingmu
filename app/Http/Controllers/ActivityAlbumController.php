@@ -89,15 +89,7 @@ class ActivityAlbumController extends Controller
 
         // 1. Upload new image file if provided
         if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $albumsDir = public_path('images/albums');
-            if (!File::isDirectory($albumsDir)) {
-                File::makeDirectory($albumsDir, 0777, true, true);
-            }
-
-            $filename = 'album_' . date('Ymd_His') . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
-            $file->move($albumsDir, $filename);
-            $imagePath = 'images/albums/' . $filename;
+            $imagePath = $this->optimizeAndStoreAlbumImage($request->file('image_file'));
         } elseif (!empty($request->existing_image)) {
             // 2. Or pick from existing file inside public/images/albums
             $imagePath = 'images/albums/' . basename($request->existing_image);
@@ -136,15 +128,7 @@ class ActivityAlbumController extends Controller
         ]);
 
         if ($request->hasFile('image_file')) {
-            $file = $request->file('image_file');
-            $albumsDir = public_path('images/albums');
-            if (!File::isDirectory($albumsDir)) {
-                File::makeDirectory($albumsDir, 0777, true, true);
-            }
-
-            $filename = 'album_' . date('Ymd_His') . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
-            $file->move($albumsDir, $filename);
-            $validated['image_path'] = 'images/albums/' . $filename;
+            $validated['image_path'] = $this->optimizeAndStoreAlbumImage($request->file('image_file'));
         } elseif (!empty($request->existing_image)) {
             $validated['image_path'] = 'images/albums/' . basename($request->existing_image);
         }
@@ -157,6 +141,57 @@ class ActivityAlbumController extends Controller
 
         return redirect()->route('superadmin.albums.index')
             ->with('success', "Foto kegiatan \"{$album->title}\" berhasil diperbarui.");
+    }
+
+    /**
+     * Compress and store an uploaded album image, generating optimized WebP.
+     */
+    private function optimizeAndStoreAlbumImage($file): string
+    {
+        $albumsDir = public_path('images/albums');
+        if (!File::isDirectory($albumsDir)) {
+            File::makeDirectory($albumsDir, 0777, true, true);
+        }
+
+        $baseName = 'album_' . date('Ymd_His') . '_' . Str::random(6);
+        $binary = file_get_contents($file->getPathname());
+        $sourceImage = @imagecreatefromstring($binary);
+
+        if ($sourceImage) {
+            $origW = imagesx($sourceImage);
+            $origH = imagesy($sourceImage);
+            $maxDim = 1200;
+
+            $newW = $origW;
+            $newH = $origH;
+            if ($origW > $maxDim || $origH > $maxDim) {
+                $ratio = min($maxDim / $origW, $maxDim / $origH);
+                $newW = max(1, (int) round($origW * $ratio));
+                $newH = max(1, (int) round($origH * $ratio));
+            }
+
+            $resized = imagecreatetruecolor($newW, $newH);
+            $white = imagecolorallocate($resized, 255, 255, 255);
+            imagefill($resized, 0, 0, $white);
+            imagecopyresampled($resized, $sourceImage, 0, 0, 0, 0, $newW, $newH, $origW, $origH);
+            imagedestroy($sourceImage);
+
+            if (function_exists('imagewebp')) {
+                $webpName = $baseName . '.webp';
+                imagewebp($resized, $albumsDir . '/' . $webpName, 82);
+                imagedestroy($resized);
+                return 'images/albums/' . $webpName;
+            } else {
+                $jpgName = $baseName . '.jpg';
+                imagejpeg($resized, $albumsDir . '/' . $jpgName, 82);
+                imagedestroy($resized);
+                return 'images/albums/' . $jpgName;
+            }
+        }
+
+        $filename = $baseName . '.' . ($file->getClientOriginalExtension() ?: 'jpg');
+        $file->move($albumsDir, $filename);
+        return 'images/albums/' . $filename;
     }
 
     /**

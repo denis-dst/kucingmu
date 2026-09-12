@@ -14,16 +14,14 @@
     @endif
 
     <!-- Google Fonts DNS & Preconnect -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap">
 
-    <!-- Non-render-blocking Google Fonts with font-display swap -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap">
-    </noscript>
+    @if(isset($activityAlbums) && count($activityAlbums) > 0)
+        <!-- LCP Image Preload -->
+        <link rel="preload" as="image" href="{{ $activityAlbums->first()->image_url }}" fetchpriority="high">
+    @endif
 
     <style>
         [x-cloak] { display: none !important; }
@@ -45,7 +43,7 @@
             <!-- Brand Logo -->
             <a href="#" class="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-700 rounded-lg p-1">
                 @if(isset($app_settings['app_logo']))
-                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="{{ $app_settings['app_name'] ?? 'KucingMu' }}" width="32" height="32" class="h-8 w-auto object-contain" decoding="async">
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="32" height="32" class="h-8 w-auto object-contain" decoding="async">
                 @else
                     <span class="text-2xl" aria-hidden="true">🐱</span>
                 @endif
@@ -166,7 +164,7 @@
                 }" @mouseenter="autoplay = false" @mouseleave="autoplay = true">
                     
                     <!-- Carousel Container with Guaranteed Height -->
-                    <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 h-[320px] sm:h-[380px] md:h-[400px] w-full group" style="min-height: 320px;">
+                    <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 aspect-[3/2] sm:aspect-[16/10] md:h-[400px] w-full group" style="min-height: 320px; aspect-ratio: 3/2;">
                         
                         <!-- Top Header Pill -->
                         <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
@@ -192,7 +190,7 @@
                                          alt="{{ $album->title }}" 
                                          width="600" 
                                          height="400"
-                                         {{ $index === 0 ? 'fetchpriority="high" loading="eager"' : 'loading="lazy"' }}
+                                         @if($index === 0) fetchpriority="high" loading="eager" @else loading="lazy" @endif
                                          decoding="async"
                                          class="w-full h-full object-cover" 
                                          style="width: 100%; height: 100%; object-fit: cover;" 
@@ -213,9 +211,9 @@
                                         <div class="text-[11px] font-semibold text-teal-300 flex items-center gap-1.5">
                                             <span>📅</span> {{ $album->activity_date ? $album->activity_date->translatedFormat('d F Y') : 'Dokumentasi Program' }}
                                         </div>
-                                        <h3 class="font-outfit text-base sm:text-lg font-bold leading-snug line-clamp-2 text-white">
+                                        <p class="font-outfit text-base sm:text-lg font-bold leading-snug line-clamp-2 text-white">
                                             {{ $album->title }}
-                                        </h3>
+                                        </p>
                                         @if($album->caption)
                                             <p class="text-xs text-teal-100/80 line-clamp-2 leading-relaxed">
                                                 {{ $album->caption }}
@@ -233,7 +231,7 @@
                                 </div>
                                 <div class="text-center py-6">
                                     <div class="text-5xl mb-2">🩺</div>
-                                    <h4 class="font-outfit text-lg font-bold text-white">Pemeriksaan Medis Dokter Hewan</h4>
+                                    <p class="font-outfit text-lg font-bold text-white">Pemeriksaan Medis Dokter Hewan</p>
                                     <p class="text-xs text-teal-100 mt-1">Layanan cek fisik, telinga, mata, dan pemberian vitamin kucing gratis mitra DPD IMM DIY.</p>
                                 </div>
                                 <div class="text-[11px] text-teal-300 font-semibold">📅 Pelayanan Berkala Komunitas</div>
@@ -247,7 +245,7 @@
                                 </div>
                                 <div class="text-center py-6">
                                     <div class="text-5xl mb-2">📊</div>
-                                    <h4 class="font-outfit text-lg font-bold text-white">Sensus & Surveilans Kucing Liar</h4>
+                                    <p class="font-outfit text-lg font-bold text-white">Sensus & Surveilans Kucing Liar</p>
                                     <p class="text-xs text-sky-100 mt-1">Pendataan populasi stray cat berbasis klaster kampus PTMA dan pemantauan Body Condition Score.</p>
                                 </div>
                                 <div class="text-[11px] text-sky-300 font-semibold">📅 Klaster Kampus PTMA</div>
@@ -261,23 +259,23 @@
                                 </div>
                                 <div class="text-center py-6">
                                     <div class="text-5xl mb-2">🪪</div>
-                                    <h4 class="font-outfit text-lg font-bold text-white">Penerbitan Kartu KTAKuMu Digital</h4>
+                                    <p class="font-outfit text-lg font-bold text-white">Penerbitan Kartu KTAKuMu Digital</p>
                                     <p class="text-xs text-emerald-100 mt-1">Kartu Tanda Anggota KucingMu dilengkapi kode unik wilayah dan QR code verifikasi instan.</p>
                                 </div>
                                 <div class="text-[11px] text-emerald-300 font-semibold">📅 Kartu Terverifikasi Digital</div>
                             </div>
                         @endif
 
-                        <!-- Navigation Arrows -->
-                        <button type="button" @click.stop="prev()" aria-label="Slide sebelumnya" class="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
-                            <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        <!-- Navigation Arrows (Accessible Touch Targets >= 44x44px) -->
+                        <button type="button" @click.stop="prev()" aria-label="Slide sebelumnya" class="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
+                            <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                         </button>
-                        <button type="button" @click.stop="next()" aria-label="Slide berikutnya" class="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
-                            <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        <button type="button" @click.stop="next()" aria-label="Slide berikutnya" class="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
+                            <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                         </button>
 
-                        <!-- Indicators Dots (Zero-CLS pre-rendered in Blade) -->
-                        <div class="absolute bottom-3 right-5 z-30 flex items-center gap-1.5">
+                        <!-- Indicators Dots with Touch Target Padding (Zero-CLS pre-rendered in Blade) -->
+                        <div class="absolute bottom-3 right-4 z-30 flex items-center gap-1">
                             @php
                                 $totalAlbumSlides = (isset($activityAlbums) && count($activityAlbums) > 0) ? count($activityAlbums) : 3;
                             @endphp
@@ -285,8 +283,10 @@
                                 <button type="button" 
                                         @click.stop="activeIndex = {{ $i }}" 
                                         aria-label="Buka slide {{ $i + 1 }}" 
-                                        :class="activeIndex === {{ $i }} ? 'w-6 bg-amber-400' : 'w-2 bg-white/40 hover:bg-white/70'" 
-                                        class="h-2 rounded-full transition-all duration-300 shadow-xs {{ $i === 0 ? 'w-6 bg-amber-400' : 'w-2 bg-white/40' }}"></button>
+                                        class="min-h-[40px] min-w-[32px] sm:min-w-[36px] flex items-center justify-center p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-full">
+                                    <span :class="activeIndex === {{ $i }} ? 'w-6 bg-amber-400' : 'w-2 bg-white/50 hover:bg-white/80'" 
+                                          class="h-2 rounded-full transition-all duration-300 shadow-xs {{ $i === 0 ? 'w-6 bg-amber-400' : 'w-2 bg-white/50' }}"></span>
+                                </button>
                             @endfor
                         </div>
                     </div>
@@ -625,14 +625,14 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
             <div class="flex items-center gap-2">
                 @if(isset($app_settings['app_logo']))
-                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="{{ $app_settings['app_name'] ?? 'KucingMu' }}" width="28" height="28" loading="lazy" decoding="async" class="h-7 w-auto object-contain">
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="28" height="28" loading="lazy" decoding="async" class="h-7 w-auto object-contain">
                 @else
                     <span class="text-2xl" aria-hidden="true">🐱</span>
                 @endif
                 <span class="font-outfit font-extrabold text-white text-base tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
             </div>
             
-            <p class="text-xs text-slate-400">
+            <p class="text-xs text-slate-400 footer-text">
                 {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
             </p>
         </div>

@@ -54,7 +54,7 @@ class AppSettingController extends Controller
                             \Illuminate\Support\Facades\Storage::disk('public')->delete($setting->value);
                         }
                         // Store new file
-                        $path = $this->processAndStoreSettingFile($file);
+                        $path = $this->processAndStoreSettingFile($file, $key);
                         $setting->update(['value' => $path]);
                     }
                 }
@@ -65,11 +65,15 @@ class AppSettingController extends Controller
     }
 
     /**
-     * Process and store file using native PHP to avoid filesystem adapter issues.
+     * Process and store file using native PHP to avoid filesystem adapter issues,
+     * applying high-performance dimensions and compression for web assets.
      */
-    private function processAndStoreSettingFile($file): string
+    private function processAndStoreSettingFile($file, string $settingKey = ''): string
     {
-        $extension = $file->getClientOriginalExtension() ?: 'png';
+        $extension = strtolower($file->getClientOriginalExtension() ?: 'png');
+        $isFavicon = str_contains($settingKey, 'favicon');
+        $isLogo = str_contains($settingKey, 'logo');
+
         $filename = 'settings/' . uniqid() . '.' . $extension;
         $fullPath = storage_path('app/public/' . $filename);
         
@@ -77,7 +81,7 @@ class AppSettingController extends Controller
             mkdir(dirname($fullPath), 0755, true);
         }
 
-        $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'webp']);
+        $isImage = in_array($extension, ['jpg', 'jpeg', 'png', 'webp']);
 
         if ($isImage) {
             $binary = file_get_contents($file->getPathname());
@@ -87,20 +91,28 @@ class AppSettingController extends Controller
                 $origWidth = imagesx($sourceImage);
                 $origHeight = imagesy($sourceImage);
                 
-                $maxDim = 800; // Resize if too large
+                // Appropriate max dimensions for logos/favicons vs general banners
+                if ($isFavicon) {
+                    $maxDim = 64;
+                } elseif ($isLogo) {
+                    $maxDim = 256; // High DPI 2x retina for 32px-128px logos
+                } else {
+                    $maxDim = 600;
+                }
+
                 $newWidth = $origWidth;
                 $newHeight = $origHeight;
 
                 if ($origWidth > $maxDim || $origHeight > $maxDim) {
                     $ratio = min($maxDim / $origWidth, $maxDim / $origHeight);
-                    $newWidth = (int) round($origWidth * $ratio);
-                    $newHeight = (int) round($origHeight * $ratio);
+                    $newWidth = max(1, (int) round($origWidth * $ratio));
+                    $newHeight = max(1, (int) round($origHeight * $ratio));
                 }
 
                 $resized = imagecreatetruecolor($newWidth, $newHeight);
 
-                // Preserve transparency for PNG
-                if (strtolower($extension) === 'png') {
+                // Preserve transparency for PNG and WebP
+                if (in_array($extension, ['png', 'webp'])) {
                     imagealphablending($resized, false);
                     imagesavealpha($resized, true);
                     $transparent = imagecolorallocatealpha($resized, 255, 255, 255, 127);
@@ -113,10 +125,12 @@ class AppSettingController extends Controller
                 imagecopyresampled($resized, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
                 imagedestroy($sourceImage);
 
-                if (strtolower($extension) === 'png') {
-                    imagepng($resized, $fullPath);
+                if ($extension === 'png') {
+                    imagepng($resized, $fullPath, 9); // Max compression
+                } elseif ($extension === 'webp' && function_exists('imagewebp')) {
+                    imagewebp($resized, $fullPath, 85);
                 } else {
-                    imagejpeg($resized, $fullPath, 80);
+                    imagejpeg($resized, $fullPath, 85);
                 }
                 imagedestroy($resized);
                 

@@ -134,5 +134,22 @@
         -webkit-transform: translateZ(0);
         transform: translateZ(0);
     }
+
+    /* ── Accessible Links in Text Blocks (WCAG 1.4.1 / axe link-in-text-block) ── */
+    footer a,
+    .footer-text a,
+    p a:not([class*="button"]):not([class*="btn"]),
+    .text-block a {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-thickness: 1px;
+    }
+    footer a:hover,
+    .footer-text a:hover,
+    p a:not([class*="button"]):not([class*="btn"]):hover,
+    .text-block a:hover {
+        text-decoration-thickness: 2px;
+    }
 }
+
 
