@@ -158,7 +158,7 @@
                     <button type="button" class="sur-step-btn" data-step="6" onclick="surGoStep(6)"><span class="si">🏢</span>K3L &amp; SOP</button>
                 </div>
 
-                <form method="POST" action="{{ route('volunteer.surveillance.store') }}" enctype="multipart/form-data" id="surForm" class="sur-wrap pt-6">
+                <form method="POST" action="{{ route('volunteer.surveillance.store') }}" enctype="multipart/form-data" id="surForm" class="sur-wrap pt-6" onsubmit="surCollectJSON()">
                     @csrf
 
                     {{-- Hidden JSON fields (populated by JS) --}}
@@ -325,18 +325,20 @@
                                 {{-- first cat entry --}}
                                 <div class="sur-cat-entry">
                                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-                                        <strong style="font-size:13px;color:var(--sur-primary);">🐱 Kucing #1</strong>
-                                        <span class="sur-cat-id">KUCING-001</span>
+                                        <strong style="font-size:13px;color:var(--sur-primary);" class="sur-cat-title">🐱 Kucing #1</strong>
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            <span class="sur-cat-id">KUCING-001</span>
+                                        </div>
                                     </div>
                                     <div class="sur-grid">
-                                        <div><label class="sur-label">Nama Kucing</label><input type="text" class="sur-input cat-name" placeholder="Nama panggilan / label"></div>
+                                        <div><label class="sur-label">Nama Kucing</label><input type="text" class="sur-input cat-name" placeholder="Nama panggilan / label" oninput="surSyncCatOptions()"></div>
                                         <div><label class="sur-label">Jenis Kelamin</label>
                                             <select class="sur-select cat-gender">
                                                 <option>Jantan</option><option>Betina</option><option>Tidak Diketahui</option>
                                             </select>
                                         </div>
                                         <div><label class="sur-label">Ras Kucing</label>
-                                            <select class="sur-select cat-breed">
+                                            <select class="sur-select cat-breed" onchange="surSyncCatOptions()">
                                                 @php
                                                     $survBreeds = \App\Models\MasterBreed::getAllBreedNames();
                                                 @endphp
@@ -347,27 +349,21 @@
                                             </select>
                                         </div>
                                         <div><label class="sur-label">Perkiraan Usia</label>
-                                            <select class="sur-select cat-age">
-                                                <option>Kitten (&lt;4 bulan)</option><option>Remaja (4–12 bulan)</option><option>Dewasa (&gt;1 tahun)</option>
-                                            </select>
+                                            <select class="sur-select cat-age"><option>Kitten (&lt;4 bulan)</option><option>Remaja (4–12 bulan)</option><option>Dewasa (&gt;1 tahun)</option></select>
                                         </div>
                                         <div><label class="sur-label">Warna Bulu Dominan</label>
-                                            <select class="sur-select cat-color">
+                                            <select class="sur-select cat-color" onchange="surSyncCatOptions()">
                                                 <option>Oranye / Tabby</option><option>Hitam</option><option>Putih</option><option>Abu-abu</option><option>Belang Tiga (Calico)</option><option>Hitam-Putih (Bicolor)</option><option>Cokelat / Cream</option><option>Lainnya</option>
                                             </select>
                                         </div>
                                         <div><label class="sur-label">Pola Bulu</label>
-                                            <select class="sur-select cat-pattern">
-                                                <option>Solid</option><option>Tabby (Belang)</option><option>Bicolor</option><option>Tricolor / Calico</option><option>Tortoiseshell</option><option>Lainnya</option>
-                                            </select>
+                                            <select class="sur-select cat-pattern"><option>Solid</option><option>Tabby (Belang)</option><option>Bicolor</option><option>Tricolor / Calico</option><option>Tortoiseshell</option><option>Lainnya</option></select>
                                         </div>
                                         <div><label class="sur-label">Bentuk Ekor</label>
-                                            <select class="sur-select cat-tail">
-                                                <option>Normal / Panjang</option><option>Pendek / Bobtail</option><option>Bengkok</option><option>Tidak Ada</option>
-                                            </select>
+                                            <select class="sur-select cat-tail"><option>Normal / Panjang</option><option>Pendek / Bobtail</option><option>Bengkok</option><option>Tidak Ada</option></select>
                                         </div>
                                         <div><label class="sur-label">Tanda Ear-Tip</label>
-                                            <select class="sur-select cat-eartip">
+                                            <select class="sur-select cat-eartip" onchange="surSyncCatOptions()">
                                                 <option>Tidak Ada</option><option>Ear-tip Kiri</option><option>Ear-tip Kanan</option>
                                             </select>
                                         </div>
@@ -402,7 +398,15 @@
                         <div class="sur-card">
                             <div class="sur-card-title"><span class="si">🏷️</span> Identitas Kucing yang Diperiksa</div>
                             <div class="sur-grid">
-                                <div><label class="sur-label" for="physical_cat_id">ID Kucing</label><input class="sur-input" type="text" id="physical_cat_id" name="physical_cat_id" value="{{ old('physical_cat_id') }}" placeholder="KUCING-001"></div>
+                                <div>
+                                    <label class="sur-label" for="physical_cat_id">ID Kucing yang Diperiksa <span class="req">*</span></label>
+                                    <select class="sur-select" id="physical_cat_id" name="physical_cat_id" onchange="surOnPhysicalCatChange(this.value)">
+                                        <option value="KUCING-001">KUCING-001 (Kucing #1)</option>
+                                    </select>
+                                    <p class="text-[11px] text-teal-700 mt-1 font-medium" id="physical_cat_sync_hint">
+                                        ✓ Sinkron dari Tab Sensus Visual
+                                    </p>
+                                </div>
                                 <div><label class="sur-label" for="physical_cat_name">Nama Kucing</label><input class="sur-input" type="text" id="physical_cat_name" name="physical_cat_name" value="{{ old('physical_cat_name') }}" placeholder="Nama panggilan"></div>
                                 <div><label class="sur-label" for="examining_vet">Pemeriksa (Dokter Hewan)</label><input class="sur-input" type="text" id="examining_vet" name="examining_vet" value="{{ old('examining_vet') }}" placeholder="Nama drh."></div>
                                 <div><label class="sur-label" for="physical_exam_date">Tanggal Pemeriksaan</label><input class="sur-input" type="date" id="physical_exam_date" name="physical_exam_date" value="{{ old('physical_exam_date') }}"></div>
@@ -618,7 +622,12 @@
                             <div class="sur-card-title"><span class="si">🔬</span> Pemeriksaan Ektoparasit (Comb Test)</div>
                             <div style="margin-bottom:12px;">
                                 <label class="sur-label" for="ectoparasite_cat_id">ID Kucing yang Diperiksa</label>
-                                <input class="sur-input" type="text" id="ectoparasite_cat_id" name="ectoparasite_cat_id" value="{{ old('ectoparasite_cat_id') }}" placeholder="KUCING-001">
+                                <select class="sur-select" id="ectoparasite_cat_id" name="ectoparasite_cat_id">
+                                    <option value="KUCING-001">KUCING-001 (Kucing #1)</option>
+                                </select>
+                                <p class="text-[11px] text-teal-700 mt-1 font-medium" id="ectoparasite_cat_sync_hint">
+                                    ✓ Sinkron dari Tab Sensus Visual
+                                </p>
                             </div>
                             <div class="sur-grid">
                                 <div>
@@ -1065,6 +1074,8 @@ document.addEventListener('DOMContentLoaded', () => {
     buildAttitudeTable();
     buildK3LChecklist();
     updateProgress();
+    surReindexCats();
+    surSyncCatOptions();
 });
 
 // ────────── BCS ──────────
@@ -1167,25 +1178,30 @@ function toggleK3L(idx, val, btn) {
     btn.classList.add('active');
 }
 
-// ────────── CAT LIST ──────────
+// ────────── CAT LIST & SYNC ──────────
 function surAddCat() {
-    surCatCount++;
-    const n   = surCatCount;
-    const suf = String(n).padStart(3,'0');
+    const cont = document.getElementById('surCatList');
+    const n = cont.querySelectorAll('.sur-cat-entry').length + 1;
+    const suf = String(n).padStart(3, '0');
     const div = document.createElement('div');
     div.className = 'sur-cat-entry';
     div.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <strong style="font-size:13px;color:var(--sur-primary);">🐱 Kucing #${n}</strong>
-            <span class="sur-cat-id">KUCING-${suf}</span>
+            <strong style="font-size:13px;color:var(--sur-primary);" class="sur-cat-title">🐱 Kucing #${n}</strong>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="sur-cat-id">KUCING-${suf}</span>
+                <button type="button" onclick="surRemoveCat(this)" class="sur-btn-del-cat" title="Hapus Kucing Ini" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;">
+                    🗑 Hapus
+                </button>
+            </div>
         </div>
         <div class="sur-grid">
-            <div><label class="sur-label">Nama Kucing</label><input type="text" class="sur-input cat-name" placeholder="Nama panggilan / label"></div>
+            <div><label class="sur-label">Nama Kucing</label><input type="text" class="sur-input cat-name" placeholder="Nama panggilan / label" oninput="surSyncCatOptions()"></div>
             <div><label class="sur-label">Jenis Kelamin</label>
                 <select class="sur-select cat-gender"><option>Jantan</option><option>Betina</option><option>Tidak Diketahui</option></select>
             </div>
             <div><label class="sur-label">Ras Kucing</label>
-                <select class="sur-select cat-breed">
+                <select class="sur-select cat-breed" onchange="surSyncCatOptions()">
                     @foreach($survBreeds as $sb)
                         <option value="{{ $sb }}">{{ $sb }}</option>
                     @endforeach
@@ -1196,7 +1212,7 @@ function surAddCat() {
                 <select class="sur-select cat-age"><option>Kitten (&lt;4 bulan)</option><option>Remaja (4–12 bulan)</option><option>Dewasa (&gt;1 tahun)</option></select>
             </div>
             <div><label class="sur-label">Warna Bulu Dominan</label>
-                <select class="sur-select cat-color"><option>Oranye / Tabby</option><option>Hitam</option><option>Putih</option><option>Abu-abu</option><option>Belang Tiga (Calico)</option><option>Hitam-Putih (Bicolor)</option><option>Cokelat / Cream</option><option>Lainnya</option></select>
+                <select class="sur-select cat-color" onchange="surSyncCatOptions()"><option>Oranye / Tabby</option><option>Hitam</option><option>Putih</option><option>Abu-abu</option><option>Belang Tiga (Calico)</option><option>Hitam-Putih (Bicolor)</option><option>Cokelat / Cream</option><option>Lainnya</option></select>
             </div>
             <div><label class="sur-label">Pola Bulu</label>
                 <select class="sur-select cat-pattern"><option>Solid</option><option>Tabby (Belang)</option><option>Bicolor</option><option>Tricolor / Calico</option><option>Tortoiseshell</option><option>Lainnya</option></select>
@@ -1205,19 +1221,148 @@ function surAddCat() {
                 <select class="sur-select cat-tail"><option>Normal / Panjang</option><option>Pendek / Bobtail</option><option>Bengkok</option><option>Tidak Ada</option></select>
             </div>
             <div><label class="sur-label">Tanda Ear-Tip</label>
-                <select class="sur-select cat-eartip"><option>Tidak Ada</option><option>Ear-tip Kiri</option><option>Ear-tip Kanan</option></select>
+                <select class="sur-select cat-eartip" onchange="surSyncCatOptions()"><option>Tidak Ada</option><option>Ear-tip Kiri</option><option>Ear-tip Kanan</option></select>
             </div>
             <div class="sur-full"><label class="sur-label">Tanda Khusus</label><input type="text" class="sur-input cat-mark" placeholder="Bekas luka, bercak, dsb."></div>
             <div>
                 <label class="sur-label">Status Resight?</label>
                 <div class="sur-radio-group">
-                    <label><input type="radio" name="resight_${n}" value="Baru" checked> Baru</label>
-                    <label><input type="radio" name="resight_${n}" value="Resighted"> Resighted</label>
+                    <label><input type="radio" class="cat-resight" name="resight_${n}" value="Baru" checked> Baru</label>
+                    <label><input type="radio" class="cat-resight" name="resight_${n}" value="Resighted"> Resighted</label>
                 </div>
             </div>
             <div><label class="sur-label">Foto</label><input type="file" accept="image/*" capture="environment" class="cat-photo sur-input" style="padding:4px;font-size:11px;"></div>
         </div>`;
-    document.getElementById('surCatList').appendChild(div);
+    cont.appendChild(div);
+
+    surReindexCats();
+    surSyncCatOptions();
+}
+
+function surRemoveCat(btn) {
+    const entry = btn.closest('.sur-cat-entry');
+    if (entry) {
+        entry.remove();
+        surReindexCats();
+        surSyncCatOptions();
+    }
+}
+
+function surReindexCats() {
+    const entries = document.querySelectorAll('.sur-cat-entry');
+    entries.forEach((entry, idx) => {
+        const n = idx + 1;
+        const suf = String(n).padStart(3, '0');
+        const titleEl = entry.querySelector('.sur-cat-title');
+        if (titleEl) titleEl.textContent = `🐱 Kucing #${n}`;
+        const idEl = entry.querySelector('.sur-cat-id');
+        if (idEl) idEl.textContent = `KUCING-${suf}`;
+
+        entry.querySelectorAll('.cat-resight').forEach(r => {
+            r.name = `resight_${n}`;
+        });
+
+        // Delete button management
+        let delBtn = entry.querySelector('.sur-btn-del-cat');
+        const headerRight = entry.querySelector('.sur-cat-id')?.parentElement;
+        if (entries.length > 1) {
+            if (!delBtn && headerRight) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'sur-btn-del-cat';
+                btn.title = 'Hapus Kucing Ini';
+                btn.style.cssText = 'background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;';
+                btn.textContent = '🗑 Hapus';
+                btn.onclick = function() { surRemoveCat(btn); };
+                headerRight.appendChild(btn);
+            }
+        } else if (delBtn) {
+            delBtn.remove();
+        }
+    });
+
+    const catsObs = document.getElementById('cats_observed');
+    if (catsObs && (parseInt(catsObs.value || '0', 10) < entries.length)) {
+        catsObs.value = entries.length;
+    }
+}
+
+function surGetCatList() {
+    const list = [];
+    document.querySelectorAll('.sur-cat-entry').forEach((entry, idx) => {
+        const n = idx + 1;
+        const id = 'KUCING-' + String(n).padStart(3, '0');
+        const nameInput = entry.querySelector('.cat-name');
+        const name = nameInput ? nameInput.value.trim() : '';
+        const breedSelect = entry.querySelector('.cat-breed');
+        const breed = breedSelect ? breedSelect.value : 'Domestik';
+        const colorSelect = entry.querySelector('.cat-color');
+        const color = colorSelect ? colorSelect.value : '';
+        const eartipSelect = entry.querySelector('.cat-eartip');
+        const eartip = eartipSelect ? eartipSelect.value : 'Tidak Ada';
+        list.push({ id, name, breed, color, eartip, index: n });
+    });
+    return list;
+}
+
+function surSyncCatOptions() {
+    const cats = surGetCatList();
+    const physicalSelect = document.getElementById('physical_cat_id');
+    const ectoSelect = document.getElementById('ectoparasite_cat_id');
+
+    if (!physicalSelect || !ectoSelect) return;
+
+    const currentPhysicalVal = physicalSelect.value;
+    const currentEctoVal = ectoSelect.value;
+
+    const buildOptionsHtml = (selectedVal) => {
+        let html = '';
+        cats.forEach(c => {
+            const namePart = c.name ? ` (${c.name})` : ` (Kucing #${c.index})`;
+            const breedPart = c.breed ? ` - ${c.breed}` : '';
+            const isSel = (selectedVal === c.id) ? 'selected' : '';
+            html += `<option value="${c.id}" ${isSel}>${c.id}${namePart}${breedPart}</option>`;
+        });
+        return html;
+    };
+
+    physicalSelect.innerHTML = buildOptionsHtml(currentPhysicalVal);
+    ectoSelect.innerHTML = buildOptionsHtml(currentEctoVal);
+
+    if (cats.length > 0) {
+        if (!cats.some(c => c.id === physicalSelect.value)) {
+            physicalSelect.value = cats[0].id;
+        }
+        if (!cats.some(c => c.id === ectoSelect.value)) {
+            ectoSelect.value = cats[0].id;
+        }
+    }
+
+    if (physicalSelect.value) {
+        surOnPhysicalCatChange(physicalSelect.value, false);
+    }
+}
+
+function surOnPhysicalCatChange(selectedCatId, overrideName = true) {
+    if (!selectedCatId) return;
+    const cats = surGetCatList();
+    const cat = cats.find(c => c.id === selectedCatId);
+    if (!cat) return;
+
+    const nameInput = document.getElementById('physical_cat_name');
+    if (nameInput && (overrideName || !nameInput.value)) {
+        nameInput.value = cat.name;
+    }
+
+    if (cat.eartip && cat.eartip !== 'Tidak Ada') {
+        const eartipRadio = document.querySelector('input[name="sterilization_status"][value="Sudah (Ear-tip)"]');
+        if (eartipRadio) eartipRadio.checked = true;
+    }
+
+    const ectoSelect = document.getElementById('ectoparasite_cat_id');
+    if (ectoSelect && !ectoSelect.value) {
+        ectoSelect.value = selectedCatId;
+    }
 }
 
 // ────────── COLLECT JSON ──────────
@@ -1435,6 +1580,7 @@ function surGoStep(n) {
     document.querySelectorAll('.sur-step-btn').forEach((b, i) => b.classList.toggle('active', i === n));
     surCurrentStep = n;
     updateProgress();
+    surSyncCatOptions();
     window.scrollTo({ top: document.getElementById('surProgBar').getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
 }
 function surNextStep() { if (surCurrentStep < SUR_TOTAL - 1) surGoStep(surCurrentStep + 1); }
