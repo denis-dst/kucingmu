@@ -61,10 +61,16 @@ class StoryApiController extends Controller
         }
 
         // 2. Fetch Active Community Cat Stories
-        $users = User::whereHas('cats')
-            ->orWhereIn('role', ['dokter', 'volunteer'])
+        $existingUserIds = collect($groups)->pluck('user.id')->filter()->toArray();
+
+        $users = User::select(['id', 'name', 'email', 'role', 'avatar_url'])
+            ->where(function($q) {
+                $q->whereHas('cats')
+                  ->orWhereIn('role', ['dokter', 'volunteer']);
+            })
+            ->when(!empty($existingUserIds), fn($q) => $q->whereNotIn('id', $existingUserIds))
             ->with(['cats' => function($q) {
-                $q->with('photos');
+                $q->with('photos')->limit(1);
             }])
             ->take(8)
             ->get();

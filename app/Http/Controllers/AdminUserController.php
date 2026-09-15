@@ -52,13 +52,21 @@ class AdminUserController extends Controller
 
         $users = $query->paginate(15)->withQueryString();
 
-        // Statistics for widgets
+        // Statistics for widgets in a single aggregated query
+        $userStats = User::selectRaw("
+            COUNT(*) as total,
+            COUNT(CASE WHEN role = 'member' THEN 1 END) as member,
+            COUNT(CASE WHEN role = 'dokter' THEN 1 END) as dokter,
+            COUNT(CASE WHEN role = 'volunteer' THEN 1 END) as volunteer,
+            COUNT(CASE WHEN role IN ('admin', 'superadmin') THEN 1 END) as admin
+        ")->first();
+
         $stats = [
-            'total' => User::count(),
-            'member' => User::where('role', 'member')->count(),
-            'dokter' => User::where('role', 'dokter')->count(),
-            'volunteer' => User::where('role', 'volunteer')->count(),
-            'admin' => User::whereIn('role', ['admin', 'superadmin'])->count(),
+            'total' => (int) ($userStats->total ?? 0),
+            'member' => (int) ($userStats->member ?? 0),
+            'dokter' => (int) ($userStats->dokter ?? 0),
+            'volunteer' => (int) ($userStats->volunteer ?? 0),
+            'admin' => (int) ($userStats->admin ?? 0),
         ];
 
         return view('admin.users.index', compact('users', 'stats', 'roleFilter', 'search', 'sort', 'direction'));

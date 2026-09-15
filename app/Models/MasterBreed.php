@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class MasterBreed extends Model
 {
@@ -21,6 +22,9 @@ class MasterBreed extends Model
         'is_default' => 'boolean',
         'order' => 'integer',
     ];
+
+    private const CACHE_KEY = 'master_breeds_all';
+    private const CACHE_TTL = 300; // 5 minutes
 
     /**
      * Default 10 Master Breeds as required.
@@ -40,28 +44,38 @@ class MasterBreed extends Model
 
     /**
      * Get all breeds list sorted: default breeds first, then custom breeds alphabetically.
+     * Cached for 5 minutes to avoid redundant DB queries.
      *
      * @return array<string>
      */
     public static function getAllBreedNames(): array
     {
         try {
-            $dbBreeds = self::orderBy('is_default', 'desc')
-                ->orderBy('order', 'asc')
-                ->orderBy('name', 'asc')
-                ->pluck('name')
-                ->toArray();
+            return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, function () {
+                $dbBreeds = self::orderBy('is_default', 'desc')
+                    ->orderBy('order', 'asc')
+                    ->orderBy('name', 'asc')
+                    ->pluck('name')
+                    ->toArray();
 
-            if (!empty($dbBreeds)) {
-                // Ensure all default breeds are present in the list
-                $merged = array_unique(array_merge(self::DEFAULT_BREEDS, $dbBreeds));
-                return array_values($merged);
-            }
+                if (!empty($dbBreeds)) {
+                    $merged = array_unique(array_merge(self::DEFAULT_BREEDS, $dbBreeds));
+                    return array_values($merged);
+                }
+
+                return self::DEFAULT_BREEDS;
+            });
         } catch (\Throwable $e) {
-            // Fallback if table does not exist yet
+            return self::DEFAULT_BREEDS;
         }
+    }
 
-        return self::DEFAULT_BREEDS;
+    /**
+     * Clear the breeds cache.
+     */
+    public static function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
     }
 
     /**
@@ -92,11 +106,16 @@ class MasterBreed extends Model
 
             $isDefault = in_array($formattedName, self::DEFAULT_BREEDS);
 
-            return self::create([
+            $breed = self::create([
                 'name' => $formattedName,
                 'is_default' => $isDefault,
                 'order' => $isDefault ? (array_search($formattedName, self::DEFAULT_BREEDS) + 1) : 99,
             ]);
+
+            // Invalidate cache when new breed is added
+            self::clearCache();
+
+            return $breed;
         } catch (\Throwable $e) {
             return null;
         }

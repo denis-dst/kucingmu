@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,12 +29,10 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
-        // Share settings globally to all views if the table exists
+        // Share settings globally to all views using cached settings
         try {
-            if (Schema::hasTable('app_settings')) {
-                $settings = \App\Models\AppSetting::pluck('value', 'key')->all();
-                view()->share('app_settings', $settings);
-            }
+            $settings = \App\Models\AppSetting::getAllCached();
+            view()->share('app_settings', $settings);
         } catch (\Throwable $e) {
             // Ignore during console commands or migrations
         }

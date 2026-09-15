@@ -59,10 +59,16 @@ class ActivityAlbumController extends Controller
             $categories = ['Pemeriksaan', 'Sensus PTMA', 'Edukasi & Sosialisasi', 'Vaksinasi & Sterilisasi', 'Kegiatan Komunitas'];
         }
 
+        $albumStats = ActivityAlbum::selectRaw('
+            COUNT(*) as total_photos,
+            COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_photos,
+            COUNT(CASE WHEN is_active = 0 THEN 1 END) as inactive_photos
+        ')->first();
+
         $stats = [
-            'total_photos' => ActivityAlbum::count(),
-            'active_photos' => ActivityAlbum::where('is_active', true)->count(),
-            'inactive_photos' => ActivityAlbum::where('is_active', false)->count(),
+            'total_photos' => (int) ($albumStats->total_photos ?? 0),
+            'active_photos' => (int) ($albumStats->active_photos ?? 0),
+            'inactive_photos' => (int) ($albumStats->inactive_photos ?? 0),
             'total_files_in_dir' => count($existingFiles),
         ];
 

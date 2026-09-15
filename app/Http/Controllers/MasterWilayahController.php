@@ -34,10 +34,16 @@ class MasterWilayahController extends Controller
                           ->paginate(15)
                           ->withQueryString();
 
+        $wilayahStats = MasterWilayah::selectRaw('
+            COUNT(*) as total_wilayah,
+            COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_wilayah,
+            COUNT(CASE WHEN is_active = 0 THEN 1 END) as inactive_wilayah
+        ')->first();
+
         $stats = [
-            'total_wilayah' => MasterWilayah::count(),
-            'active_wilayah' => MasterWilayah::where('is_active', true)->count(),
-            'inactive_wilayah' => MasterWilayah::where('is_active', false)->count(),
+            'total_wilayah' => (int) ($wilayahStats->total_wilayah ?? 0),
+            'active_wilayah' => (int) ($wilayahStats->active_wilayah ?? 0),
+            'inactive_wilayah' => (int) ($wilayahStats->inactive_wilayah ?? 0),
             'total_cats_linked' => \App\Models\Cat::whereNotNull('wilayah_code')->count(),
         ];
 
@@ -61,6 +67,7 @@ class MasterWilayahController extends Controller
         $validated['is_active'] = $request->has('is_active') ? (bool) $request->is_active : true;
 
         $wilayah = MasterWilayah::create($validated);
+        MasterWilayah::clearCache();
 
         return redirect()->route('superadmin.wilayah.index')
             ->with('success', "Master Wilayah [{$wilayah->kode}] {$wilayah->nama} berhasil ditambahkan.");
@@ -83,6 +90,7 @@ class MasterWilayahController extends Controller
         $validated['is_active'] = $request->has('is_active') ? (bool) $request->is_active : false;
 
         $wilayah->update($validated);
+        MasterWilayah::clearCache();
 
         return redirect()->route('superadmin.wilayah.index')
             ->with('success', "Master Wilayah [{$wilayah->kode}] {$wilayah->nama} berhasil diperbarui.");
@@ -103,6 +111,7 @@ class MasterWilayahController extends Controller
         $nama = $wilayah->nama;
         $kode = $wilayah->kode;
         $wilayah->delete();
+        MasterWilayah::clearCache();
 
         return redirect()->route('superadmin.wilayah.index')
             ->with('success', "Master Wilayah [{$kode}] {$nama} berhasil dihapus.");
@@ -115,6 +124,7 @@ class MasterWilayahController extends Controller
     {
         $wilayah->is_active = !$wilayah->is_active;
         $wilayah->save();
+        MasterWilayah::clearCache();
 
         $statusText = $wilayah->is_active ? 'diaktifkan' : 'dinonaktifkan';
 
@@ -129,6 +139,7 @@ class MasterWilayahController extends Controller
     {
         $seeder = new \Database\Seeders\MasterWilayahSeeder();
         $seeder->run();
+        MasterWilayah::clearCache();
 
         return redirect()->route('superadmin.wilayah.index')
             ->with('success', 'Data Master Wilayah default (35 PWM Muhammadiyah se-Indonesia) berhasil dimuat.');

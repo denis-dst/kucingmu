@@ -25,6 +25,22 @@ class FeedController extends Controller
         $tab = $request->query('tab', 'all');
         $posts = [];
 
+        $fallbackUser = null;
+        $getFallbackUser = function() use (&$fallbackUser) {
+            if ($fallbackUser === null) {
+                $fallbackUser = User::first();
+            }
+            return $fallbackUser;
+        };
+
+        $fallbackVet = null;
+        $getFallbackVet = function() use (&$fallbackVet, $getFallbackUser) {
+            if ($fallbackVet === null) {
+                $fallbackVet = User::where('role', 'dokter')->first() ?? $getFallbackUser();
+            }
+            return $fallbackVet;
+        };
+
         // 1. Fetch Real User-Created Posts from social_posts table if table exists
         if (Schema::hasTable('social_posts')) {
             $userPosts = SocialPost::with(['user', 'taggedCat.ktamCard', 'media', 'comments.user'])
@@ -34,7 +50,7 @@ class FeedController extends Controller
                 ->get();
 
             foreach ($userPosts as $post) {
-                $author = $post->user ?: User::first();
+                $author = $post->user ?: $getFallbackUser();
                 $mediaItems = $post->media->map(fn($m) => [
                     'url' => $m->url,
                     'type' => $m->media_type,
@@ -88,13 +104,13 @@ class FeedController extends Controller
         }
 
         // 2. Fetch Real Cats registered by members as community showcase
-        $cats = Cat::with(['owner', 'ktamCard', 'photos'])
+        $cats = Cat::with(['owner', 'ktamCard', 'photos', 'wilayah'])
             ->latest()
             ->take(15)
             ->get();
 
         foreach ($cats as $cat) {
-            $user = $cat->owner ?? User::first();
+            $user = $cat->owner ?? $getFallbackUser();
             $photoUrl = $cat->primary_photo_url ?: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600';
             $uniqueCode = $cat->formatted_unique_code ?: ($cat->ktamCard?->ktam_number ?? 'KM-' . $cat->id);
 
@@ -138,7 +154,7 @@ class FeedController extends Controller
             ->get();
 
         foreach ($records as $record) {
-            $vet = $record->vet ?? User::where('role', 'dokter')->first() ?? User::first();
+            $vet = $record->vet ?? $getFallbackVet();
             $posts[] = [
                 'id' => 80000 + $record->id,
                 'category' => 'healthEducation',
@@ -296,8 +312,9 @@ class FeedController extends Controller
                 ->latest()
                 ->get();
 
+            $fallbackUser = null;
             foreach ($dbComments as $c) {
-                $author = $c->user ?: User::first();
+                $author = $c->user ?: ($fallbackUser ??= User::first());
                 $comments[] = [
                     'id' => $c->id,
                     'comment' => $c->comment,

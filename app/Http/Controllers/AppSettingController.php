@@ -61,6 +61,9 @@ class AppSettingController extends Controller
             }
         }
 
+        // Clear settings cache so changes take effect immediately
+        AppSetting::clearCache();
+
         return redirect()->back()->with('success', 'Pengaturan aplikasi berhasil diperbarui.');
     }
 

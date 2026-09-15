@@ -43,23 +43,36 @@ class DashboardController extends Controller
      */
     protected function adminDashboard(Request $request)
     {
+        // Combined aggregation queries to minimize database roundtrips
+        $catStats = Cat::selectRaw("
+            COUNT(*) as total,
+            COUNT(CASE WHEN status IS NULL OR status IN ('alive', 'hidup') THEN 1 END) as alive,
+            COUNT(CASE WHEN status IN ('deceased', 'mati') THEN 1 END) as deceased
+        ")->first();
+
+        $userStats = User::selectRaw("
+            COUNT(*) as total,
+            COUNT(CASE WHEN role = 'member' THEN 1 END) as member,
+            COUNT(CASE WHEN role = 'dokter' THEN 1 END) as dokter,
+            COUNT(CASE WHEN role = 'volunteer' THEN 1 END) as volunteer,
+            COUNT(CASE WHEN role IN ('admin', 'superadmin') THEN 1 END) as admin
+        ")->first();
+
         $stats = [
-            'cats_count' => Cat::count(),
-            'cats_alive_count' => Cat::where(function($q) {
-                $q->whereNull('status')->orWhereIn('status', ['alive', 'hidup']);
-            })->count(),
-            'cats_deceased_count' => Cat::whereIn('status', ['deceased', 'mati'])->count(),
+            'cats_count' => (int) ($catStats->total ?? 0),
+            'cats_alive_count' => (int) ($catStats->alive ?? 0),
+            'cats_deceased_count' => (int) ($catStats->deceased ?? 0),
             'appointments_count' => Appointment::count(),
             'records_count' => MedicalRecord::count(),
             'ktam_count' => KtamCard::count(),
             'pending_verification_count' => Cat::whereDoesntHave('ktamCard')->count(),
 
             // User Role Statistics matching /admin/users
-            'users_total' => User::count(),
-            'users_member' => User::where('role', 'member')->count(),
-            'users_dokter' => User::where('role', 'dokter')->count(),
-            'users_volunteer' => User::where('role', 'volunteer')->count(),
-            'users_admin' => User::whereIn('role', ['admin', 'superadmin'])->count(),
+            'users_total' => (int) ($userStats->total ?? 0),
+            'users_member' => (int) ($userStats->member ?? 0),
+            'users_dokter' => (int) ($userStats->dokter ?? 0),
+            'users_volunteer' => (int) ($userStats->volunteer ?? 0),
+            'users_admin' => (int) ($userStats->admin ?? 0),
         ];
 
         $catQuery = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah']);
@@ -139,6 +152,7 @@ class DashboardController extends Controller
         $pendingVerificationCats = Cat::whereDoesntHave('ktamCard')
             ->with(['owner', 'photos', 'medicalRecords.vet', 'wilayah'])
             ->latest()
+            ->take(50)
             ->get();
             
         $appointments = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
@@ -238,10 +252,14 @@ class DashboardController extends Controller
         }
 
         $cats = $catQuery->get();
-        $appointments = Appointment::whereIn('cat_id', Auth::user()->cats()->pluck('id'))
-            ->with(['cat.photos'])
-            ->latest()
-            ->get();
+        $catIds = $cats->pluck('id');
+        $appointments = $catIds->isNotEmpty()
+            ? Appointment::whereIn('cat_id', $catIds)
+                ->with(['cat.photos'])
+                ->latest()
+                ->take(10)
+                ->get()
+            : collect();
 
         $activeEvents = \App\Models\Event::where('status', 'active')->orderBy('date', 'asc')->get();
         $masterWilayahs = MasterWilayah::getActiveList();

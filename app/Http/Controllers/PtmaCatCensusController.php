@@ -76,10 +76,12 @@ class PtmaCatCensusController extends Controller
             'UMY - Tengah (admisi, AR, maskam, boga)',
             'Unires & E8',
         ];
-        $dbZones = PtmaCatCensus::whereNotNull('zona')->pluck('zona')->toArray();
+        $dbZones = PtmaCatCensus::whereNotNull('zona')->distinct()->pluck('zona')->toArray();
         $zones = array_values(array_unique(array_filter(array_merge($defaultZones, $dbZones))));
 
-        $totalRegistered = PtmaCatCensus::count() + Cat::count() + StrayCatSurvey::whereNotNull('photo_path')->count();
+        $totalRegistered = \Illuminate\Support\Facades\Cache::remember('ptma_scan_total_registered', 60, function () {
+            return PtmaCatCensus::count() + Cat::count() + StrayCatSurvey::whereNotNull('photo_path')->count();
+        });
         $campuses = ['UMY', 'UAD', 'UMP', 'UMS'];
 
         return view('volunteer.census.scan', compact('zones', 'totalRegistered', 'campuses'));

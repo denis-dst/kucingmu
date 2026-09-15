@@ -26,10 +26,10 @@ class RegistrationSuccessMail extends Mailable
     {
         $this->user = $user;
 
-        // Retrieve dynamic app name and logo
-        $this->appName = AppSetting::where('key', 'app_name')->value('value') ?? config('app.name', 'KucingMu');
+        // Retrieve dynamic app name and logo from cache
+        $this->appName = AppSetting::get('app_name', config('app.name', 'KucingMu'));
 
-        $logoSetting = AppSetting::where('key', 'app_logo')->value('value');
+        $logoSetting = AppSetting::get('app_logo');
         $resolvedLogo = null;
 
         if ($logoSetting && file_exists(storage_path('app/public/' . $logoSetting))) {

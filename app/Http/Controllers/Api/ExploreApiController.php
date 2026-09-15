@@ -47,12 +47,17 @@ class ExploreApiController extends Controller
      */
     public function search(Request $request)
     {
-        $q = $request->query('q', '');
-        $cats = Cat::where('name', 'like', "%{$q}%")
-            ->orWhere('breed', 'like', "%{$q}%")
-            ->with(['owner', 'photos'])
-            ->take(15)
-            ->get();
+        $q = trim($request->query('q', ''));
+        $query = Cat::with(['owner', 'photos']);
+
+        if (!empty($q)) {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('name', 'like', "%{$q}%")
+                    ->orWhere('breed', 'like', "%{$q}%");
+            });
+        }
+
+        $cats = $query->latest()->take(15)->get();
 
         $items = [];
         foreach ($cats as $cat) {
