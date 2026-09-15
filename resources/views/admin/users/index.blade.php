@@ -147,12 +147,12 @@
                     <div class="md:col-span-6 flex gap-2">
                         <input type="hidden" name="role" value="{{ $roleFilter }}">
                         <div class="relative flex-1">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400 text-sm">🔍</span>
                             <input type="text" 
                                    name="search" 
                                    value="{{ $search }}" 
                                    placeholder="Cari nama, email, nomor HP, atau NBM Muhammadiyah..." 
-                                   class="form-input pl-9 text-xs">
+                                   class="form-input pl-3.5 pr-9 text-xs">
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 text-sm">🔍</span>
                         </div>
                         <button type="submit" class="button-primary text-xs px-4 py-2 font-bold whitespace-nowrap">
                             Cari
@@ -351,7 +351,7 @@
                                     <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                                         <span>🐱</span> Member / Pemilik Kucing
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Dapat mendaftarkan kucing, mengajukan janji temu, dan mencetak Kartu Tanda Anggota Muhammadiyah (KTAM).</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Dapat mendaftarkan kucing, mengajukan janji temu, dan mencetak Kartu Tanda Anggota KucingMu (KTAKuMu).</p>
                                 </div>
                             </label>
 
@@ -387,7 +387,7 @@
                                     <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                                         <span>🛡️</span> Administrator Sistem
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Memiliki akses verifikasi KTAM resmi, ekspor basis data, kelola event, dan manajemen pengguna.</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Memiliki akses verifikasi KTAKuMu resmi, ekspor basis data, kelola event, dan manajemen pengguna.</p>
                                 </div>
                             </label>
                         </div>

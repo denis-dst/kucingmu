@@ -15,10 +15,14 @@
             <link rel="shortcut icon" href="{{ asset('storage/' . $app_settings['app_favicon']) }}" type="image/x-icon">
         @endif
 
-        <!-- Fonts -->
+        <!-- Google Fonts DNS & Preconnect -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap">
+
+        <style>
+            [x-cloak] { display: none !important; }
+        </style>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -50,7 +54,7 @@
             </div>
 
             <footer class="mt-auto py-6 border-t border-slate-200 text-center text-xs text-slate-500">
-                <div class="max-w-7xl mx-auto px-4">
+                <div class="max-w-7xl mx-auto px-4 footer-text">
                     {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
                 </div>
             </footer>

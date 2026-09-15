@@ -10,8 +10,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password', 'phone', 'role', 'muhammadiyah_id'])]
-#[Hidden(['password', 'remember_token'])]
+use Illuminate\Support\Str;
+
+#[Fillable(['name', 'email', 'password', 'phone', 'role', 'muhammadiyah_id', 'bio', 'avatar', 'api_token'])]
+#[Hidden(['password', 'remember_token', 'api_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -99,6 +101,22 @@ class User extends Authenticatable
     public function getFormattedNbmAttribute(): ?string
     {
         return self::formatNbm($this->muhammadiyah_id);
+    }
+
+    /**
+     * Accessor for full avatar URL.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (empty($this->avatar)) {
+            return null;
+        }
+
+        if (Str::startsWith($this->avatar, ['http://', 'https://'])) {
+            return $this->avatar;
+        }
+
+        return asset('storage/' . ltrim($this->avatar, '/'));
     }
 
     /**

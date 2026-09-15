@@ -15,10 +15,14 @@
             <link rel="shortcut icon" href="{{ asset('storage/' . $app_settings['app_favicon']) }}" type="image/x-icon">
         @endif
 
-        <!-- Fonts -->
+        <!-- Google Fonts DNS & Preconnect -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap">
+
+        <style>
+            [x-cloak] { display: none !important; }
+        </style>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -29,7 +33,7 @@
             <div class="auth-brand-panel">
                 <div class="brand-mark">
                     @if(isset($app_settings['app_logo']))
-                        <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="Logo" class="h-12 w-auto mx-auto object-contain">
+                        <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="48" height="48" class="h-12 w-auto mx-auto object-contain" decoding="async">
                     @else
                         🐱
                     @endif
@@ -44,7 +48,7 @@
                     </p>
                 </div>
                 
-                <div class="text-xs text-teal-200/60 font-semibold tracking-wide">
+                <div class="text-xs text-teal-200/60 font-semibold tracking-wide footer-text">
                     {!! $app_settings['app_footer'] ?? '&copy; 2026 KucingMu. Warga Muhammadiyah Peduli Hewan.' !!}
                 </div>
             </div>
@@ -56,7 +60,7 @@
                     <div class="mb-8 flex items-center justify-center gap-3 lg:hidden">
                         <div class="brand-mark brand-mark-small">
                             @if(isset($app_settings['app_logo']))
-                                <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="Logo" class="h-6 w-auto mx-auto object-contain">
+                                <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="24" height="24" class="h-6 w-auto mx-auto object-contain" decoding="async">
                             @else
                                 🐱
                             @endif

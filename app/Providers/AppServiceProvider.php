@@ -31,9 +31,13 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // Share settings globally to all views if the table exists
-        if (Schema::hasTable('app_settings')) {
-            $settings = \App\Models\AppSetting::pluck('value', 'key')->all();
-            view()->share('app_settings', $settings);
+        try {
+            if (Schema::hasTable('app_settings')) {
+                $settings = \App\Models\AppSetting::pluck('value', 'key')->all();
+                view()->share('app_settings', $settings);
+            }
+        } catch (\Throwable $e) {
+            // Ignore during console commands or migrations
         }
     }
 }

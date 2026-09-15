@@ -7,7 +7,7 @@
                 <div class="shrink-0 flex items-center">
                     <a href="{{ url('/') }}" class="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-700 rounded-lg p-1">
                         @if(isset($app_settings['app_logo']))
-                            <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="{{ $app_settings['app_name'] ?? 'KucingMu' }}" class="h-8 w-auto object-contain">
+                            <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="32" height="32" class="h-8 w-auto object-contain" decoding="async">
                         @else
                             <span class="text-2xl" aria-hidden="true">🐱</span>
                         @endif

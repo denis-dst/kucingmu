@@ -6,25 +6,25 @@
     </button>
 
     <!-- Menu Options -->
-    <div x-show="open" @click.outside="open = false" x-transition role="dialog" aria-label="Pengaturan Aksesibilitas" class="absolute bottom-16 left-0 bg-white border border-slate-200 rounded-xl p-4 shadow-xl w-64 space-y-3.5 text-slate-800">
-        <h3 class="font-outfit font-bold text-slate-900 text-sm border-b border-slate-200 pb-2">
+    <div x-show="open" x-cloak @click.outside="open = false" x-transition role="dialog" aria-label="Pengaturan Aksesibilitas" class="absolute bottom-16 left-0 bg-white border border-slate-200 rounded-xl p-4 shadow-xl w-64 space-y-3.5 text-slate-800" style="display: none;">
+        <h2 class="font-outfit font-bold text-slate-900 text-sm border-b border-slate-200 pb-2">
             {{ app()->getLocale() == 'en' ? 'Accessibility Settings' : 'Pengaturan Aksesibilitas' }}
-        </h3>
+        </h2>
         
         <!-- Font Size Controls -->
         <div class="space-y-1.5">
             <span class="text-xs text-slate-600 font-semibold block">{{ app()->getLocale() == 'en' ? 'Text Size' : 'Ukuran Teks' }}</span>
             <div class="flex gap-2">
-                <button type="button" @click="fontSize = Math.max(80, fontSize - 10); document.documentElement.style.fontSize = fontSize + '%';" aria-label="Perkecil teks" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 rounded text-xs font-bold transition min-h-[36px]">A-</button>
-                <button type="button" @click="fontSize = 100; document.documentElement.style.fontSize = '100%';" aria-label="Ukuran teks normal" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 rounded text-xs font-bold transition min-h-[36px]">Normal</button>
-                <button type="button" @click="fontSize = Math.min(150, fontSize + 10); document.documentElement.style.fontSize = fontSize + '%';" aria-label="Perbesar teks" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-1.5 rounded text-xs font-bold transition min-h-[36px]">A+</button>
+                <button type="button" @click="fontSize = Math.max(80, fontSize - 10); document.documentElement.style.fontSize = fontSize + '%';" aria-label="Perkecil teks" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2 rounded text-xs font-bold transition min-h-[40px]">A-</button>
+                <button type="button" @click="fontSize = 100; document.documentElement.style.fontSize = '100%';" aria-label="Ukuran teks normal" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2 rounded text-xs font-bold transition min-h-[40px]">Normal</button>
+                <button type="button" @click="fontSize = Math.min(150, fontSize + 10); document.documentElement.style.fontSize = fontSize + '%';" aria-label="Perbesar teks" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-2 rounded text-xs font-bold transition min-h-[40px]">A+</button>
             </div>
         </div>
 
         <!-- High Contrast Mode Toggle -->
         <div class="flex items-center justify-between border-t border-slate-200 pt-3">
             <span class="text-xs text-slate-700 font-semibold">{{ app()->getLocale() == 'en' ? 'High Contrast' : 'Kontras Tinggi' }}</span>
-            <button type="button" @click="contrast = !contrast; document.documentElement.classList.toggle('accessibility-contrast');" aria-label="Aktifkan mode kontras tinggi" class="px-3 py-1 rounded text-xs font-bold transition min-h-[32px]" :class="contrast ? 'bg-teal-800 text-white' : 'bg-slate-200 text-slate-800 hover:bg-slate-300'">
+            <button type="button" @click="contrast = !contrast; document.documentElement.classList.toggle('accessibility-contrast');" aria-label="Aktifkan mode kontras tinggi" class="px-3 py-1.5 rounded text-xs font-bold transition min-h-[40px] flex items-center justify-center" :class="contrast ? 'bg-teal-800 text-white' : 'bg-slate-200 text-slate-800 hover:bg-slate-300'">
                 <span x-text="contrast ? 'AKTIF' : 'NONAKTIF'"></span>
             </button>
         </div>
@@ -35,7 +35,7 @@
                 <span class="text-xs text-slate-700 font-semibold block">{{ app()->getLocale() == 'en' ? 'Screen Reader (TTS)' : 'Pembaca Suara (TTS)' }}</span>
                 <span class="text-[10px] text-slate-500 block mt-0.5">{{ app()->getLocale() == 'en' ? 'Hover text to speak' : 'Arahkan kursor ke teks' }}</span>
             </div>
-            <button type="button" @click="tts = !tts; if(tts) { enableTTS(); } else { disableTTS(); }" aria-label="Aktifkan pembaca suara otomatis" class="px-3 py-1 rounded text-xs font-bold transition min-h-[32px]" :class="tts ? 'bg-teal-800 text-white' : 'bg-slate-200 text-slate-800 hover:bg-slate-300'">
+            <button type="button" @click="tts = !tts; if(tts) { enableTTS(); } else { disableTTS(); }" aria-label="Aktifkan pembaca suara otomatis" class="px-3 py-1.5 rounded text-xs font-bold transition min-h-[40px] flex items-center justify-center" :class="tts ? 'bg-teal-800 text-white' : 'bg-slate-200 text-slate-800 hover:bg-slate-300'">
                 <span x-text="tts ? 'AKTIF' : 'NONAKTIF'"></span>
             </button>
         </div>

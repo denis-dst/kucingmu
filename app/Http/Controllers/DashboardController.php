@@ -53,6 +53,13 @@ class DashboardController extends Controller
             'records_count' => MedicalRecord::count(),
             'ktam_count' => KtamCard::count(),
             'pending_verification_count' => Cat::whereDoesntHave('ktamCard')->count(),
+
+            // User Role Statistics matching /admin/users
+            'users_total' => User::count(),
+            'users_member' => User::where('role', 'member')->count(),
+            'users_dokter' => User::where('role', 'dokter')->count(),
+            'users_volunteer' => User::where('role', 'volunteer')->count(),
+            'users_admin' => User::whereIn('role', ['admin', 'superadmin'])->count(),
         ];
 
         $catQuery = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah']);
@@ -254,15 +261,18 @@ class DashboardController extends Controller
             'breed_custom' => 'nullable|string|max:255|required_if:breed,Lainnya',
             'gender' => 'required|in:male,female',
             'status' => 'nullable|in:alive,deceased,hidup,mati',
-            'date_of_birth' => 'required|date',
+            'date_of_birth' => 'required|date|before_or_equal:today',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'photo_cam' => 'nullable|string',
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'photos_cam.*' => 'nullable|string',
             'photo_labels.*' => 'nullable|string|max:255',
             'primary_photo_index' => 'nullable|integer',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
             'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'biometric_photo_cam' => 'nullable|string',
             'biometric_code' => 'nullable|string|max:255',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
@@ -286,6 +296,18 @@ class DashboardController extends Controller
         // Process breed and auto-register if custom/new
         $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : $request->breed);
         MasterBreed::registerBreedIfNotExists($finalBreed);
+
+        // Anti-double submission safeguard: check if identical cat was registered within the last 15 seconds
+        $duplicateCat = Cat::where('user_id', Auth::id())
+            ->where('name', $request->name)
+            ->where('date_of_birth', $request->date_of_birth)
+            ->where('gender', $request->gender)
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($duplicateCat) {
+            return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil dibuat.');
+        }
 
         $cat = Cat::create([
             'user_id' => Auth::id(),
@@ -378,14 +400,17 @@ class DashboardController extends Controller
             'breed_custom' => 'nullable|string|max:255|required_if:breed,Lainnya',
             'gender' => 'required|in:male,female',
             'status' => 'nullable|in:alive,deceased,hidup,mati',
-            'date_of_birth' => 'required|date',
+            'date_of_birth' => 'required|date|before_or_equal:today',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'photo_cam' => 'nullable|string',
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'photos_cam.*' => 'nullable|string',
             'photo_labels.*' => 'nullable|string|max:255',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
             'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
+            'biometric_photo_cam' => 'nullable|string',
             'biometric_code' => 'nullable|string|max:255',
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
@@ -642,6 +667,17 @@ class DashboardController extends Controller
             abort(403);
         }
 
+        // Anti-double submission safeguard for appointments
+        $duplicateApp = Appointment::where('cat_id', $request->cat_id)
+            ->where('date', $request->date)
+            ->where('time_slot', $request->time_slot)
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($duplicateApp) {
+            return redirect()->route('dashboard')->with('success', 'Jadwal pemeriksaan berhasil dibuat.');
+        }
+
         Appointment::create([
             'cat_id' => $request->cat_id,
             'date' => $request->date,
@@ -770,7 +806,7 @@ class DashboardController extends Controller
             'cat_breed' => 'required|string|max:255',
             'cat_breed_custom' => 'nullable|string|max:255|required_if:cat_breed,Lainnya',
             'cat_gender' => 'required|in:male,female',
-            'cat_dob' => 'required|date',
+            'cat_dob' => 'required|date|before_or_equal:today',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -956,7 +992,7 @@ class DashboardController extends Controller
             'entries.*.cat_name' => 'required|string',
             'entries.*.cat_breed' => 'required|string',
             'entries.*.cat_gender' => 'required|in:male,female',
-            'entries.*.cat_dob' => 'required|date',
+            'entries.*.cat_dob' => 'required|date|before_or_equal:today',
         ]);
 
         $syncedCount = 0;

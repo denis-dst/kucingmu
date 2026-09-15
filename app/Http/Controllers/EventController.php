@@ -55,7 +55,7 @@ class EventController extends Controller
 
         $bannerPath = null;
         if ($request->hasFile('banner')) {
-            $bannerPath = $request->file('banner')->store('events', 'public');
+            $bannerPath = \App\Services\ImageCompressionService::compressAndStore($request->file('banner'), 'events', 'public', 200);
         }
 
         Event::create([
@@ -107,7 +107,7 @@ class EventController extends Controller
             if ($event->banner_path) {
                 Storage::disk('public')->delete($event->banner_path);
             }
-            $bannerPath = $request->file('banner')->store('events', 'public');
+            $bannerPath = \App\Services\ImageCompressionService::compressAndStore($request->file('banner'), 'events', 'public', 200);
         }
 
         $event->update([

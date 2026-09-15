@@ -10,7 +10,7 @@
                         Selamat Datang, {{ Auth::user()->name }}
                     </h1>
                     <p class="text-xs sm:text-sm text-teal-100 mt-2 leading-relaxed">
-                        Kelola data profil kucing, jadwalkan pemeriksaan kesehatan gratis bersama dokter hewan mitra, dan pantau status penerbitan Kartu KTAM Kucing.
+                        Kelola data profil kucing, jadwalkan pemeriksaan kesehatan gratis bersama dokter hewan mitra, dan pantau status penerbitan Kartu KTAKuMu Kucing.
                     </p>
                     @if(Auth::user()->muhammadiyah_id)
                         <div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-md bg-teal-800 border border-teal-700 text-teal-100 text-xs font-medium">
@@ -44,7 +44,7 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-3 mb-4 gap-3">
                             <div>
                                 <h2 class="font-outfit text-lg font-bold text-slate-900 leading-tight">Daftar Kucing Peliharaan</h2>
-                                <p class="text-xs text-slate-500 mt-0.5">Kelola identitas, foto KTAM, dan status kesehatan/kehidupan kucing Anda.</p>
+                                <p class="text-xs text-slate-500 mt-0.5">Kelola identitas, foto KTAKuMu, dan status kesehatan/kehidupan kucing Anda.</p>
                             </div>
                             <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 text-xs font-bold shrink-0 self-start sm:self-auto">
                                 {{ $cats->count() }} Ekor
@@ -53,19 +53,27 @@
 
                         <!-- Member Filter & Sort Toolbar -->
                         <form method="GET" action="{{ route('dashboard') }}" class="mb-5 grid grid-cols-1 sm:grid-cols-12 gap-2.5 bg-slate-50/90 p-3 rounded-2xl border border-slate-200">
-                            <!-- Search -->
-                            <div class="sm:col-span-6 relative">
-                                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                                <input type="text" 
-                                       name="search" 
-                                       value="{{ request('search') }}" 
-                                       placeholder="Cari nama atau ras kucing..." 
-                                       class="w-full text-xs pl-9 pr-7 py-2 rounded-xl border border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition">
-                                @if(request('search'))
-                                    <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</a>
-                                @endif
+                            <!-- Search & Action -->
+                            <div class="sm:col-span-6 flex items-center gap-1.5">
+                                <div class="relative flex-1">
+                                    <input type="text" 
+                                           name="search" 
+                                           value="{{ request('search') }}" 
+                                           placeholder="Cari nama atau ras kucing..." 
+                                           class="w-full text-xs pl-3.5 pr-12 py-2 rounded-xl border border-slate-300 bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 transition"
+                                           style="padding-left: 0.875rem; padding-right: 2.75rem;">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1.5 pointer-events-none" style="position: absolute; right: 0.75rem; top: 0; bottom: 0; display: flex; align-items: center;">
+                                        @if(request('search'))
+                                            <a href="{{ route('dashboard', array_merge(request()->except(['search']))) }}" class="text-slate-400 hover:text-slate-600 text-xs font-bold pointer-events-auto px-1" title="Hapus pencarian">✕</a>
+                                        @endif
+                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 1rem; height: 1rem;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <button type="submit" class="button-primary text-xs px-3.5 py-2 rounded-xl shrink-0 min-h-[36px] flex items-center gap-1 shadow-2xs font-semibold">
+                                    <span>Cari</span>
+                                </button>
                             </div>
 
                             <!-- Filter Status -->
@@ -151,7 +159,7 @@
                                             <!-- Additional Attributes -->
                                             <div class="space-y-1.5 border-t border-slate-100 pt-3 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl">
                                                 <div class="flex justify-between items-center text-[11px]">
-                                                    <span class="text-slate-400">Kode Unik / KTAM:</span>
+                                                    <span class="text-slate-400">Nomor NIAKuMu:</span>
                                                     <span class="font-mono font-bold text-teal-900">{{ $cat->formatted_unique_code }}</span>
                                                 </div>
                                                 @if($cat->photos->count() > 1)
@@ -179,7 +187,7 @@
                                         <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
                                             @if($cat->ktamCard)
                                                 <div class="text-left">
-                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 block">KTAM RESMI</span>
+                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 block">KTAKuMu RESMI</span>
                                                     <span class="text-xs font-mono font-bold text-slate-800">{{ $cat->ktamCard->ktam_number }}</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
@@ -219,7 +227,7 @@
                                                 </div>
                                             @else
                                                 <div class="text-left">
-                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">STATUS KTAM</span>
+                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">STATUS KTAKuMu</span>
                                                     <span class="text-[11px] text-slate-600 font-medium">Belum Periksa Dokter</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
@@ -309,9 +317,71 @@
                 <div class="space-y-6">
                     
                     <!-- Register Cat Form -->
-                    <div class="content-card">
+                    <div class="content-card" x-data="{
+                        isSubmitting: false,
+                        photoPreview: null,
+                        photoCompressed: '',
+                        photoSizeText: '',
+                        isCompressing: false,
+                        handlePhotoSelect(event) {
+                            const file = event.target.files && event.target.files[0];
+                            if (!file) return;
+
+                            // Format validation
+                            const validMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+                            if (!validMimes.includes(file.type) && !file.name.match(/\.(jpe?g|png|webp)$/i)) {
+                                alert('Format file tidak didukung! Gunakan format JPG, PNG, atau WEBP.');
+                                event.target.value = '';
+                                return;
+                            }
+
+                            this.isCompressing = true;
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const img = new Image();
+                                img.onload = () => {
+                                    const maxDim = 1200;
+                                    let w = img.width;
+                                    let h = img.height;
+                                    if (w > maxDim || h > maxDim) {
+                                        const ratio = Math.min(maxDim / w, maxDim / h);
+                                        w = Math.round(w * ratio);
+                                        h = Math.round(h * ratio);
+                                    }
+
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = w;
+                                    canvas.height = h;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, w, h);
+
+                                    const base64 = canvas.toDataURL('image/jpeg', 0.82);
+                                    this.photoCompressed = base64;
+                                    this.photoPreview = base64;
+                                    const approxKb = Math.round((base64.length * 3 / 4) / 1024);
+                                    this.photoSizeText = approxKb + ' KB (Siap diunggah)';
+                                    this.isCompressing = false;
+                                };
+                                img.onerror = () => {
+                                    this.photoPreview = e.target.result;
+                                    this.photoCompressed = e.target.result;
+                                    this.isCompressing = false;
+                                };
+                                img.src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        },
+                        clearPhoto() {
+                            this.photoPreview = null;
+                            this.photoCompressed = '';
+                            this.photoSizeText = '';
+                            const fileInput = document.getElementById('cat_photo');
+                            if (fileInput) fileInput.value = '';
+                        }
+                    }">
                         <h2 class="font-outfit text-base font-bold text-slate-900 border-b border-slate-200 pb-2.5 mb-4">Daftarkan Kucing Baru</h2>
-                        <form method="POST" action="{{ route('cat.store') }}" enctype="multipart/form-data" class="space-y-3.5">
+                        <form method="POST" action="{{ route('cat.store') }}" enctype="multipart/form-data" class="space-y-3.5"
+                              @submit="if(isSubmitting) { $event.preventDefault(); return false; } isSubmitting = true;">
                             @csrf
                             <div>
                                 <label for="cat_name" class="form-label text-xs">Nama Kucing <span class="text-rose-500">*</span></label>
@@ -361,28 +431,69 @@
                                 </select>
                             </div>
                             <div>
-                                <label for="cat_gender" class="form-label text-xs">Jenis Kelamin</label>
+                                <label for="cat_gender" class="form-label text-xs">Jenis Kelamin <span class="text-rose-500">*</span></label>
                                 <select id="cat_gender" name="gender" required class="form-input text-xs">
                                     <option value="male">Jantan</option>
                                     <option value="female">Betina</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="cat_status_reg" class="form-label text-xs">Status</label>
-                                <select id="cat_status_reg" name="status" required class="form-input text-xs">
-                                    <option value="alive" selected>🟢 Hidup</option>
-                                    <option value="deceased">⚪ Mati</option>
-                                </select>
+                                <label for="cat_dob" class="form-label text-xs">Tanggal Lahir <span class="text-rose-500">*</span></label>
+                                <input type="date" id="cat_dob" name="date_of_birth" max="{{ date('Y-m-d') }}" required class="form-input text-xs">
                             </div>
-                            <div>
-                                <label for="cat_dob" class="form-label text-xs">Tanggal Lahir</label>
-                                <input type="date" id="cat_dob" name="date_of_birth" required class="form-input text-xs">
+                            
+                            <!-- Foto Kucing (Kamera & Galeri dengan Auto Kompresi) -->
+                            <div class="space-y-2">
+                                <label class="form-label text-xs">Foto Kucing (Kamera / Galeri)</label>
+                                
+                                <div class="flex items-center gap-2">
+                                    <!-- Input File Utama -->
+                                    <input type="file" 
+                                           id="cat_photo" 
+                                           name="photo" 
+                                           accept="image/*" 
+                                           class="hidden"
+                                           @change="handlePhotoSelect($event)">
+                                    
+                                    <button type="button" 
+                                            @click="document.getElementById('cat_photo').click()" 
+                                            class="button-secondary text-xs py-2 px-3 flex-1 flex items-center justify-center gap-1.5 bg-white hover:bg-slate-100 shadow-2xs">
+                                        <span>📷</span>
+                                        <span x-text="photoPreview ? 'Ganti Foto' : 'Ambil Kamera / Galeri'">Ambil Kamera / Galeri</span>
+                                    </button>
+
+                                    <template x-if="photoPreview">
+                                        <button type="button" 
+                                                @click="clearPhoto()" 
+                                                class="button-danger text-xs py-2 px-2.5 shrink-0" 
+                                                title="Hapus foto terpilih">
+                                            ✕ Batal
+                                        </button>
+                                    </template>
+                                </div>
+
+                                <input type="hidden" name="photo_cam" :value="photoCompressed">
+
+                                <!-- Preview Thumbnail -->
+                                <template x-if="photoPreview">
+                                    <div class="flex items-center gap-3 p-2.5 bg-teal-50/70 border border-teal-200 rounded-xl mt-2">
+                                        <img :src="photoPreview" alt="Pratinjau Kucing" class="w-14 h-14 object-cover rounded-lg border border-teal-300 shrink-0 shadow-2xs">
+                                        <div class="text-[11px] text-teal-900 min-w-0">
+                                            <span class="font-bold block text-teal-800">✓ Foto Siap Digunakan</span>
+                                            <span class="text-teal-700 block truncate" x-text="photoSizeText || 'Terkonversi optimal'"></span>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <template x-if="isCompressing">
+                                    <p class="text-[11px] text-teal-700 font-medium flex items-center gap-1.5 animate-pulse">
+                                        <span class="animate-spin">⟳</span> Mengoptimalkan ukuran foto...
+                                    </p>
+                                </template>
+
+                                <p class="text-[10px] text-slate-500">Mendukung kamera HP langsung & galeri (Otomatis dikompres maks 200 KB).</p>
                             </div>
-                            <div>
-                                <label for="cat_photo" class="form-label text-xs">Foto Kucing (Galeri / Kamera)</label>
-                                <input type="file" id="cat_photo" name="photo" accept="image/*" class="form-input text-xs">
-                                <p class="text-[10px] text-teal-600 font-medium mt-1">Format JPG/PNG/WEBP (Auto-kompres maks 200 KB)</p>
-                            </div>
+
                             <div>
                                 <label for="cat_allergies" class="form-label text-xs">Alergi Kucing <span class="text-slate-500 font-normal">(Opsional)</span></label>
                                 <input type="text" id="cat_allergies" name="allergies" class="form-input text-xs" placeholder="Contoh: Alergi makanan tertentu">
@@ -391,8 +502,17 @@
                                 <label for="cat_vaccine" class="form-label text-xs">Riwayat Vaksin <span class="text-slate-500 font-normal">(Opsional)</span></label>
                                 <input type="text" id="cat_vaccine" name="vaccine_history" class="form-input text-xs" placeholder="Contoh: Tricat, Rabies">
                             </div>
-                            <button type="submit" class="w-full button-primary text-xs font-semibold py-2.5">
-                                Daftarkan Data Kucing
+                            <button type="submit" 
+                                    :disabled="isSubmitting"
+                                    class="w-full button-primary text-xs font-semibold h-[42px] min-h-[42px] px-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                                <span x-show="isSubmitting" class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin h-4 w-4 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Mendaftarkan Kucing...</span>
+                                </span>
+                                <span x-show="!isSubmitting">Daftarkan Data Kucing</span>
                             </button>
                         </form>
                     </div>
@@ -406,10 +526,12 @@
                                     Daftarkan kucing terlebih dahulu sebelum membuat jadwal janji temu pemeriksaan dokter.
                                 </p>
                             @else
-                                <form method="POST" action="{{ route('appointment.store') }}" class="space-y-3.5">
+                                <form method="POST" action="{{ route('appointment.store') }}" class="space-y-3.5"
+                                      x-data="{ isSubmittingApp: false }"
+                                      @submit="if(isSubmittingApp) { $event.preventDefault(); return false; } isSubmittingApp = true;">
                                     @csrf
                                     <div>
-                                        <label for="select_cat" class="form-label text-xs">Pilih Kucing</label>
+                                        <label for="select_cat" class="form-label text-xs">Pilih Kucing <span class="text-rose-500">*</span></label>
                                         <select id="select_cat" name="cat_id" required class="form-input text-xs">
                                             @foreach($cats as $cat)
                                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -417,11 +539,11 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label for="app_date" class="form-label text-xs">Tanggal Pemeriksaan</label>
-                                        <input type="date" id="app_date" name="date" required class="form-input text-xs">
+                                        <label for="app_date" class="form-label text-xs">Tanggal Pemeriksaan <span class="text-rose-500">*</span></label>
+                                        <input type="date" id="app_date" name="date" min="{{ date('Y-m-d') }}" required class="form-input text-xs">
                                     </div>
                                     <div>
-                                        <label for="app_slot" class="form-label text-xs">Sesi Waktu</label>
+                                        <label for="app_slot" class="form-label text-xs">Sesi Waktu <span class="text-rose-500">*</span></label>
                                         <select id="app_slot" name="time_slot" required class="form-input text-xs">
                                             <option value="Sesi Pagi (09:00 - 11:30)">Sesi Pagi (09:00 - 11:30)</option>
                                             <option value="Sesi Siang (13:00 - 15:30)">Sesi Siang (13:00 - 15:30)</option>
@@ -432,8 +554,17 @@
                                         <label for="app_notes" class="form-label text-xs">Keluhan / Catatan Kunjungan</label>
                                         <textarea id="app_notes" name="notes" rows="2" class="form-input text-xs" placeholder="Tuliskan keluhan atau tujuan pemeriksaan..."></textarea>
                                     </div>
-                                    <button type="submit" class="w-full button-primary text-xs font-semibold py-2.5">
-                                        Konfirmasi Janji Temu
+                                    <button type="submit" 
+                                            :disabled="isSubmittingApp"
+                                            class="w-full button-primary text-xs font-semibold h-[42px] min-h-[42px] px-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <span x-show="isSubmittingApp" class="inline-flex items-center gap-2">
+                                            <svg class="animate-spin h-4 w-4 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <span>Memproses Jadwal...</span>
+                                        </span>
+                                        <span x-show="!isSubmittingApp">Konfirmasi Janji Temu</span>
                                     </button>
                                 </form>
                             @endif
@@ -478,13 +609,13 @@
         <div x-show="openDraftModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="draft-modal-title" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/75 backdrop-blur-xs p-3">
             <div @click.away="openDraftModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full max-w-md max-h-[92vh] border border-slate-200">
                 <div class="px-4 py-3 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                    <h3 id="draft-modal-title" class="font-outfit font-bold text-slate-900 text-sm">Pratinjau Kartu KTAM</h3>
+                    <h3 id="draft-modal-title" class="font-outfit font-bold text-slate-900 text-sm">Pratinjau Kartu KTAKuMu</h3>
                     <button type="button" @click="openDraftModal = false" aria-label="Tutup pratinjau" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
                 <div class="flex-1 bg-slate-950 flex items-center justify-center p-0 overflow-y-auto">
-                    <iframe :src="draftUrl" title="Pratinjau Kartu KTAM" class="w-full h-[520px] border-0" scrolling="auto"></iframe>
+                    <iframe :src="draftUrl" title="Pratinjau Kartu KTAKuMu" class="w-full h-[520px] border-0" scrolling="auto"></iframe>
                 </div>
             </div>
         </div>

@@ -10,7 +10,7 @@
                         Selamat Bertugas, {{ Auth::user()->name }}!
                     </h1>
                     <p class="card-copy max-w-xl">
-                        Akses rekam medis, kelola antrian pemeriksaan kucing hari ini, dan catat hasil konsultasi. Platform akan secara otomatis menerbitkan kartu KTAM setelah pemeriksaan selesai diverifikasi.
+                        Akses rekam medis, kelola antrian pemeriksaan kucing hari ini, dan catat hasil konsultasi. Platform akan secara otomatis menerbitkan kartu KTAKuMu setelah pemeriksaan selesai diverifikasi.
                     </p>
                 </div>
                 <div class="hidden md:block text-5xl">
@@ -147,7 +147,7 @@
                             </div>
 
                             <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 flex items-start gap-2">
-                                <span>Hasil rekam medis akan tersimpan dan data kucing akan masuk ke antrian verifikasi Admin untuk penerbitan kartu KTAM resmi.</span>
+                                <span>Hasil rekam medis akan tersimpan dan data kucing akan masuk ke antrian verifikasi Admin untuk penerbitan kartu KTAKuMu resmi.</span>
                             </div>
 
                             <button type="submit" class="w-full button-primary flex justify-center py-2.5">
