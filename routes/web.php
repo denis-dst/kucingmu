@@ -35,6 +35,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Workspace Role Switcher
+    Route::post('/switch-workspace', [DashboardController::class, 'switchWorkspace'])->name('workspace.switch');
+    Route::get('/switch-workspace/{role}', [DashboardController::class, 'switchWorkspace'])->name('workspace.switch.get');
 });
 
 // Member Routes

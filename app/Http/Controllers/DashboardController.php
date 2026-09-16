@@ -13,29 +13,52 @@ use App\Models\User;
 use App\Services\KtamService;
 use App\Services\ImageCompressionService;
 use Carbon\Carbon;
+use App\Mail\RegistrationSuccessMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class DashboardController extends Controller
 {
     /**
-     * Show the application dashboard based on user role.
+     * Show the application dashboard based on active workspace role.
      */
     public function index(Request $request)
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        $activeRole = $user->getActiveRole();
 
-        if ($user->isAdmin()) {
+        if (in_array($activeRole, ['admin', 'superadmin'])) {
             return $this->adminDashboard($request);
-        } elseif ($user->isDokter()) {
+        } elseif ($activeRole === 'dokter') {
             return $this->dokterDashboard();
-        } elseif ($user->isVolunteer()) {
+        } elseif ($activeRole === 'volunteer') {
             return $this->volunteerDashboard();
         } else {
             return $this->memberDashboard($request);
         }
+    }
+
+    /**
+     * Switch user active workspace role context.
+     */
+    public function switchWorkspace(Request $request, ?string $role = null)
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $targetRole = strtolower(trim($role ?: $request->input('role', 'member')));
+
+        if (!$user->hasRole($targetRole)) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki hak akses untuk ruang kerja tersebut.');
+        }
+
+        $user->setActiveRole($targetRole);
+        $meta = User::getWorkspaceMeta($targetRole);
+
+        return redirect()->route('dashboard')->with('success', "Beralih ke {$meta['name']}.");
     }
 
     /**
@@ -199,7 +222,7 @@ class DashboardController extends Controller
     /**
      * Render Member Dashboard with sorting and status filtering.
      */
-    protected function memberDashboard(Request $request = null)
+    protected function memberDashboard(?Request $request = null)
     {
         $request = $request ?: request();
         $catQuery = Auth::user()->cats()->with(['ktamCard', 'medicalRecords.vet', 'photos', 'wilayah']);
@@ -912,6 +935,17 @@ class DashboardController extends Controller
             'notes' => 'Registrasi langsung di lokasi event.',
         ]);
 
+        // Send registration email notification to member (identical to self-registration)
+        try {
+            Mail::to($owner->email)->send(new RegistrationSuccessMail(
+                $owner,
+                $isNewOwner ? 'kucingmu123' : null,
+                $cat->name
+            ));
+        } catch (\Throwable $e) {
+            Log::warning('Gagal mengirim email pendaftaran relawan (online): ' . $e->getMessage());
+        }
+
         return redirect()->route('dashboard')->with([
             'success' => 'Registrasi berhasil! Kucing langsung masuk ke antrian periksa dokter hari ini.',
             'registration_summary' => [
@@ -1054,6 +1088,7 @@ class DashboardController extends Controller
         foreach ($request->entries as $entry) {
             $normalizedEmail = strtolower(trim($entry['owner_email']));
             $owner = User::where('email', $normalizedEmail)->first();
+            $isNewOwner = false;
             if (!$owner) {
                 $owner = User::create([
                     'name' => trim($entry['owner_name']),
@@ -1063,6 +1098,18 @@ class DashboardController extends Controller
                     'role' => 'member',
                     'muhammadiyah_id' => !empty($entry['owner_nbm']) ? User::formatNbm($entry['owner_nbm']) : null,
                 ]);
+                $isNewOwner = true;
+            } else {
+                $updates = [];
+                if (!empty($entry['owner_phone']) && empty($owner->phone)) {
+                    $updates['phone'] = trim($entry['owner_phone']);
+                }
+                if (!empty($entry['owner_nbm']) && empty($owner->muhammadiyah_id)) {
+                    $updates['muhammadiyah_id'] = User::formatNbm($entry['owner_nbm']);
+                }
+                if (!empty($updates)) {
+                    $owner->update($updates);
+                }
             }
 
             $rawBreed = trim($entry['cat_breed'] ?? 'Domestik');
@@ -1088,6 +1135,17 @@ class DashboardController extends Controller
                 'status' => 'checked_in',
                 'notes' => 'Disinkronkan dari antrian offline lapangan.',
             ]);
+
+            // Send registration email notification to member (identical to self-registration)
+            try {
+                Mail::to($owner->email)->send(new RegistrationSuccessMail(
+                    $owner,
+                    $isNewOwner ? 'kucingmu123' : null,
+                    $cat->name
+                ));
+            } catch (\Throwable $e) {
+                Log::warning('Gagal mengirim email pendaftaran relawan (offline): ' . $e->getMessage());
+            }
 
             $syncedCount++;
         }

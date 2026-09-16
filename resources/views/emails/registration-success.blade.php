@@ -53,10 +53,14 @@
                                 Halo, {{ $user->name }}! 👋
                             </h2>
                             <p style="margin: 0 0 20px; font-size: 15px; color: #334155; line-height: 1.6;">
-                                Selamat! Akun Anda pada platform <strong>{{ $appName }}</strong> telah berhasil
-                                didaftarkan. Kini Anda telah resmi bergabung dalam inisiatif kepedulian kesehatan dan
-                                pendataan kucing bersama komunitas kami. Silakan daftarkan Kucing Kesayanganmu pada
-                                platform KucingMu dan dapatkan manfaat lainnya.
+                                @if(!empty($catName))
+                                    Selamat! Pendaftaran untuk kucing kesayangan Anda, <strong>{{ $catName }}</strong>, pada platform <strong>{{ $appName }}</strong> telah berhasil didaftarkan oleh Relawan kami. Kucing Anda telah resmi terdata dalam inisiatif kepedulian kesehatan dan pendataan hewan bersama komunitas kami.
+                                @else
+                                    Selamat! Akun Anda pada platform <strong>{{ $appName }}</strong> telah berhasil
+                                    didaftarkan. Kini Anda telah resmi bergabung dalam inisiatif kepedulian kesehatan dan
+                                    pendataan kucing bersama komunitas kami. Silakan daftarkan Kucing Kesayanganmu pada
+                                    platform KucingMu dan dapatkan manfaat lainnya.
+                                @endif
                             </p>
 
                             <!-- Account Details Card -->
@@ -85,6 +89,22 @@
                                                     {{ $user->email }}
                                                 </td>
                                             </tr>
+                                            @if(!empty($catName))
+                                            <tr>
+                                                <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Kucing Terdaftar:</td>
+                                                <td style="padding: 6px 0; color: #0f766e; font-weight: 700;">
+                                                    🐱 {{ $catName }}
+                                                </td>
+                                            </tr>
+                                            @endif
+                                            @if(!empty($initialPassword))
+                                            <tr>
+                                                <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Kata Sandi Awal:</td>
+                                                <td style="padding: 6px 0; color: #0f172a; font-weight: 700; font-family: monospace;">
+                                                    <span style="background-color: #f1f5f9; padding: 2px 8px; border-radius: 4px; border: 1px solid #cbd5e1;">{{ $initialPassword }}</span>
+                                                </td>
+                                            </tr>
+                                            @endif
                                             <tr>
                                                 <td style="padding: 6px 0; color: #64748b; vertical-align: top;">Waktu
                                                     Pendaftaran:</td>
@@ -97,6 +117,16 @@
                                     </td>
                                 </tr>
                             </table>
+
+                            @if(!empty($initialPassword))
+                            <!-- Relawan Credential Notice -->
+                            <div
+                                style="background-color: #ecfdf5; border-left: 4px solid #0f766e; border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 20px 0 24px;">
+                                <p style="margin: 0; font-size: 13px; color: #115e59; line-height: 1.5;">
+                                    <strong>Pendaftaran melalui Relawan:</strong> Akun Anda telah dibuatkan oleh Relawan {{ $appName }}. Gunakan alamat email Anda dan kata sandi awal di atas untuk masuk. Demi keamanan, segera ganti kata sandi Anda setelah masuk ke sistem.
+                                </p>
+                            </div>
+                            @endif
 
                             <!-- Call to Action -->
                             <div style="text-align: center; margin: 30px 0 24px;">

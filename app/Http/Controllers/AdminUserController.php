@@ -22,7 +22,10 @@ class AdminUserController extends Controller
         $query = User::withCount(['cats', 'vetRecords']);
 
         if ($roleFilter !== 'all' && in_array($roleFilter, ['admin', 'superadmin', 'dokter', 'volunteer', 'member'])) {
-            $query->where('role', $roleFilter);
+            $query->where(function ($q) use ($roleFilter) {
+                $q->where('role', $roleFilter)
+                  ->orWhereJsonContains('roles', $roleFilter);
+            });
         }
 
         if (!empty($search)) {
@@ -55,10 +58,10 @@ class AdminUserController extends Controller
         // Statistics for widgets in a single aggregated query
         $userStats = User::selectRaw("
             COUNT(*) as total,
-            COUNT(CASE WHEN role = 'member' THEN 1 END) as member,
-            COUNT(CASE WHEN role = 'dokter' THEN 1 END) as dokter,
-            COUNT(CASE WHEN role = 'volunteer' THEN 1 END) as volunteer,
-            COUNT(CASE WHEN role IN ('admin', 'superadmin') THEN 1 END) as admin
+            COUNT(CASE WHEN role = 'member' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"member\"') THEN 1 END) as member,
+            COUNT(CASE WHEN role = 'dokter' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"dokter\"') THEN 1 END) as dokter,
+            COUNT(CASE WHEN role = 'volunteer' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"volunteer\"') THEN 1 END) as volunteer,
+            COUNT(CASE WHEN role IN ('admin', 'superadmin') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"admin\"') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"superadmin\"') THEN 1 END) as admin
         ")->first();
 
         $stats = [
@@ -74,11 +77,14 @@ class AdminUserController extends Controller
 
     /**
      * Update user role (e.g. hire active member to volunteer, dokter, or admin).
+     * Supports multiple roles with workspace switching.
      */
     public function updateRole(Request $request, User $user)
     {
         $validated = $request->validate([
-            'role' => ['required', Rule::in(['member', 'volunteer', 'dokter', 'admin', 'superadmin'])],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => [Rule::in(['member', 'volunteer', 'dokter', 'admin', 'superadmin'])],
+            'role' => ['nullable', Rule::in(['member', 'volunteer', 'dokter', 'admin', 'superadmin'])],
         ]);
 
         $currentUser = Auth::user();
@@ -88,27 +94,58 @@ class AdminUserController extends Controller
             return back()->with('error', 'Anda tidak dapat mengubah peran akun Anda sendiri.');
         }
 
-        // Only superadmin can assign superadmin role
-        if ($validated['role'] === 'superadmin' && !$currentUser->isSuperAdmin()) {
-            return back()->with('error', 'Hanya Super Administrator yang dapat menetapkan peran Superadmin.');
+        // Determine the assigned roles
+        $selectedRoles = $validated['roles'] ?? [];
+        if (empty($selectedRoles) && !empty($validated['role'])) {
+            $selectedRoles = [$validated['role']];
         }
 
-        $oldRole = $user->role;
-        $newRole = $validated['role'];
+        // Always include 'member' so every account retains cat-owner workspace
+        if (!in_array('member', $selectedRoles)) {
+            $selectedRoles[] = 'member';
+        }
+        $selectedRoles = array_values(array_unique(array_map('strtolower', array_map('trim', $selectedRoles))));
 
-        $user->update(['role' => $newRole]);
+        // Only superadmin can assign or revoke superadmin role
+        if (in_array('superadmin', $selectedRoles) && !$currentUser->isSuperAdmin()) {
+            return back()->with('error', 'Hanya Super Administrator yang dapat menetapkan peran Superadmin.');
+        }
+        if ($user->isSuperAdmin() && !in_array('superadmin', $selectedRoles) && !$currentUser->isSuperAdmin()) {
+            return back()->with('error', 'Hanya Super Administrator yang dapat mencabut peran Superadmin.');
+        }
+
+        // If assigning superadmin, ensure admin is also included
+        if (in_array('superadmin', $selectedRoles) && !in_array('admin', $selectedRoles)) {
+            $selectedRoles[] = 'admin';
+        }
+
+        // Determine primary role column (for legacy backward compatibility)
+        // Order of priority for primary role: superadmin > admin > dokter > volunteer > member
+        $priorities = ['superadmin', 'admin', 'dokter', 'volunteer', 'member'];
+        $primaryRole = 'member';
+        foreach ($priorities as $p) {
+            if (in_array($p, $selectedRoles)) {
+                $primaryRole = $p;
+                break;
+            }
+        }
+
+        $user->roles = $selectedRoles;
+        $user->role = $primaryRole;
+        $user->save();
 
         $roleLabels = [
-            'member' => 'Member / Pemilik Kucing',
-            'volunteer' => 'Relawan Sensus PTMA & Surveilans',
-            'dokter' => 'Dokter Hewan (Vet)',
+            'member' => 'Member (Pemilik Kucing)',
+            'volunteer' => 'Relawan Sensus',
+            'dokter' => 'Dokter Hewan',
             'admin' => 'Administrator',
             'superadmin' => 'Super Administrator',
         ];
 
-        $roleName = $roleLabels[$newRole] ?? ucfirst($newRole);
+        $assignedLabels = array_map(fn($r) => $roleLabels[$r] ?? ucfirst($r), $selectedRoles);
+        $roleNamesStr = implode(', ', $assignedLabels);
 
-        return back()->with('success', "Peran untuk {$user->name} berhasil diperbarui menjadi {$roleName}.");
+        return back()->with('success', "Hak peran untuk {$user->name} berhasil diperbarui menjadi: {$roleNamesStr}. Pengguna kini dapat beralih ruang kerja sesuai perannya.");
     }
 
     /**

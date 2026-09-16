@@ -129,6 +129,7 @@
                             <span>💡</span> Langkah Selanjutnya untuk Disampaikan ke Pemilik Kucing:
                         </p>
                         <ul class="list-disc list-inside space-y-1 text-slate-700 text-[11px] leading-relaxed pl-1">
+                            <li><strong>Email Konfirmasi Otomatis:</strong> Sistem secara otomatis telah mengirimkan email pemberitahuan resmi dan rincian login ke <strong>{{ $summary['owner_email'] }}</strong>.</li>
                             <li><strong>Informasikan Password:</strong> Beritahu pemilik bahwa mereka dapat login ke KucingMu dengan email <strong>{{ $summary['owner_email'] }}</strong> dan password bawaan: <code class="bg-white px-1.5 py-0.5 rounded font-mono font-bold text-amber-800 border border-amber-200">{{ $summary['default_password'] }}</code>.</li>
                             <li><strong>Akses Member:</strong> Setelah login, pemilik dapat melihat rekam medis pemeriksaan, sertifikat vaksin, dan Kartu Tanda Anggota (KTAM) kucing secara digital.</li>
                             <li><strong>Menunggu Panggilan Dokter:</strong> Kucing sudah otomatis masuk ke daftar antrian periksa dokter hari ini. Pemilik dipersilakan menunggu di ruang tunggu pemeriksaan.</li>
@@ -137,7 +138,7 @@
 
                     <!-- Action buttons (copy message for WhatsApp / dismiss) -->
                     @php
-                        $waTemplate = "Halo Kak " . $summary['owner_name'] . ",\n\nPendaftaran kucing *" . $summary['cat_name'] . "* di KucingMu telah berhasil!\n\nBerikut informasi akun KucingMu Anda:\n- Email Login: " . $summary['owner_email'] . "\n- Password Bawaan: " . $summary['default_password'] . "\n- Kode Kucing: " . $summary['cat_code'] . "\n\nKucing Anda telah otomatis masuk ke antrian periksa dokter hari ini. Anda dapat login ke web KucingMu untuk melihat rekam medis digital dan kartu KTAM.\n\nTerima kasih!\nTim Relawan KucingMu";
+                        $waTemplate = "Halo Kak " . $summary['owner_name'] . ",\n\nPendaftaran kucing *" . $summary['cat_name'] . "* di KucingMu telah berhasil!\n\nBerikut informasi akun KucingMu Anda:\n- Email Login: " . $summary['owner_email'] . "\n- Password Bawaan: " . $summary['default_password'] . "\n- Kode Kucing: " . $summary['cat_code'] . "\n- Notifikasi: Rincian pendaftaran juga telah dikirimkan ke email Anda.\n\nKucing Anda telah otomatis masuk ke antrian periksa dokter hari ini. Anda dapat login ke web KucingMu untuk melihat rekam medis digital dan kartu KTAM.\n\nTerima kasih!\nTim Relawan KucingMu";
                     @endphp
                     <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-teal-100" x-data="{ copiedMsg: false }">
                         <button type="button" 

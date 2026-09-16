@@ -2,16 +2,32 @@
     <div class="py-8" x-data="{ 
         roleModalOpen: false, 
         selectedUser: null, 
-        selectedRole: '', 
-        openRoleModal(user) { 
+        selectedRoles: [], 
+        openRoleModal(user, roles) { 
             this.selectedUser = user; 
-            this.selectedRole = user.role; 
+            this.selectedRoles = Array.isArray(roles) ? [...roles] : (user.roles ? (typeof user.roles === 'string' ? JSON.parse(user.roles) : [...user.roles]) : [user.role || 'member']);
+            if (!this.selectedRoles.includes('member')) {
+                this.selectedRoles.push('member');
+            }
             this.roleModalOpen = true; 
         }, 
         closeRoleModal() { 
             this.roleModalOpen = false; 
             this.selectedUser = null; 
-        } 
+            this.selectedRoles = [];
+        },
+        toggleRole(role) {
+            if (role === 'member') return;
+            const idx = this.selectedRoles.indexOf(role);
+            if (idx > -1) {
+                this.selectedRoles.splice(idx, 1);
+            } else {
+                this.selectedRoles.push(role);
+            }
+        },
+        hasRole(role) {
+            return this.selectedRoles.includes(role);
+        }
     }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
@@ -219,29 +235,19 @@
                                         </div>
                                     </td>
 
-                                    <!-- Role Badge -->
+                                    <!-- Role Badges (Multi-role support) -->
                                     <td class="py-3.5 px-4">
-                                        @if($user->role === 'superadmin')
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-purple-100 text-purple-800 border border-purple-300">
-                                                <span>👑</span> Super Administrator
-                                            </span>
-                                        @elseif($user->role === 'admin')
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                                <span>🛡️</span> Administrator
-                                            </span>
-                                        @elseif($user->role === 'dokter')
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                                <span>🩺</span> Dokter Hewan
-                                            </span>
-                                        @elseif($user->role === 'volunteer')
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
-                                                <span>📋</span> Relawan Sensus
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200">
-                                                <span>🐱</span> Member
-                                            </span>
-                                        @endif
+                                        <div class="flex flex-wrap gap-1 max-w-[220px]">
+                                            @foreach($user->getAllRoles() as $userRole)
+                                                @php
+                                                    $meta = \App\Models\User::getWorkspaceMeta($userRole);
+                                                @endphp
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border {{ $meta['badge_class'] ?? 'bg-slate-100 text-slate-700 border-slate-200' }}">
+                                                    <span>{{ $meta['icon'] ?? '🏷️' }}</span>
+                                                    <span>{{ $meta['short_name'] ?? ucfirst($userRole) }}</span>
+                                                </span>
+                                            @endforeach
+                                        </div>
                                     </td>
 
                                     <!-- Aktivitas -->
@@ -266,13 +272,13 @@
                                     <!-- Action Buttons -->
                                     <td class="py-3.5 px-4 text-right">
                                         <div class="flex items-center justify-end gap-1.5">
-                                            <!-- Tombol Ubah Peran / Hire -->
+                                            <!-- Tombol Kelola Peran / Multi-Role -->
                                             @if(Auth::id() !== $user->id && (!$user->isSuperAdmin() || Auth::user()->isSuperAdmin()))
                                                 <button type="button" 
-                                                        @click="openRoleModal({{ json_encode($user) }})"
+                                                        @click="openRoleModal({{ json_encode($user) }}, {{ json_encode($user->getAllRoles()) }})"
                                                         class="btn-action-secondary py-1.5 px-2.5 text-[11px] font-bold flex items-center gap-1 hover:border-slate-400">
                                                     <span>🤝</span>
-                                                    <span>Ubah Peran</span>
+                                                    <span>Kelola Peran</span>
                                                 </button>
                                             @endif
 
@@ -326,7 +332,7 @@
                         </div>
                         <div>
                             <h3 class="font-outfit font-bold text-slate-900 text-base leading-tight">
-                                Angkat / Ubah Peran Pengguna
+                                Kelola Hak Akses & Peran Pengguna
                             </h3>
                             <p class="text-[11px] text-slate-500 mt-0.5" x-text="selectedUser ? 'Pengguna: ' + selectedUser.name + ' (' + selectedUser.email + ')' : ''"></p>
                         </div>
@@ -334,62 +340,95 @@
                     <button type="button" @click="closeRoleModal()" class="text-slate-400 hover:text-slate-700 font-bold text-xl leading-none">&times;</button>
                 </div>
 
-                <!-- Form Ubah Role -->
+                <!-- Form Ubah Role Multi-Role -->
                 <form :action="selectedUser ? '{{ url('/admin/users') }}/' + selectedUser.id + '/role' : '#'" method="POST" class="space-y-4">
                     @csrf
                     @method('PUT')
 
+                    <!-- Always include member role -->
+                    <input type="hidden" name="roles[]" value="member">
+
                     <div>
-                        <label class="form-label font-bold text-slate-700">Pilih Peran Baru untuk Pengguna Ini:</label>
+                        <div class="flex items-center justify-between">
+                            <label class="form-label font-bold text-slate-800">Pilih Peran Pengguna (Multi-Peran):</label>
+                            <span class="text-[11px] text-teal-700 font-semibold">Dapat memilih lebih dari 1</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-0.5">
+                            Member yang diangkat menjadi staf/relawan tetap memiliki ruang pemilik kucing untuk mengelola kucing peliharaannya sendiri.
+                        </p>
                         
-                        <div class="space-y-2.5 mt-2">
-                            <!-- 1. Member -->
-                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition hover:bg-teal-50/50"
-                                   :class="selectedRole === 'member' ? 'border-teal-600 bg-teal-50/60 ring-2 ring-teal-100' : 'border-slate-200 bg-white'">
-                                <input type="radio" name="role" value="member" x-model="selectedRole" class="mt-1 text-teal-700 focus:ring-teal-500">
+                        <div class="space-y-2 mt-3">
+                            <!-- 1. Member (Permanen / Otomatis) -->
+                            <div class="flex items-start gap-3 p-3 rounded-2xl border border-teal-200 bg-teal-50/50">
+                                <input type="checkbox" checked disabled class="mt-1 rounded text-teal-700 focus:ring-teal-500 opacity-75">
                                 <div>
-                                    <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
+                                    <div class="font-bold text-xs text-teal-900 flex items-center gap-1.5">
                                         <span>🐱</span> Member / Pemilik Kucing
+                                        <span class="text-[9px] bg-teal-200/80 text-teal-900 font-extrabold px-1.5 py-0.2 rounded">Selalu Aktif</span>
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Dapat mendaftarkan kucing, mengajukan janji temu, dan mencetak Kartu Tanda Anggota KucingMu (KTAKuMu).</p>
+                                    <p class="text-[11px] text-teal-800/80 mt-0.5">Ruang pribadi untuk mendaftarkan kucing sendiri, memantau riwayat medis, dan mencetak KTA Kucing.</p>
                                 </div>
-                            </label>
+                            </div>
 
                             <!-- 2. Relawan (Volunteer) -->
-                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition hover:bg-indigo-50/50"
-                                   :class="selectedRole === 'volunteer' ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-100' : 'border-slate-200 bg-white'">
-                                <input type="radio" name="role" value="volunteer" x-model="selectedRole" class="mt-1 text-indigo-700 focus:ring-indigo-500">
-                                <div>
-                                    <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                                        <span>📋</span> Relawan Sensus PTMA & Surveilans
+                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition select-none"
+                                   :class="hasRole('volunteer') ? 'border-indigo-600 bg-indigo-50/70 ring-2 ring-indigo-100' : 'border-slate-200 bg-white hover:bg-slate-50'">
+                                <input type="checkbox" name="roles[]" value="volunteer" :checked="hasRole('volunteer')" @change="toggleRole('volunteer')" class="mt-1 rounded text-indigo-700 focus:ring-indigo-500">
+                                <div class="flex-1">
+                                    <div class="font-bold text-xs text-slate-900 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5"><span>📋</span> Relawan Sensus PTMA & Lapangan</span>
+                                        <span x-show="hasRole('volunteer')" class="text-[9px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.2 rounded">Aktif</span>
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Memiliki akses ke modul Sensus Kucing Kampus PTMA, pemindai AI MobileNet, serta input surveilans lapangan.</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Akses ke Ruang Relawan untuk mendata kucing kampus/liar, sensus populasi, dan surveilans.</p>
                                 </div>
                             </label>
 
                             <!-- 3. Dokter Hewan (Dokter) -->
-                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition hover:bg-emerald-50/50"
-                                   :class="selectedRole === 'dokter' ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-100' : 'border-slate-200 bg-white'">
-                                <input type="radio" name="role" value="dokter" x-model="selectedRole" class="mt-1 text-emerald-700 focus:ring-emerald-500">
-                                <div>
-                                    <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                                        <span>🩺</span> Dokter Hewan (Veterinarian)
+                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition select-none"
+                                   :class="hasRole('dokter') ? 'border-emerald-600 bg-emerald-50/70 ring-2 ring-emerald-100' : 'border-slate-200 bg-white hover:bg-slate-50'">
+                                <input type="checkbox" name="roles[]" value="dokter" :checked="hasRole('dokter')" @change="toggleRole('dokter')" class="mt-1 rounded text-emerald-700 focus:ring-emerald-500">
+                                <div class="flex-1">
+                                    <div class="font-bold text-xs text-slate-900 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5"><span>🩺</span> Dokter Hewan (Veterinarian)</span>
+                                        <span x-show="hasRole('dokter')" class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded">Aktif</span>
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Memiliki wewenang mengisi rekam medis, riwayat vaksin, penanganan klinis, dan menyetujui kelaikan kesehatan kucing.</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Akses ke Ruang Dokter untuk rekam medis klinik, diagnosis, tindakan, dan vaksinasi.</p>
                                 </div>
                             </label>
 
                             <!-- 4. Administrator -->
-                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition hover:bg-amber-50/50"
-                                   :class="selectedRole === 'admin' ? 'border-amber-600 bg-amber-50/60 ring-2 ring-amber-100' : 'border-slate-200 bg-white'">
-                                <input type="radio" name="role" value="admin" x-model="selectedRole" class="mt-1 text-amber-700 focus:ring-amber-500">
-                                <div>
-                                    <div class="font-bold text-xs text-slate-900 flex items-center gap-1.5">
-                                        <span>🛡️</span> Administrator Sistem
+                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition select-none"
+                                   :class="hasRole('admin') ? 'border-amber-600 bg-amber-50/70 ring-2 ring-amber-100' : 'border-slate-200 bg-white hover:bg-slate-50'">
+                                <input type="checkbox" name="roles[]" value="admin" :checked="hasRole('admin')" @change="toggleRole('admin')" class="mt-1 rounded text-amber-700 focus:ring-amber-500">
+                                <div class="flex-1">
+                                    <div class="font-bold text-xs text-slate-900 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5"><span>🛡️</span> Administrator Sistem</span>
+                                        <span x-show="hasRole('admin')" class="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded">Aktif</span>
                                     </div>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">Memiliki akses verifikasi KTAKuMu resmi, ekspor basis data, kelola event, dan manajemen pengguna.</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Akses ke Ruang Admin untuk kelola pengguna, verifikasi KTAKuMu resmi, dan event.</p>
                                 </div>
                             </label>
+
+                            @if(Auth::user()->isSuperAdmin())
+                                <!-- 5. Super Administrator (Khusus Superadmin) -->
+                                <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition select-none"
+                                       :class="hasRole('superadmin') ? 'border-purple-600 bg-purple-50/70 ring-2 ring-purple-100' : 'border-slate-200 bg-white hover:bg-slate-50'">
+                                    <input type="checkbox" name="roles[]" value="superadmin" :checked="hasRole('superadmin')" @change="toggleRole('superadmin')" class="mt-1 rounded text-purple-700 focus:ring-purple-500">
+                                    <div class="flex-1">
+                                        <div class="font-bold text-xs text-slate-900 flex items-center justify-between">
+                                            <span class="flex items-center gap-1.5"><span>👑</span> Super Administrator</span>
+                                            <span x-show="hasRole('superadmin')" class="text-[9px] bg-purple-100 text-purple-800 font-bold px-1.5 py-0.2 rounded">Khusus Superadmin</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-500 mt-0.5">Wewenang tertinggi sistem, pengaturan server, dan delegasi hak superadmin.</p>
+                                    </div>
+                                </label>
+                            @endif
+                        </div>
+
+                        <!-- Keterangan Workspace Switcher -->
+                        <div class="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-[11px] flex items-start gap-2">
+                            <span class="text-sm">💡</span>
+                            <span>Pengguna dengan multi-peran akan mendapatkan menu <strong>Ganti Ruang Kerja</strong> di bilah navigasi atas untuk berpindah ruang kerja kapan saja.</span>
                         </div>
                     </div>
 
@@ -400,7 +439,7 @@
                         </button>
                         <button type="submit" class="button-primary text-xs font-bold py-2.5 px-5 flex items-center gap-1.5">
                             <span>💾</span>
-                            <span>Simpan Peran Baru</span>
+                            <span>Simpan Perubahan Peran</span>
                         </button>
                     </div>
                 </form>

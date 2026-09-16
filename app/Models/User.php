@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 
 use Illuminate\Support\Str;
 
-#[Fillable(['name', 'email', 'password', 'phone', 'role', 'muhammadiyah_id', 'bio', 'avatar', 'api_token'])]
+#[Fillable(['name', 'email', 'password', 'phone', 'role', 'roles', 'muhammadiyah_id', 'bio', 'avatar', 'api_token'])]
 #[Hidden(['password', 'remember_token', 'api_token'])]
 class User extends Authenticatable
 {
@@ -29,32 +29,175 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'roles' => 'array',
         ];
+    }
+
+    /**
+     * Get all assigned roles for this user.
+     * Every user in the system is always guaranteed to have the 'member' role.
+     *
+     * @return array<string>
+     */
+    public function getAllRoles(): array
+    {
+        $rawRoles = $this->roles;
+        if (is_string($rawRoles)) {
+            $decoded = json_decode($rawRoles, true);
+            $rawRoles = is_array($decoded) ? $decoded : [$rawRoles];
+        } elseif (!is_array($rawRoles)) {
+            $rawRoles = [];
+        }
+
+        $all = array_merge($rawRoles, array_filter([$this->role]));
+        $all[] = 'member'; // Everyone is always a member / cat owner
+
+        if (in_array('superadmin', $all)) {
+            $all[] = 'admin';
+        }
+
+        return array_values(array_unique(array_map('strtolower', array_map('trim', $all))));
+    }
+
+    /**
+     * Check if user has a specific role or any of the given roles.
+     *
+     * @param string|array ...$roles
+     * @return bool
+     */
+    public function hasRole(...$roles): bool
+    {
+        $userRoles = $this->getAllRoles();
+        
+        foreach ($roles as $role) {
+            if (is_array($role)) {
+                foreach ($role as $r) {
+                    if (in_array(strtolower(trim($r)), $userRoles)) {
+                        return true;
+                    }
+                }
+            } else {
+                if (in_array(strtolower(trim($role)), $userRoles)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the currently active workspace role from session.
+     * Defaults to the highest staff role or 'member'.
+     *
+     * @return string
+     */
+    public function getActiveRole(): string
+    {
+        $available = $this->getAllRoles();
+        $sessionRole = session('active_role');
+
+        if ($sessionRole && in_array(strtolower(trim($sessionRole)), $available)) {
+            return strtolower(trim($sessionRole));
+        }
+
+        $priorities = ['superadmin', 'admin', 'dokter', 'volunteer', 'member'];
+        foreach ($priorities as $p) {
+            if (in_array($p, $available)) {
+                return $p;
+            }
+        }
+
+        return 'member';
+    }
+
+    /**
+     * Set the currently active workspace role in session.
+     *
+     * @param string $role
+     * @return bool
+     */
+    public function setActiveRole(string $role): bool
+    {
+        $role = strtolower(trim($role));
+        if (in_array($role, $this->getAllRoles())) {
+            session(['active_role' => $role]);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get human-friendly metadata for a workspace role.
+     *
+     * @param string|null $role
+     * @return array{name: string, short_name: string, icon: string, badge_class: string, desc: string}
+     */
+    public static function getWorkspaceMeta(?string $role = null): array
+    {
+        return match ($role) {
+            'superadmin' => [
+                'name' => 'Super Administrator',
+                'short_name' => 'Superadmin',
+                'icon' => '⚡',
+                'badge_class' => 'bg-purple-100 text-purple-900 border-purple-200',
+                'desc' => 'Akses penuh sistem, konfigurasi, dan wewenang superadmin.',
+            ],
+            'admin' => [
+                'name' => 'Ruang Administrator',
+                'short_name' => 'Admin',
+                'icon' => '🛡️',
+                'badge_class' => 'bg-amber-100 text-amber-900 border-amber-200',
+                'desc' => 'Manajemen event, pengguna, master wilayah, dan verifikasi KTAM.',
+            ],
+            'dokter' => [
+                'name' => 'Ruang Dokter Hewan',
+                'short_name' => 'Dokter',
+                'icon' => '🩺',
+                'badge_class' => 'bg-emerald-100 text-emerald-900 border-emerald-200',
+                'desc' => 'Pemeriksaan antrian kucing pasien, diagnosis, dan rekam medis.',
+            ],
+            'volunteer' => [
+                'name' => 'Ruang Relawan Lapangan',
+                'short_name' => 'Relawan',
+                'icon' => '📋',
+                'badge_class' => 'bg-indigo-100 text-indigo-900 border-indigo-200',
+                'desc' => 'Sensus stray cat PTMA, surveilans kampus, dan registrasi di lokasi.',
+            ],
+            default => [
+                'name' => 'Ruang Kucing Saya (Member)',
+                'short_name' => 'Member',
+                'icon' => '🐱',
+                'badge_class' => 'bg-teal-100 text-teal-900 border-teal-200',
+                'desc' => 'Daftar kucing peliharaan, rekam kesehatan, unduh KTAM, dan buat janji.',
+            ],
+        };
     }
 
     public function isSuperAdmin(): bool
     {
-        return $this->role === 'superadmin';
+        return $this->hasRole('superadmin');
     }
 
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['admin', 'superadmin']);
+        return $this->hasRole('admin', 'superadmin');
     }
 
     public function isDokter(): bool
     {
-        return $this->role === 'dokter';
+        return $this->hasRole('dokter');
     }
 
     public function isVolunteer(): bool
     {
-        return $this->role === 'volunteer';
+        return $this->hasRole('volunteer');
     }
 
     public function isMember(): bool
     {
-        return $this->role === 'member';
+        return $this->hasRole('member');
     }
 
     public function cats()

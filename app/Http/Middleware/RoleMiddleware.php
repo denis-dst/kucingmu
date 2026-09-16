@@ -20,7 +20,7 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        if (! in_array($request->user()->role, $roles)) {
+        if (! $request->user()->hasRole($roles)) {
             abort(403, 'Unauthorized action. Required role: ' . implode(' or ', $roles));
         }
 
