@@ -817,14 +817,14 @@ class DashboardController extends Controller
     {
         $request->validate([
             'owner_name' => 'required|string|max:255',
-            'owner_email' => 'required|email|unique:users,email',
+            'owner_email' => 'required|email|max:255',
             'owner_phone' => 'required|string|max:255',
             'owner_nbm' => 'nullable|string|max:255',
             'cat_name' => 'required|string|max:255',
-            'cat_breed' => 'required|string|max:255',
+            'cat_breed' => 'nullable|string|max:255',
             'cat_breed_custom' => 'nullable|string|max:255|required_if:cat_breed,Lainnya',
             'cat_gender' => 'required|in:male,female',
-            'cat_dob' => 'required|date|before_or_equal:today',
+            'cat_dob' => 'nullable|date|before_or_equal:today',
             'wilayah_code' => 'nullable|string|max:10',
             'color' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -833,17 +833,38 @@ class DashboardController extends Controller
             'biometric_code' => 'nullable|string|max:255',
         ]);
 
-        $finalBreed = trim($request->cat_breed === 'Lainnya' ? ($request->cat_breed_custom ?: 'Lainnya') : $request->cat_breed);
+        $finalBreed = trim($request->cat_breed === 'Lainnya' ? ($request->cat_breed_custom ?: 'Lainnya') : ($request->cat_breed ?: 'Domestik'));
+        if (empty($finalBreed)) {
+            $finalBreed = 'Domestik';
+        }
         MasterBreed::registerBreedIfNotExists($finalBreed);
 
-        $owner = User::create([
-            'name' => $request->owner_name,
-            'email' => $request->owner_email,
-            'password' => bcrypt('kucingmu123'),
-            'phone' => $request->owner_phone,
-            'role' => 'member',
-            'muhammadiyah_id' => $request->owner_nbm,
-        ]);
+        $normalizedEmail = strtolower(trim($request->owner_email));
+        $owner = User::where('email', $normalizedEmail)->first();
+        $isNewOwner = false;
+
+        if (!$owner) {
+            $owner = User::create([
+                'name' => trim($request->owner_name),
+                'email' => $normalizedEmail,
+                'password' => bcrypt('kucingmu123'),
+                'phone' => trim($request->owner_phone),
+                'role' => 'member',
+                'muhammadiyah_id' => $request->owner_nbm ? User::formatNbm($request->owner_nbm) : null,
+            ]);
+            $isNewOwner = true;
+        } else {
+            $updates = [];
+            if ($request->filled('owner_phone') && empty($owner->phone)) {
+                $updates['phone'] = trim($request->owner_phone);
+            }
+            if ($request->filled('owner_nbm') && empty($owner->muhammadiyah_id)) {
+                $updates['muhammadiyah_id'] = User::formatNbm($request->owner_nbm);
+            }
+            if (!empty($updates)) {
+                $owner->update($updates);
+            }
+        }
 
         $photoPath = null;
         if ($request->hasFile('photo')) {
@@ -857,13 +878,15 @@ class DashboardController extends Controller
             $biometricPhotoPath = $this->compressAndStorePhoto($file, 'biometrics');
         }
 
+        $catDob = $request->cat_dob ?: Carbon::today()->format('Y-m-d');
+
         $cat = Cat::create([
             'user_id' => $owner->id,
-            'name' => $request->cat_name,
+            'name' => trim($request->cat_name),
             'breed' => $finalBreed,
             'gender' => $request->cat_gender,
             'status' => 'alive',
-            'date_of_birth' => $request->cat_dob,
+            'date_of_birth' => $catDob,
             'wilayah_code' => $request->wilayah_code ?: '34',
             'color' => $request->color,
             'photo_path' => $photoPath,
@@ -889,7 +912,21 @@ class DashboardController extends Controller
             'notes' => 'Registrasi langsung di lokasi event.',
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Registrasi berhasil. Kucing langsung masuk antrian dokter.');
+        return redirect()->route('dashboard')->with([
+            'success' => 'Registrasi berhasil! Kucing langsung masuk ke antrian periksa dokter hari ini.',
+            'registration_summary' => [
+                'is_new_member' => $isNewOwner,
+                'owner_name' => $owner->name,
+                'owner_email' => $owner->email,
+                'owner_phone' => $owner->phone,
+                'cat_name' => $cat->name,
+                'cat_code' => $cat->formatted_unique_code,
+                'cat_breed' => $cat->breed,
+                'cat_gender' => $cat->gender === 'male' ? 'Jantan' : 'Betina',
+                'cat_dob' => $cat->date_of_birth ? $cat->date_of_birth->format('d/m/Y') : '-',
+                'default_password' => 'kucingmu123',
+            ]
+        ]);
     }
 
     /**
@@ -1008,34 +1045,40 @@ class DashboardController extends Controller
             'entries.*.owner_phone' => 'required|string',
             'entries.*.owner_nbm' => 'nullable|string',
             'entries.*.cat_name' => 'required|string',
-            'entries.*.cat_breed' => 'required|string',
+            'entries.*.cat_breed' => 'nullable|string',
             'entries.*.cat_gender' => 'required|in:male,female',
-            'entries.*.cat_dob' => 'required|date|before_or_equal:today',
+            'entries.*.cat_dob' => 'nullable|date|before_or_equal:today',
         ]);
 
         $syncedCount = 0;
         foreach ($request->entries as $entry) {
-            $owner = User::where('email', $entry['owner_email'])->first();
+            $normalizedEmail = strtolower(trim($entry['owner_email']));
+            $owner = User::where('email', $normalizedEmail)->first();
             if (!$owner) {
                 $owner = User::create([
-                    'name' => $entry['owner_name'],
-                    'email' => $entry['owner_email'],
+                    'name' => trim($entry['owner_name']),
+                    'email' => $normalizedEmail,
                     'password' => bcrypt('kucingmu123'),
-                    'phone' => $entry['owner_phone'],
+                    'phone' => trim($entry['owner_phone']),
                     'role' => 'member',
-                    'muhammadiyah_id' => $entry['owner_nbm'],
+                    'muhammadiyah_id' => !empty($entry['owner_nbm']) ? User::formatNbm($entry['owner_nbm']) : null,
                 ]);
             }
 
             $rawBreed = trim($entry['cat_breed'] ?? 'Domestik');
+            if (empty($rawBreed)) {
+                $rawBreed = 'Domestik';
+            }
             MasterBreed::registerBreedIfNotExists($rawBreed);
+
+            $dob = !empty($entry['cat_dob']) ? $entry['cat_dob'] : Carbon::today()->format('Y-m-d');
 
             $cat = Cat::create([
                 'user_id' => $owner->id,
-                'name' => $entry['cat_name'],
+                'name' => trim($entry['cat_name']),
                 'breed' => $rawBreed,
                 'gender' => $entry['cat_gender'],
-                'date_of_birth' => $entry['cat_dob'],
+                'date_of_birth' => $dob,
             ]);
 
             Appointment::create([

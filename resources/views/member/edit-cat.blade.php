@@ -70,10 +70,22 @@
                         <div>
                             <label for="cat_wilayah" class="form-label font-semibold text-slate-700">Wilayah Muhammadiyah (Master Wilayah)</label>
                             <select id="cat_wilayah" name="wilayah_code" class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm py-2">
-                                @if(isset($masterWilayahs))
-                                    @foreach($masterWilayahs as $wil)
-                                        <option value="{{ $wil->kode }}" {{ old('wilayah_code', $cat->wilayah_code) == $wil->kode ? 'selected' : '' }}>
-                                            {{ $wil->kode }} - {{ $wil->nama }}
+                                @if(isset($masterWilayahs) && (is_countable($masterWilayahs) ? count($masterWilayahs) > 0 : !empty($masterWilayahs)))
+                                    @foreach($masterWilayahs as $wKey => $wil)
+                                        @php
+                                            if (is_object($wil)) {
+                                                $wCode = $wil->kode ?? $wKey;
+                                                $wName = $wil->nama ?? $wCode;
+                                            } elseif (is_array($wil)) {
+                                                $wCode = $wil['kode'] ?? $wKey;
+                                                $wName = $wil['nama'] ?? $wCode;
+                                            } else {
+                                                $wCode = is_string($wKey) ? $wKey : (string) $wil;
+                                                $wName = (string) $wil;
+                                            }
+                                        @endphp
+                                        <option value="{{ $wCode }}" {{ old('wilayah_code', $cat->wilayah_code) == $wCode ? 'selected' : '' }}>
+                                            {{ $wCode }} - {{ $wName }}
                                         </option>
                                     @endforeach
                                 @else

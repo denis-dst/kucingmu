@@ -70,8 +70,108 @@
 
             <!-- Success Alert -->
             @if(session('success'))
-                <div class="p-4 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 text-sm font-semibold flex items-center gap-2" role="alert">
-                    <span aria-hidden="true">✓</span> {{ session('success') }}
+                <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-sm font-semibold flex items-center gap-2" role="alert">
+                    <span aria-hidden="true" class="text-teal-600 font-bold">✓</span> {{ session('success') }}
+                </div>
+            @endif
+
+            <!-- Registration Summary Card (Credentials & Member Guidance) -->
+            @if(session('registration_summary'))
+                @php $summary = session('registration_summary'); @endphp
+                <div class="content-card border-teal-300 bg-gradient-to-br from-teal-50/90 via-white to-teal-50/50 shadow-sm p-5 space-y-4" role="region" aria-label="Ringkasan Pendaftaran">
+                    <div class="flex items-start justify-between gap-3 border-b border-teal-100 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="h-9 w-9 rounded-lg bg-teal-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                                🐾
+                            </div>
+                            <div>
+                                <h2 class="font-outfit text-base font-bold text-teal-950">
+                                    {{ $summary['is_new_member'] ? 'Akun Member Baru & Kucing Berhasil Didaftarkan' : 'Kucing Berhasil Ditambahkan ke Akun Member' }}
+                                </h2>
+                                <p class="text-xs text-teal-700">Kucing telah masuk ke sistem antrian periksa dokter hari ini (Status: Checked-In).</p>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
+                            Antrian Dokter Aktif
+                        </span>
+                    </div>
+
+                    <!-- Credential & Cat Detail Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        <div class="p-2.5 rounded-lg bg-white border border-teal-100 shadow-2xs">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Nama Pemilik</span>
+                            <p class="font-bold text-slate-800 truncate mt-0.5">{{ $summary['owner_name'] }}</p>
+                            <p class="text-[11px] text-slate-500">{{ $summary['owner_phone'] ?: '-' }}</p>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-white border border-teal-100 shadow-2xs">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Email Login</span>
+                            <p class="font-bold text-teal-900 truncate mt-0.5 select-all">{{ $summary['owner_email'] }}</p>
+                            <span class="text-[10px] text-slate-500">Username untuk masuk</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-white border border-teal-100 shadow-2xs">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Password Bawaan</span>
+                            <div class="flex items-center justify-between mt-0.5">
+                                <span class="font-mono font-bold text-sm text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 select-all">{{ $summary['default_password'] }}</span>
+                                <button type="button" @click="copyText('{{ $summary['default_password'] }}', 'Password berhasil disalin!')" class="text-[11px] font-semibold text-teal-700 hover:text-teal-900 underline ml-1 cursor-pointer">Salin</button>
+                            </div>
+                            <span class="text-[10px] text-slate-500">Bisa diubah pemilik nanti</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-white border border-teal-100 shadow-2xs">
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Kucing Terdaftar</span>
+                            <p class="font-bold text-slate-800 truncate mt-0.5">{{ $summary['cat_name'] }}</p>
+                            <span class="font-mono text-[10px] text-teal-700 font-semibold">{{ $summary['cat_code'] }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Next steps guidance for volunteer -->
+                    <div class="bg-teal-100/60 border border-teal-200/80 rounded-lg p-3 text-xs text-teal-950 space-y-1.5">
+                        <p class="font-bold flex items-center gap-1.5 text-teal-900">
+                            <span>💡</span> Langkah Selanjutnya untuk Disampaikan ke Pemilik Kucing:
+                        </p>
+                        <ul class="list-disc list-inside space-y-1 text-slate-700 text-[11px] leading-relaxed pl-1">
+                            <li><strong>Informasikan Password:</strong> Beritahu pemilik bahwa mereka dapat login ke KucingMu dengan email <strong>{{ $summary['owner_email'] }}</strong> dan password bawaan: <code class="bg-white px-1.5 py-0.5 rounded font-mono font-bold text-amber-800 border border-amber-200">{{ $summary['default_password'] }}</code>.</li>
+                            <li><strong>Akses Member:</strong> Setelah login, pemilik dapat melihat rekam medis pemeriksaan, sertifikat vaksin, dan Kartu Tanda Anggota (KTAM) kucing secara digital.</li>
+                            <li><strong>Menunggu Panggilan Dokter:</strong> Kucing sudah otomatis masuk ke daftar antrian periksa dokter hari ini. Pemilik dipersilakan menunggu di ruang tunggu pemeriksaan.</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action buttons (copy message for WhatsApp / dismiss) -->
+                    @php
+                        $waTemplate = "Halo Kak " . $summary['owner_name'] . ",\n\nPendaftaran kucing *" . $summary['cat_name'] . "* di KucingMu telah berhasil!\n\nBerikut informasi akun KucingMu Anda:\n- Email Login: " . $summary['owner_email'] . "\n- Password Bawaan: " . $summary['default_password'] . "\n- Kode Kucing: " . $summary['cat_code'] . "\n\nKucing Anda telah otomatis masuk ke antrian periksa dokter hari ini. Anda dapat login ke web KucingMu untuk melihat rekam medis digital dan kartu KTAM.\n\nTerima kasih!\nTim Relawan KucingMu";
+                    @endphp
+                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-teal-100" x-data="{ copiedMsg: false }">
+                        <button type="button" 
+                                @click="copyText(`{{ addslashes($waTemplate) }}`, 'Format pesan WhatsApp berhasil disalin!'); copiedMsg = true; setTimeout(() => copiedMsg = false, 3000);"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition shadow-2xs cursor-pointer">
+                            <span>📋</span>
+                            <span x-text="copiedMsg ? 'Tersalin ke Clipboard! ✓' : 'Salin Format Pesan WhatsApp untuk Pemilik'">Salin Format Pesan WhatsApp untuk Pemilik</span>
+                        </button>
+                        @if(!empty($summary['owner_phone']))
+                            <a href="https://wa.me/{{ preg_replace('/\D/', '', $summary['owner_phone']) }}?text={{ rawurlencode($waTemplate) }}" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition shadow-2xs">
+                                <span>💬</span> Kirim Langsung via WhatsApp
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            <!-- Validation Errors Alert -->
+            @if ($errors->any())
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs space-y-2" role="alert">
+                    <div class="flex items-center gap-2 font-bold text-rose-800">
+                        <svg class="h-4 w-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <span>Gagal Menyimpan Data. Silakan periksa formulir pendaftaran:</span>
+                    </div>
+                    <ul class="list-disc list-inside space-y-1 pl-1 text-rose-700">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
@@ -101,7 +201,18 @@
 
                         <!-- ONLINE REGISTER FORM -->
                         <div x-show="activeTab === 'online'" role="tabpanel">
-                            <p class="text-xs text-slate-600 mb-4">Pendaftaran cepat untuk peserta yang datang langsung di lokasi pemeriksaan medis hari ini.</p>
+                            <p class="text-xs text-slate-600 mb-3">Pendaftaran cepat untuk peserta yang datang langsung di lokasi pemeriksaan medis hari ini.</p>
+                            
+                            <!-- Information banner explaining password and procedure -->
+                            <div class="bg-blue-50/80 border border-blue-200 rounded-lg p-3 text-xs text-blue-900 flex items-start gap-2.5 mb-4">
+                                <span class="text-base leading-none">ℹ️</span>
+                                <div class="space-y-1">
+                                    <strong class="font-semibold text-blue-950">Informasi Akun Member & Prosedur Pendaftaran:</strong>
+                                    <p class="text-[11px] text-blue-800 leading-relaxed">
+                                        Member baru akan dibuatkan akun otomatis dengan <strong>Password default: <code class="font-mono bg-white px-1.5 py-0.5 rounded border border-blue-200 text-teal-800 font-bold">kucingmu123</code></strong>. Jika email pemilik sudah pernah terdaftar, kucing akan langsung ditambahkan ke akun tersebut. Setelah pendaftaran disimpan, kucing otomatis masuk ke antrian periksa dokter hari ini.
+                                    </p>
+                                </div>
+                            </div>
                             
                             <form method="POST" action="{{ route('quick-register') }}" class="space-y-5"
                                   x-data="{ isSubmittingQuick: false }"
@@ -113,19 +224,19 @@
                                         <h3 class="text-xs font-bold uppercase tracking-wider text-teal-800 border-b border-slate-200 pb-1">1. Data Pemilik Kucing</h3>
                                         <div>
                                             <label class="form-label text-xs">Nama Lengkap Pemilik</label>
-                                            <input type="text" name="owner_name" required class="form-input text-xs" placeholder="Contoh: Siti Rahma">
+                                            <input type="text" name="owner_name" value="{{ old('owner_name') }}" required class="form-input text-xs" placeholder="Contoh: Siti Rahma">
                                         </div>
                                         <div>
                                             <label class="form-label text-xs">Alamat Email</label>
-                                            <input type="email" name="owner_email" required class="form-input text-xs" placeholder="Contoh: siti@email.com">
+                                            <input type="email" name="owner_email" value="{{ old('owner_email') }}" required class="form-input text-xs" placeholder="Contoh: siti@email.com">
                                         </div>
                                         <div>
                                             <label class="form-label text-xs">Nomor WhatsApp</label>
-                                            <input type="text" name="owner_phone" required class="form-input text-xs" placeholder="Contoh: 0812345678">
+                                            <input type="text" name="owner_phone" value="{{ old('owner_phone') }}" required class="form-input text-xs" placeholder="Contoh: 0812345678">
                                         </div>
                                         <div>
                                             <label class="form-label text-xs">NBM Muhammadiyah <span class="text-slate-500 font-normal">(Opsional - 7 Digit)</span></label>
-                                            <input type="text" name="owner_nbm" class="form-input text-xs font-mono" placeholder="Contoh: 1.234.567" maxlength="11">
+                                            <input type="text" name="owner_nbm" value="{{ old('owner_nbm') }}" class="form-input text-xs font-mono" placeholder="Contoh: 1.234.567" maxlength="11">
                                         </div>
                                     </div>
 
@@ -134,33 +245,33 @@
                                         <h3 class="text-xs font-bold uppercase tracking-wider text-teal-800 border-b border-slate-200 pb-1">2. Data Kucing</h3>
                                         <div>
                                             <label class="form-label text-xs">Nama Kucing</label>
-                                            <input type="text" name="cat_name" required class="form-input text-xs" placeholder="Contoh: Milo">
+                                            <input type="text" name="cat_name" value="{{ old('cat_name') }}" required class="form-input text-xs" placeholder="Contoh: Milo">
                                         </div>
-                                        <div x-data="{ selectedBreed: 'Domestik' }" class="space-y-2">
-                                            <label class="form-label text-xs">Ras / Jenis Kucing <span class="text-rose-500">*</span></label>
-                                            <select name="cat_breed" x-model="selectedBreed" required class="form-input text-xs">
+                                        <div x-data="{ selectedBreed: '{{ old('cat_breed', 'Domestik') }}' }" class="space-y-2">
+                                            <label class="form-label text-xs">Ras / Jenis Kucing</label>
+                                            <select name="cat_breed" x-model="selectedBreed" class="form-input text-xs">
                                                 @php
                                                     $breedList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
                                                 @endphp
                                                 @foreach($breedList as $b)
-                                                    <option value="{{ $b }}">{{ $b }}</option>
+                                                    <option value="{{ $b }}" {{ old('cat_breed', 'Domestik') === $b ? 'selected' : '' }}>{{ $b }}</option>
                                                 @endforeach
-                                                <option value="Lainnya">➕ Lainnya (Input Sendiri)</option>
+                                                <option value="Lainnya" {{ old('cat_breed') === 'Lainnya' ? 'selected' : '' }}>➕ Lainnya (Input Sendiri)</option>
                                             </select>
                                             <div x-show="selectedBreed === 'Lainnya'" x-transition class="bg-amber-50/80 p-2 rounded-lg border border-amber-200">
-                                                <input type="text" name="cat_breed_custom" placeholder="Tuliskan nama ras baru..." class="form-input text-xs bg-white w-full">
+                                                <input type="text" name="cat_breed_custom" value="{{ old('cat_breed_custom') }}" placeholder="Tuliskan nama ras baru..." class="form-input text-xs bg-white w-full">
                                             </div>
                                         </div>
                                         <div>
                                             <label class="form-label text-xs">Jenis Kelamin</label>
                                             <select name="cat_gender" required class="form-input text-xs">
-                                                <option value="male">Jantan</option>
-                                                <option value="female">Betina</option>
+                                                <option value="male" {{ old('cat_gender', 'male') === 'male' ? 'selected' : '' }}>Jantan</option>
+                                                <option value="female" {{ old('cat_gender') === 'female' ? 'selected' : '' }}>Betina</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <label class="form-label text-xs">Tanggal Lahir / Estimasi <span class="text-rose-500">*</span></label>
-                                            <input type="date" name="cat_dob" max="{{ date('Y-m-d') }}" required class="form-input text-xs">
+                                            <label class="form-label text-xs">Tanggal Lahir / Estimasi</label>
+                                            <input type="date" name="cat_dob" max="{{ date('Y-m-d') }}" value="{{ old('cat_dob') }}" class="form-input text-xs">
                                         </div>
                                     </div>
                                 </div>
@@ -184,7 +295,7 @@
                         <!-- OFFLINE REGISTER FORM -->
                         <div x-show="activeTab === 'offline'" role="tabpanel" style="display: none;">
                             <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 mb-4">
-                                <strong>Mode Offline:</strong> Data disimpan di penyimpanan browser lokal dan dapat disinkronkan saat koneksi internet tersedia.
+                                <strong>Mode Offline:</strong> Data disimpan di penyimpanan browser lokal dan dapat disinkronkan saat koneksi internet tersedia. Member yang didaftarkan akan memiliki password default: <code>kucingmu123</code>.
                             </div>
                             
                             <form @submit.prevent="saveOfflineRegistration()" class="space-y-5">
@@ -214,7 +325,7 @@
                                             <input type="text" x-model="offlineForm.cat_name" required class="form-input text-xs" placeholder="Nama kucing">
                                         </div>
                                         <div x-data="{ offlineBreedMode: 'Domestik' }" class="space-y-2">
-                                            <label class="form-label text-xs">Ras Kucing <span class="text-rose-500">*</span></label>
+                                            <label class="form-label text-xs">Ras Kucing</label>
                                             <select x-model="offlineBreedMode" @change="offlineForm.cat_breed = (offlineBreedMode === 'Lainnya' ? '' : offlineBreedMode)" class="form-input text-xs">
                                                 @php
                                                     $breedList = $masterBreeds ?? \App\Models\MasterBreed::getAllBreedNames();
@@ -305,8 +416,33 @@
         </div>
     </div>
 
-    <!-- Alpine offline queue helper script -->
+    <!-- Clipboard helper & Alpine offline queue helper script -->
     <script>
+        function copyText(text, msg) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert(msg || 'Berhasil disalin!');
+                }).catch(() => {
+                    fallbackCopyText(text, msg);
+                });
+            } else {
+                fallbackCopyText(text, msg);
+            }
+        }
+
+        function fallbackCopyText(text, msg) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert(msg || 'Berhasil disalin!');
+        }
+
         function offlineManager() {
             return {
                 isOnline: navigator.onLine,
@@ -319,7 +455,7 @@
                     owner_email: '',
                     owner_phone: '',
                     cat_name: '',
-                    cat_breed: '',
+                    cat_breed: 'Domestik',
                     cat_gender: 'male',
                     cat_dob: '{{ date("Y-m-d") }}'
                 },
@@ -335,7 +471,7 @@
                         owner_email: '',
                         owner_phone: '',
                         cat_name: '',
-                        cat_breed: '',
+                        cat_breed: 'Domestik',
                         cat_gender: 'male',
                         cat_dob: '{{ date("Y-m-d") }}'
                     };

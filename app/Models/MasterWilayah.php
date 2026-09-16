@@ -34,9 +34,25 @@ class MasterWilayah extends Model
      */
     public static function getActiveList()
     {
-        return Cache::remember(self::CACHE_KEY_LIST, self::CACHE_TTL, function () {
-            return self::where('is_active', true)->orderBy('urutan')->orderBy('kode')->get();
-        });
+        try {
+            $list = Cache::remember(self::CACHE_KEY_LIST, self::CACHE_TTL, function () {
+                return self::where('is_active', true)->orderBy('urutan')->orderBy('kode')->get();
+            });
+
+            // Validate that cached items are indeed objects/models
+            if (!empty($list) && is_iterable($list)) {
+                $first = is_array($list) ? reset($list) : $list->first();
+                if ($first !== null && !is_object($first)) {
+                    // Cache holds corrupted/scalar data, clear it and query freshly
+                    Cache::forget(self::CACHE_KEY_LIST);
+                    $list = self::where('is_active', true)->orderBy('urutan')->orderBy('kode')->get();
+                }
+            }
+
+            return $list ?: collect();
+        } catch (\Throwable $e) {
+            return collect();
+        }
     }
 
     /**

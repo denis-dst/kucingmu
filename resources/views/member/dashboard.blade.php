@@ -419,10 +419,22 @@
                             <div>
                                 <label for="cat_wilayah" class="form-label text-xs">Wilayah Muhammadiyah (Master Wilayah)</label>
                                 <select id="cat_wilayah" name="wilayah_code" class="form-input text-xs">
-                                    @if(isset($masterWilayahs))
-                                        @foreach($masterWilayahs as $wil)
-                                            <option value="{{ $wil->kode }}" {{ $wil->kode === '34' ? 'selected' : '' }}>
-                                                {{ $wil->kode }} - {{ $wil->nama }}
+                                    @if(isset($masterWilayahs) && (is_countable($masterWilayahs) ? count($masterWilayahs) > 0 : !empty($masterWilayahs)))
+                                        @foreach($masterWilayahs as $wKey => $wil)
+                                            @php
+                                                if (is_object($wil)) {
+                                                    $wCode = $wil->kode ?? $wKey;
+                                                    $wName = $wil->nama ?? $wCode;
+                                                } elseif (is_array($wil)) {
+                                                    $wCode = $wil['kode'] ?? $wKey;
+                                                    $wName = $wil['nama'] ?? $wCode;
+                                                } else {
+                                                    $wCode = is_string($wKey) ? $wKey : (string) $wil;
+                                                    $wName = (string) $wil;
+                                                }
+                                            @endphp
+                                            <option value="{{ $wCode }}" {{ old('wilayah_code', '34') == $wCode ? 'selected' : '' }}>
+                                                {{ $wCode }} - {{ $wName }}
                                             </option>
                                         @endforeach
                                     @else
