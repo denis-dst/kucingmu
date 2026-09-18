@@ -29,7 +29,7 @@
     </head>
     <body class="font-sans antialiased text-slate-800 bg-slate-50 min-h-screen"
           x-data="{ 
-              sidebarOpen: localStorage.getItem('sidebar_open') === null ? true : localStorage.getItem('sidebar_open') === 'true',
+              sidebarOpen: window.innerWidth >= 1024 ? (localStorage.getItem('sidebar_open') === null ? true : localStorage.getItem('sidebar_open') === 'true') : false,
               mobileSidebarOpen: false,
               toggleSidebar() {
                   if (window.innerWidth >= 1024) {
@@ -39,7 +39,8 @@
                       this.mobileSidebarOpen = !this.mobileSidebarOpen;
                   }
               }
-          }">
+          }"
+          @resize.window="if (window.innerWidth >= 1024) { mobileSidebarOpen = false; }">
         <!-- Skip link for keyboard accessibility -->
         <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-teal-800 focus:text-white focus:rounded-md focus:shadow-md focus:font-semibold">
             Lewati ke konten utama

@@ -12,10 +12,10 @@
 <div x-show="mobileSidebarOpen" 
      x-cloak
      @click="mobileSidebarOpen = false"
-     x-transition:enter="transition-opacity ease-linear duration-300"
+     x-transition:enter="transition-opacity ease-out duration-300"
      x-transition:enter-start="opacity-0"
      x-transition:enter-end="opacity-100"
-     x-transition:leave="transition-opacity ease-linear duration-300"
+     x-transition:leave="transition-opacity ease-in duration-200"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
      class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 lg:hidden"
@@ -24,12 +24,12 @@
 
 <!-- Sidebar Container -->
 <aside :class="{
-        'translate-x-0': mobileSidebarOpen,
-        '-translate-x-full': !mobileSidebarOpen,
-        'lg:translate-x-0 lg:w-64': sidebarOpen,
-        'lg:-translate-x-full lg:w-0 lg:overflow-hidden lg:border-r-0': !sidebarOpen
+           'translate-x-0 shadow-2xl': mobileSidebarOpen,
+           '-translate-x-full': !mobileSidebarOpen,
+           'lg:translate-x-0 lg:w-64': sidebarOpen,
+           'lg:-translate-x-full lg:w-0 lg:border-r-0 lg:overflow-hidden': !sidebarOpen
        }"
-       class="fixed lg:sticky top-0 left-0 z-50 lg:z-30 h-screen bg-white border-r border-slate-200 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 w-72 lg:w-64 select-none shadow-xl lg:shadow-none"
+       class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] -translate-x-full bg-white border-r border-slate-200 flex flex-col justify-between transition-transform lg:transition-all duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 shrink-0 select-none shadow-xl lg:shadow-none"
        aria-label="Sidebar Navigasi">
 
     <!-- Top Section: Header & Nav Links -->
@@ -52,7 +52,7 @@
             <!-- Close button for Mobile only -->
             <button @click="mobileSidebarOpen = false" 
                     type="button" 
-                    class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-teal-700"
+                    class="lg:hidden p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-700 transition"
                     aria-label="Tutup Menu">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -85,6 +85,7 @@
 
                 <!-- Dashboard / Kucing Saya -->
                 <a href="{{ route('dashboard') }}" 
+                   @click="mobileSidebarOpen = false"
                    class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                     <span class="text-base {{ request()->routeIs('dashboard') ? 'text-white' : 'text-slate-500' }}">
                         {{ $activeRole === 'member' ? '🐱' : '📊' }}
@@ -95,6 +96,7 @@
                 <!-- Hubungi Kami (for Member) -->
                 @if($activeRole === 'member')
                     <a href="{{ route('contact.index') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('contact.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <span class="text-base {{ request()->routeIs('contact.*') ? 'text-white' : 'text-slate-500' }}">💬</span>
                         <span>Hubungi Kami</span>
@@ -110,12 +112,14 @@
                     </div>
 
                     <a href="{{ route('volunteer.census.index') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('volunteer.census.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <span class="text-base {{ request()->routeIs('volunteer.census.*') ? 'text-white' : 'text-slate-500' }}">📋</span>
                         <span>Sensus PTMA</span>
                     </a>
 
                     <a href="{{ route('volunteer.surveillance.index') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('volunteer.surveillance.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <span class="text-base {{ request()->routeIs('volunteer.surveillance.*') ? 'text-white' : 'text-slate-500' }}">🩺</span>
                         <span>eSurveillance Kucing</span>
@@ -132,6 +136,7 @@
 
                     <!-- Pesan Masuk -->
                     <a href="{{ route('admin.contacts.index') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.contacts.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <div class="flex items-center gap-3">
                             <span class="text-base {{ request()->routeIs('admin.contacts.*') ? 'text-white' : 'text-slate-500' }}">✉️</span>
@@ -146,6 +151,7 @@
 
                     <!-- Kelola Pengguna -->
                     <a href="{{ route('admin.users.index') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.users.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <span class="text-base {{ request()->routeIs('admin.users.*') ? 'text-white' : 'text-slate-500' }}">👥</span>
                         <span>Kelola Pengguna</span>
@@ -153,6 +159,7 @@
 
                     <!-- Master Wilayah -->
                     <a href="{{ route('superadmin.wilayah.index') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('superadmin.wilayah.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <span class="text-base {{ request()->routeIs('superadmin.wilayah.*') ? 'text-white' : 'text-slate-500' }}">🗺️</span>
                         <span>Master Wilayah</span>
@@ -160,6 +167,7 @@
 
                     <!-- Album Kegiatan -->
                     <a href="{{ route('superadmin.albums.index') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('superadmin.albums.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <span class="text-base {{ request()->routeIs('superadmin.albums.*') ? 'text-white' : 'text-slate-500' }}">🖼️</span>
                         <span>Album Kegiatan</span>
@@ -167,6 +175,7 @@
 
                     <!-- Kelola Event -->
                     <a href="{{ route('admin.events.index') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.events.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <span class="text-base {{ request()->routeIs('admin.events.*') ? 'text-white' : 'text-slate-500' }}">📅</span>
                         <span>Kelola Event</span>
@@ -174,6 +183,7 @@
 
                     <!-- Pengaturan -->
                     <a href="{{ route('admin.settings') }}" 
+                       @click="mobileSidebarOpen = false"
                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.settings') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <span class="text-base {{ request()->routeIs('admin.settings') ? 'text-white' : 'text-slate-500' }}">⚙️</span>
                         <span>Pengaturan</span>
