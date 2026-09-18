@@ -603,18 +603,160 @@
             </div>
         </section>
 
-        <!-- Contact Section (Kontak) -->
-        <section id="kontak" class="py-16 bg-white border-t border-slate-200 text-center">
-            <div class="max-w-2xl mx-auto px-4 space-y-4">
-                <span class="eyebrow">Kontak & Kemitraan</span>
-                <h2 class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">Kolaborasi Bersama KucingMu</h2>
-                <p class="text-xs text-slate-600 leading-relaxed">
-                    Tertarik bergabung sebagai dokter hewan mitra, relawan pendataan lapangan, atau mendukung kegiatan kesehatan hewan di lingkungan persyarikatan?
-                </p>
-                <div class="pt-2 flex justify-center">
-                    <a href="mailto:info@kucingmu.com" class="button-primary px-6 py-2.5 text-xs font-semibold">
-                        Kirim Email Pertanyaan
-                    </a>
+        <!-- Contact Section (Kontak & Formulir Pertanyaan) -->
+        @php
+            if (!session()->has('contact_captcha')) {
+                \App\Http\Controllers\ContactController::generateCaptcha();
+            }
+            $contactEmail = $app_settings['contact_email'] ?? 'bidkes.immdiy@gmail.com / kucingmuhammadiyah@gmail.com';
+            $officeAddress = $app_settings['office_address'] ?? 'Jl. Gedongkuning No.130 B, Rejowinangun, Kec. Kotagede, Kota Yogyakarta, Daerah Istimewa Yogyakarta 55171';
+        @endphp
+        <section id="kontak" class="py-20 bg-slate-50 border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                @if(session('contact_success'))
+                    <div class="mb-8 p-5 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-start gap-3 shadow-xs">
+                        <span class="text-2xl">✅</span>
+                        <div>
+                            <h3 class="font-outfit font-bold text-emerald-950 text-sm">Pesan Berhasil Dikirim!</h3>
+                            <p class="text-xs text-emerald-800 mt-0.5 leading-relaxed">{{ session('contact_success') }}</p>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                    
+                    <!-- Left Column: Contact Information -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <div>
+                            <span class="eyebrow">Kontak & Kemitraan</span>
+                            <h2 class="font-outfit text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight">
+                                Kolaborasi & Layanan Informasi KucingMu
+                            </h2>
+                            <p class="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
+                                Punya pertanyaan seputar pemeriksaan kesehatan kucing, program e-Surveillance kampus/masjid, atau tertarik bermitra sebagai relawan dan dokter hewan? Silakan hubungi kami.
+                            </p>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <!-- Email Card -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 flex items-center justify-center text-lg shrink-0">
+                                    ✉️
+                                </div>
+                                <div>
+                                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Email Resmi</div>
+                                    <div class="text-xs font-semibold text-slate-800 mt-0.5 leading-relaxed">
+                                        <a href="mailto:bidkes.immdiy@gmail.com" class="hover:text-teal-700 transition">bidkes.immdiy@gmail.com</a>
+                                        <span class="text-slate-400 block sm:inline sm:mx-1">&bull;</span>
+                                        <a href="mailto:kucingmuhammadiyah@gmail.com" class="hover:text-teal-700 transition">kucingmuhammadiyah@gmail.com</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address Card -->
+                            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 flex items-center justify-center text-lg shrink-0">
+                                    📍
+                                </div>
+                                <div>
+                                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Alamat Kantor Sekretariat</div>
+                                    <p class="text-xs text-slate-700 mt-0.5 leading-relaxed font-medium">
+                                        {{ $officeAddress }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Organization Card -->
+                            <div class="bg-teal-900 p-5 rounded-2xl text-white shadow-xs space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xl">🌿</span>
+                                    <h3 class="font-outfit font-bold text-sm text-teal-100">Majelis Lingkungan Hidup PP Muhammadiyah</h3>
+                                </div>
+                                <p class="text-xs text-teal-200/90 leading-relaxed">
+                                    Mewujudkan ekosistem lingkungan hidup yang ramah satwa melalui pendekatan kesejahteraan hewan (Animal Welfare) berbasis nilai-nilai Islam.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Interactive Contact Form with Captcha -->
+                    <div class="lg:col-span-7">
+                        <div class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="border-b border-slate-100 pb-4 mb-6">
+                                <h3 class="font-outfit text-lg font-bold text-slate-900">Kirimkan Pesan atau Pertanyaan</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Kami akan merespon pesan Anda melalui email sesegera mungkin.</p>
+                            </div>
+
+                            <form action="{{ route('contact.store') }}" method="POST" class="space-y-4">
+                                @csrf
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <!-- Nama Lengkap -->
+                                    <div>
+                                        <label for="contact_name" class="form-label text-xs font-semibold text-slate-700">Nama Lengkap <span class="text-rose-500">*</span></label>
+                                        <input type="text" id="contact_name" name="name" value="{{ old('name', Auth::user()?->name) }}" required placeholder="Nama Anda" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
+                                        <x-input-error :messages="$errors->get('name')" class="mt-1" />
+                                    </div>
+
+                                    <!-- Email -->
+                                    <div>
+                                        <label for="contact_email" class="form-label text-xs font-semibold text-slate-700">Alamat Email <span class="text-rose-500">*</span></label>
+                                        <input type="email" id="contact_email" name="email" value="{{ old('email', Auth::user()?->email) }}" required placeholder="nama@email.com" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
+                                        <x-input-error :messages="$errors->get('email')" class="mt-1" />
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <!-- No. Telepon / WhatsApp -->
+                                    <div>
+                                        <label for="contact_phone" class="form-label text-xs font-semibold text-slate-700">No. WhatsApp / Telepon <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                                        <input type="text" id="contact_phone" name="phone" value="{{ old('phone', Auth::user()?->phone) }}" placeholder="08xxxxxxxxxx" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
+                                        <x-input-error :messages="$errors->get('phone')" class="mt-1" />
+                                    </div>
+
+                                    <!-- Subjek Pesan -->
+                                    <div>
+                                        <label for="contact_subject" class="form-label text-xs font-semibold text-slate-700">Subjek / Topik <span class="text-rose-500">*</span></label>
+                                        <input type="text" id="contact_subject" name="subject" value="{{ old('subject') }}" required placeholder="Contoh: Kemitraan Relawan / Pertanyaan KTAM" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
+                                        <x-input-error :messages="$errors->get('subject')" class="mt-1" />
+                                    </div>
+                                </div>
+
+                                <!-- Pesan / Pertanyaan -->
+                                <div>
+                                    <label for="contact_message" class="form-label text-xs font-semibold text-slate-700">Isi Pesan <span class="text-rose-500">*</span></label>
+                                    <textarea id="contact_message" name="message" rows="4" required placeholder="Tuliskan pesan, pertanyaan, atau masukan Anda di sini..." class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">{{ old('message') }}</textarea>
+                                    <x-input-error :messages="$errors->get('message')" class="mt-1" />
+                                </div>
+
+                                <!-- Captcha Verification Box -->
+                                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                                    <label for="contact_captcha" class="form-label text-xs font-semibold text-slate-700 flex items-center justify-between">
+                                        <span>Verifikasi Keamanan (Captcha) <span class="text-rose-500">*</span></span>
+                                        <span class="text-[11px] text-slate-400 font-normal">Cegah bot otomatis</span>
+                                    </label>
+                                    
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <div class="px-4 py-2 bg-teal-50 border border-teal-200 text-teal-900 font-bold font-mono text-sm rounded-xl tracking-wider select-none shrink-0 shadow-2xs">
+                                            {{ session('contact_captcha_question') }}
+                                        </div>
+                                        
+                                        <input id="contact_captcha" class="form-input flex-1 min-w-[140px] rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600 font-mono" type="number" name="captcha" required placeholder="Tulis hasil hitungan" />
+                                    </div>
+                                    <x-input-error :messages="$errors->get('captcha')" class="mt-1" />
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="pt-2">
+                                    <button type="submit" class="button-primary w-full sm:w-auto px-8 py-3 text-xs font-bold shadow-xs flex items-center justify-center gap-2">
+                                        <span>📨</span> Kirim Pesan Sekarang
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>

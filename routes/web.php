@@ -79,9 +79,12 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
     ]);
 });
 
-use App\Http\Controllers\MasterWilayahController;
-use App\Http\Controllers\ActivityAlbumController;
-use App\Http\Controllers\AdminUserController;
+// Public Contact Form Routes
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Admin\AdminContactController;
+
+Route::get('/kontak', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/kontak', [ContactController::class, 'store'])->name('contact.store');
 
 // Admin & Superadmin Routes
 Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
@@ -90,6 +93,13 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/settings', [AppSettingController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
     Route::resource('/events', EventController::class, ['names' => 'admin.events']);
+
+    // Admin Contact Messages & Response Management
+    Route::get('/admin/contacts', [AdminContactController::class, 'index'])->name('admin.contacts.index');
+    Route::get('/admin/contacts/{contact}', [AdminContactController::class, 'show'])->name('admin.contacts.show');
+    Route::post('/admin/contacts/{contact}/respond', [AdminContactController::class, 'respond'])->name('admin.contacts.respond');
+    Route::post('/admin/contacts/{contact}/status', [AdminContactController::class, 'markStatus'])->name('admin.contacts.status');
+    Route::delete('/admin/contacts/{contact}', [AdminContactController::class, 'destroy'])->name('admin.contacts.destroy');
 
     // Superadmin Master Wilayah Management
     Route::post('/superadmin/wilayah/seed-default', [MasterWilayahController::class, 'seedDefault'])->name('superadmin.wilayah.seed-default');
