@@ -27,37 +27,58 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased text-slate-800 bg-slate-50 min-h-screen">
+    <body class="font-sans antialiased text-slate-800 bg-slate-50 min-h-screen"
+          x-data="{ 
+              sidebarOpen: localStorage.getItem('sidebar_open') === null ? true : localStorage.getItem('sidebar_open') === 'true',
+              mobileSidebarOpen: false,
+              toggleSidebar() {
+                  if (window.innerWidth >= 1024) {
+                      this.sidebarOpen = !this.sidebarOpen;
+                      localStorage.setItem('sidebar_open', this.sidebarOpen);
+                  } else {
+                      this.mobileSidebarOpen = !this.mobileSidebarOpen;
+                  }
+              }
+          }">
         <!-- Skip link for keyboard accessibility -->
         <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-teal-800 focus:text-white focus:rounded-md focus:shadow-md focus:font-semibold">
             Lewati ke konten utama
         </a>
 
-        <div class="min-h-screen bg-slate-50 flex flex-col justify-between">
-            <div>
-                @include('partials.impersonation-banner')
+        @include('partials.impersonation-banner')
+
+        <div class="min-h-screen bg-slate-50 flex flex-row">
+            
+            <!-- Left Sidebar Navigation -->
+            @include('layouts.sidebar')
+
+            <!-- Main Application Content Area -->
+            <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+                
+                <!-- Top Navbar with 3-Line Toggle Button -->
                 @include('layouts.navigation')
 
-                <!-- Page Heading -->
+                <!-- Page Heading (Optional) -->
                 @isset($header)
                     <header class="bg-white border-b border-slate-200">
-                        <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                             {{ $header }}
                         </div>
                     </header>
                 @endisset
 
                 <!-- Page Content -->
-                <main id="main-content" tabindex="-1" class="focus:outline-none">
+                <main id="main-content" tabindex="-1" class="flex-1 focus:outline-none">
                     {{ $slot }}
                 </main>
-            </div>
 
-            <footer class="mt-auto py-6 border-t border-slate-200 text-center text-xs text-slate-500">
-                <div class="max-w-7xl mx-auto px-4 footer-text">
-                    {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
-                </div>
-            </footer>
+                <!-- Footer -->
+                <footer class="mt-auto py-5 border-t border-slate-200 bg-white/60 text-center text-xs text-slate-500">
+                    <div class="max-w-7xl mx-auto px-4 footer-text">
+                        {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
+                    </div>
+                </footer>
+            </div>
         </div>
 
         @include('partials.accessibility-widget')
