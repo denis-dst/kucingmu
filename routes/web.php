@@ -4,6 +4,13 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AppSettingController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\StrayCatSurveyController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PtmaCatCensusController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Admin\AdminContactController;
+use App\Http\Controllers\MasterWilayahController;
+use App\Http\Controllers\ActivityAlbumController;
+use App\Http\Controllers\AdminUserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,8 +31,6 @@ Route::get('/', function () {
 
     return view('welcome', compact('events', 'activityAlbums', 'stats'));
 });
-
-use App\Http\Controllers\DashboardController;
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
@@ -51,8 +56,6 @@ Route::middleware(['auth', 'role:member'])->group(function () {
 Route::middleware(['auth', 'role:dokter'])->group(function () {
     Route::post('/checkup/{appointment}', [DashboardController::class, 'storeCheckup'])->name('checkup.store');
 });
-
-use App\Http\Controllers\PtmaCatCensusController;
 
 // Volunteer Routes
 Route::middleware(['auth', 'role:volunteer'])->group(function () {
@@ -80,9 +83,6 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
 });
 
 // Public Contact Form Routes
-use App\Http\Controllers\ContactController;
-use App\Http\Controllers\Admin\AdminContactController;
-
 Route::get('/kontak', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/kontak', [ContactController::class, 'store'])->name('contact.store');
 
