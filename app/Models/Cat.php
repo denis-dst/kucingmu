@@ -93,26 +93,16 @@ class Cat extends Model
 
     protected static function booted()
     {
-        static::created(function ($cat) {
-            if (!empty($cat->wilayah_code) && empty($cat->unique_code)) {
-                $cat->unique_code = self::generateUniqueCode($cat->wilayah_code, $cat->id);
-                $cat->saveQuietly();
-            }
-        });
-
         static::updating(function ($cat) {
             if ($cat->isDirty('wilayah_code')) {
-                if (!empty($cat->wilayah_code)) {
+                // Only re-generate unique_code if the cat has already been verified / assigned a unique_code
+                if (!empty($cat->unique_code) && !empty($cat->wilayah_code)) {
                     $cat->unique_code = self::generateUniqueCode($cat->wilayah_code, $cat->id);
-                } else {
-                    $cat->unique_code = null;
                 }
 
                 // Synchronize ktam_cards table if card exists
-                if ($cat->ktamCard) {
-                    if (!empty($cat->unique_code)) {
-                        $cat->ktamCard->update(['ktam_number' => $cat->unique_code]);
-                    }
+                if ($cat->ktamCard && !empty($cat->unique_code)) {
+                    $cat->ktamCard->update(['ktam_number' => $cat->unique_code]);
                 }
             }
         });
@@ -131,7 +121,7 @@ class Cat extends Model
     public static function generateUniqueCode(?string $wilayahCode = null, ?int $id = null): ?string
     {
         if (empty($wilayahCode)) {
-            return null;
+            $wilayahCode = '34';
         }
 
         $kode = strtolower(trim($wilayahCode));
@@ -139,13 +129,18 @@ class Cat extends Model
         return $kode . '.kcg.' . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 
+    /**
+     * Check if cat has official verified NIAKuMu.
+     */
+    public function isVerified(): bool
+    {
+        return !empty($this->unique_code);
+    }
+
     public function getFormattedUniqueCodeAttribute(): string
     {
         if (!empty($this->unique_code)) {
             return $this->unique_code;
-        }
-        if (!empty($this->wilayah_code)) {
-            return self::generateUniqueCode($this->wilayah_code, $this->id);
         }
         return '-';
     }

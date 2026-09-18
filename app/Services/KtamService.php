@@ -18,15 +18,17 @@ class KtamService
      */
     public function issueCard(Cat $cat, ?int $adminId = null): KtamCard
     {
-        // Return existing card if already issued
-        if ($cat->ktamCard) {
+        // Return existing card if already officially issued and verified
+        if ($cat->ktamCard && $cat->ktamCard->verified_at && !empty($cat->unique_code)) {
             return $cat->ktamCard;
         }
 
-        // Ensure wilayah_code and unique_code exist
+        // Ensure wilayah_code exists
         if (empty($cat->wilayah_code)) {
             $cat->wilayah_code = '34';
         }
+
+        // Generate official unique_code upon verification if not already present
         if (empty($cat->unique_code)) {
             $cat->unique_code = Cat::generateUniqueCode($cat->wilayah_code, $cat->id);
             $cat->saveQuietly();
@@ -42,6 +44,17 @@ class KtamService
             ->generate($verificationUrl);
 
         $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
+
+        if ($cat->ktamCard) {
+            $cat->ktamCard->update([
+                'ktam_number' => $ktamNumber,
+                'issue_date' => Carbon::today(),
+                'qr_code_payload' => $qrCodeBase64,
+                'verified_by' => $adminId,
+                'verified_at' => Carbon::now(),
+            ]);
+            return $cat->ktamCard;
+        }
 
         return KtamCard::create([
             'cat_id' => $cat->id,

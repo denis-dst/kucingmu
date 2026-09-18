@@ -88,7 +88,7 @@ class DashboardController extends Controller
             'appointments_count' => Appointment::count(),
             'records_count' => MedicalRecord::count(),
             'ktam_count' => KtamCard::count(),
-            'pending_verification_count' => Cat::whereDoesntHave('ktamCard')->count(),
+            'pending_verification_count' => Cat::whereNull('unique_code')->count(),
 
             // User Role Statistics matching /admin/users
             'users_total' => (int) ($userStats->total ?? 0),
@@ -172,7 +172,7 @@ class DashboardController extends Controller
         }
 
         $cats = $catQuery->paginate(10)->withQueryString();
-        $pendingVerificationCats = Cat::whereDoesntHave('ktamCard')
+        $pendingVerificationCats = Cat::whereNull('unique_code')
             ->with(['owner', 'photos', 'medicalRecords.vet', 'wilayah'])
             ->latest()
             ->take(50)
@@ -491,7 +491,8 @@ class DashboardController extends Controller
         $newWilayah = $request->wilayah_code ?: ($oldWilayah ?: '34');
         $uniqueCode = $cat->unique_code;
 
-        if (empty($uniqueCode) || $oldWilayah !== $newWilayah) {
+        // Only update uniqueCode if the cat was already verified / assigned a unique_code and wilayah changed
+        if (!empty($uniqueCode) && $oldWilayah !== $newWilayah) {
             $uniqueCode = Cat::generateUniqueCode($newWilayah, $cat->id);
         }
 
@@ -815,7 +816,7 @@ class DashboardController extends Controller
         $card = $cat->ktamCard;
         if (!$card) {
             $card = new \stdClass();
-            $card->ktam_number = $cat->formatted_unique_code ?? 'DRAFT-XXX-XXX';
+            $card->ktam_number = $cat->unique_code ?? 'DRAFT (Belum Terverifikasi)';
             $card->qr_code_payload = asset('images/logo-muhammadiyah.svg'); 
         }
 
@@ -954,7 +955,7 @@ class DashboardController extends Controller
                 'owner_email' => $owner->email,
                 'owner_phone' => $owner->phone,
                 'cat_name' => $cat->name,
-                'cat_code' => $cat->formatted_unique_code,
+                'cat_code' => $cat->unique_code ?: 'Menunggu Verifikasi Admin',
                 'cat_breed' => $cat->breed,
                 'cat_gender' => $cat->gender === 'male' ? 'Jantan' : 'Betina',
                 'cat_dob' => $cat->date_of_birth ? $cat->date_of_birth->format('d/m/Y') : '-',
@@ -976,9 +977,12 @@ class DashboardController extends Controller
             ->first();
 
         if (!$card) {
-            $cat = Cat::withTrashed()->where('unique_code', $number)->firstOrFail();
+            $cat = Cat::withTrashed()->where('unique_code', $number)->whereNotNull('unique_code')->first();
+            if (!$cat) {
+                abort(404, 'Data Kucing atau NIAKuMu tidak ditemukan atau belum diverifikasi oleh admin.');
+            }
             $card = $cat->ktamCard ?? new KtamCard([
-                'ktam_number' => $cat->formatted_unique_code,
+                'ktam_number' => $cat->unique_code,
                 'issue_date' => $cat->created_at,
             ]);
         } else {

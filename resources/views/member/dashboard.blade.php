@@ -160,7 +160,11 @@
                                             <div class="space-y-1.5 border-t border-slate-100 pt-3 text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl">
                                                 <div class="flex justify-between items-center text-[11px]">
                                                     <span class="text-slate-400">Nomor NIAKuMu:</span>
-                                                    <span class="font-mono font-bold text-teal-900">{{ $cat->formatted_unique_code }}</span>
+                                                    @if($cat->unique_code)
+                                                        <span class="font-mono font-bold text-teal-900">{{ $cat->unique_code }}</span>
+                                                    @else
+                                                        <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200">Menunggu Verifikasi Admin</span>
+                                                    @endif
                                                 </div>
                                                 @if($cat->photos->count() > 1)
                                                     <div class="flex justify-between items-center text-[11px]">
@@ -185,10 +189,10 @@
 
                                         <!-- Card Footer: Status & Action Buttons -->
                                         <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
-                                            @if($cat->ktamCard)
+                                            @if($cat->unique_code && $cat->ktamCard)
                                                 <div class="text-left">
                                                     <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 block">KTAKuMu RESMI</span>
-                                                    <span class="text-xs font-mono font-bold text-slate-800">{{ $cat->ktamCard->ktam_number }}</span>
+                                                    <span class="text-xs font-mono font-bold text-slate-800">{{ $cat->unique_code }}</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
                                                     <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold">
@@ -208,7 +212,7 @@
                                             @elseif($cat->medicalRecords->isNotEmpty())
                                                 <div class="text-left">
                                                     <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">VERIFIKASI ADMIN</span>
-                                                    <span class="text-[11px] text-slate-600 font-medium">Periksa Dokter Selesai</span>
+                                                    <span class="text-[11px] text-slate-600 font-medium">Periksa Dokter Selesai &bull; Menunggu Admin</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
                                                     <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-secondary px-3 py-1.5 text-xs border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100 font-semibold">
@@ -228,7 +232,7 @@
                                             @else
                                                 <div class="text-left">
                                                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">STATUS KTAKuMu</span>
-                                                    <span class="text-[11px] text-slate-600 font-medium">Belum Periksa Dokter</span>
+                                                    <span class="text-[11px] text-amber-700 font-medium">Menunggu Verifikasi Admin</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
                                                     <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-secondary px-3 py-1.5 text-xs font-semibold">

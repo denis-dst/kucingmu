@@ -40,7 +40,7 @@
     }
 
     // Unique Code formatting: "kode_wilayah.kcg.xxxx"
-    $uniqueCode = $cat->formatted_unique_code ?? ($cat->wilayah_code ?? '34') . '.kcg.' . str_pad($cat->id ?? 1, 4, '0', STR_PAD_LEFT);
+    $uniqueCode = $cat->unique_code ?? ((isset($isDraft) && $isDraft) ? 'DRAFT' : ($cat->formatted_unique_code ?? '-'));
 
     // Auto font sizing for NAMAKu (Left narrow capsule)
     $catName = trim($cat->name);

@@ -93,7 +93,12 @@
                                 @endif
                             </select>
                             <span class="text-[11px] text-slate-500 mt-1 block">
-                                Nomor NIAKuMu: <strong class="font-mono text-teal-800">{{ $cat->formatted_unique_code }}</strong>
+                                Nomor NIAKuMu: 
+                                @if($cat->unique_code)
+                                    <strong class="font-mono text-teal-800">{{ $cat->unique_code }}</strong>
+                                @else
+                                    <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-xs font-semibold border border-amber-200">Belum Terbit (Menunggu Verifikasi Admin)</span>
+                                @endif
                             </span>
                             <x-input-error :messages="$errors->get('wilayah_code')" class="mt-1" />
                         </div>

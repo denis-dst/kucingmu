@@ -493,10 +493,14 @@
 
                                         <!-- Nomor KTAM -->
                                         <td class="py-3.5 px-4 whitespace-nowrap">
-                                            <div class="font-mono text-xs font-bold text-teal-900">{{ $cat->formatted_unique_code }}</div>
-                                            <div class="text-[10px] text-slate-500 font-sans mt-0.5">
-                                                {{ $cat->wilayah ? $cat->wilayah->nama : 'PWM DIY' }} &bull; <span class="font-mono">{{ $cat->ktamCard ? $cat->ktamCard->ktam_number : 'Draf' }}</span>
-                                            </div>
+                                            @if($cat->unique_code)
+                                                <div class="font-mono text-xs font-bold text-teal-900">{{ $cat->unique_code }}</div>
+                                                <div class="text-[10px] text-slate-500 font-sans mt-0.5">
+                                                    {{ $cat->wilayah ? $cat->wilayah->nama : 'PWM DIY' }}
+                                                </div>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">Belum Verif</span>
+                                            @endif
                                         </td>
 
                                         <!-- Status Hidup / Mati -->
@@ -527,7 +531,7 @@
 
                                         <!-- Status Penerbitan KTAKuMu -->
                                         <td class="py-3.5 px-4 whitespace-nowrap">
-                                            @if($cat->ktamCard)
+                                            @if($cat->unique_code && $cat->ktamCard)
                                                 <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 inline-flex items-center gap-1">
                                                     <span>✓</span> KTAKuMu Terbit
                                                 </span>
@@ -537,7 +541,7 @@
                                                 </span>
                                             @else
                                                 <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
-                                                    <span>•</span> Terdaftar
+                                                    <span>•</span> Belum Verif
                                                 </span>
                                             @endif
                                         </td>
@@ -549,7 +553,7 @@
                                                     <span>✏️</span> Ubah
                                                 </a>
                                                 
-                                                @if($cat->ktamCard)
+                                                @if($cat->unique_code && $cat->ktamCard)
                                                     <a href="{{ route('ktam.download', $cat->id) }}" class="btn-action-success py-1.5 px-2.5 text-xs font-bold" title="Unduh Kartu PDF">
                                                         <span>📄</span> PDF
                                                     </a>
@@ -602,7 +606,7 @@
                                             </span>
                                         @endif
 
-                                        @if($cat->ktamCard)
+                                        @if($cat->unique_code && $cat->ktamCard)
                                             <span class="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                                                 KTAKuMu Terbit
                                             </span>
@@ -612,7 +616,7 @@
                                             </span>
                                         @else
                                             <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                                                Terdaftar
+                                                Belum Verif
                                             </span>
                                         @endif
                                     </div>
@@ -629,7 +633,11 @@
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-slate-500">Nomor NIAKuMu:</span>
-                                        <span class="font-mono font-bold text-teal-800">{{ $cat->formatted_unique_code }}</span>
+                                        @if($cat->unique_code)
+                                            <span class="font-mono font-bold text-teal-800">{{ $cat->unique_code }}</span>
+                                        @else
+                                            <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200">Belum Verif</span>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -653,7 +661,7 @@
                                             ✏️ Ubah
                                         </a>
 
-                                        @if($cat->ktamCard)
+                                        @if($cat->unique_code && $cat->ktamCard)
                                             <a href="{{ route('ktam.download', $cat->id) }}" class="btn-action-success py-1.5 px-2.5 text-xs font-bold">
                                                 📄 PDF
                                             </a>
