@@ -686,17 +686,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Bottom: Organization Badge -->
-                        <div class="p-4 rounded-2xl space-y-1.5" style="background-color: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.12);">
-                            <div class="flex items-center gap-2">
-                                <span class="text-base">🌿</span>
-                                <span class="font-outfit font-bold text-xs" style="color: #a7f3d0;">Majelis Lingkungan Hidup PP Muhammadiyah</span>
-                            </div>
-                            <p class="text-[11px] leading-relaxed" style="color: #ccfbf1;">
-                                Mewujudkan ekosistem lingkungan hidup yang ramah satwa melalui pendekatan kesejahteraan hewan (Animal Welfare) berbasis nilai-nilai Islam.
-                            </p>
-                        </div>
                     </div>
 
                     <!-- Right Column: Interactive Form Card -->
