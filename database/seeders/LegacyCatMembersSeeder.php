@@ -61,6 +61,25 @@ class LegacyCatMembersSeeder extends Seeder
             ],
             [
                 'owner' => [
+                    'name'            => 'Alfin Bimantara',
+                    'phone'           => '081944530946',
+                    'muhammadiyah_id' => '1.20105E+14',
+                    'address'         => 'Jl. A.M. Sangaji No.66',
+                ],
+                'cat' => [
+                    'id'            => 13,
+                    'name'          => 'Aceng',
+                    'breed'         => 'Campuran',
+                    'gender'        => 'male',
+                    'color'         => 'Tabby',
+                    'date_of_birth' => '2024-01-01',
+                    'unique_code'   => '12.kcg.0013',
+                    'wilayah_code'  => '12',
+                    'notes'         => 'Data registrasi legacy pra-sistem.',
+                ],
+            ],
+            [
+                'owner' => [
                     'name'            => 'Vira Melinda',
                     'phone'           => '082137286876',
                     'muhammadiyah_id' => '12.KCG.0038',
