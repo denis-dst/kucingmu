@@ -70,19 +70,22 @@
                         <div>
                             <label for="cat_wilayah" class="form-label font-semibold text-slate-700">Wilayah Muhammadiyah (Master Wilayah)</label>
                             <select id="cat_wilayah" name="wilayah_code" class="form-input mt-1 block w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm py-2">
-                                @if(isset($masterWilayahs) && (is_countable($masterWilayahs) ? count($masterWilayahs) > 0 : !empty($masterWilayahs)))
-                                    @foreach($masterWilayahs as $wKey => $wil)
+                                @php
+                                    $validWilayahs = collect($masterWilayahs ?? [])->filter(function ($item) {
+                                        if (is_object($item)) {
+                                            return !($item instanceof \__PHP_Incomplete_Class) && !empty($item->kode) && !str_starts_with((string)$item->kode, '__PHP_');
+                                        }
+                                        if (is_array($item)) {
+                                            return !empty($item['kode']) && !str_starts_with((string)$item['kode'], '__PHP_');
+                                        }
+                                        return false;
+                                    });
+                                @endphp
+                                @if($validWilayahs->isNotEmpty())
+                                    @foreach($validWilayahs as $wil)
                                         @php
-                                            if (is_object($wil)) {
-                                                $wCode = $wil->kode ?? $wKey;
-                                                $wName = $wil->nama ?? $wCode;
-                                            } elseif (is_array($wil)) {
-                                                $wCode = $wil['kode'] ?? $wKey;
-                                                $wName = $wil['nama'] ?? $wCode;
-                                            } else {
-                                                $wCode = is_string($wKey) ? $wKey : (string) $wil;
-                                                $wName = (string) $wil;
-                                            }
+                                            $wCode = is_object($wil) ? $wil->kode : $wil['kode'];
+                                            $wName = is_object($wil) ? $wil->nama : $wil['nama'];
                                         @endphp
                                         <option value="{{ $wCode }}" {{ old('wilayah_code', $cat->wilayah_code) == $wCode ? 'selected' : '' }}>
                                             {{ $wCode }} - {{ $wName }}
