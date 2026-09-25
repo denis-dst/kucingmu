@@ -407,7 +407,10 @@ class DashboardController extends Controller
             }
         }
 
-        return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil dibuat.');
+        return redirect()->route('dashboard')
+            ->with('cat_registered', true)
+            ->with('registered_cat_name', $cat->name)
+            ->with('success', 'Profil kucing ' . $cat->name . ' berhasil dibuat.');
     }
 
     /**

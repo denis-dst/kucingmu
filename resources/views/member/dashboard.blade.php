@@ -1,5 +1,9 @@
 <x-app-layout>
-    <div class="py-8" x-data="{ openDraftModal: false, draftUrl: '' }" @keydown.escape.window="openDraftModal = false">
+    <div class="py-8" x-data="{ 
+        openDraftModal: false, 
+        draftUrl: '',
+        showRegistrationSuccessModal: {{ session('cat_registered') ? 'true' : 'false' }}
+    }" @keydown.escape.window="openDraftModal = false; showRegistrationSuccessModal = false">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <!-- Hero Panel -->
@@ -20,8 +24,41 @@
                 </div>
             </div>
 
-            <!-- Success Alert -->
-            @if(session('success'))
+            <!-- Banner Jumlah Kucing Yang Perlu Diverifikasi -->
+            @php
+                $unverifiedCatsCount = $cats->filter(fn($c) => empty($c->unique_code))->count();
+            @endphp
+
+            @if($unverifiedCatsCount > 0)
+                <div class="rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-50 to-orange-50/80 border border-amber-300 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-sm">
+                            ⏳
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="font-outfit font-bold text-slate-900 text-sm sm:text-base">
+                                    {{ $unverifiedCatsCount }} Kucing Perlu Diverifikasi
+                                </h3>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                                    Menunggu Verifikasi Booth / Event
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Terdapat <strong>{{ $unverifiedCatsCount }} ekor kucing</strong> yang telah didaftarkan namun belum diverifikasi. Silakan lakukan verifikasi keanggotaan kucing Anda di <strong>Booth/Event KucingMu di Kota Anda</strong> untuk penerbitan Kartu KTAKuMu resmi.
+                            </p>
+                        </div>
+                    </div>
+                    @if(isset($activeEvents) && $activeEvents->isNotEmpty())
+                        <a href="#events-section" class="button-primary bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shrink-0 text-center shadow-xs flex items-center justify-center gap-1.5 self-start sm:self-auto">
+                            <span>📍</span> Cek Jadwal Event
+                        </a>
+                    @endif
+                </div>
+            @endif
+
+            <!-- Success Alert (if any standard message) -->
+            @if(session('success') && !session('cat_registered'))
                 <div class="p-4 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 text-sm font-semibold flex items-center gap-2" role="alert">
                     <span aria-hidden="true">✓</span> {{ session('success') }}
                 </div>
@@ -592,7 +629,7 @@
 
                     <!-- Active Events / Kegiatan Sosialisasi -->
                     @if(isset($activeEvents) && $activeEvents->isNotEmpty())
-                        <div class="content-card border-teal-200 bg-teal-50/40">
+                        <div id="events-section" class="content-card border-teal-200 bg-teal-50/40 scroll-mt-6">
                             <h2 class="font-outfit text-base font-bold text-slate-900 border-b border-teal-200 pb-2.5 mb-3">Agenda & Sosialisasi Terdekat</h2>
                             <div class="space-y-3">
                                 @foreach($activeEvents as $event)
@@ -635,6 +672,61 @@
                 </div>
                 <div class="flex-1 bg-slate-950 flex items-center justify-center p-0 overflow-y-auto">
                     <iframe :src="draftUrl" title="Pratinjau Kartu KTAKuMu" class="w-full h-[520px] border-0" scrolling="auto"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Success Modal Popup -->
+        <div x-show="showRegistrationSuccessModal" 
+             style="display: none;" 
+             role="dialog" 
+             aria-modal="true" 
+             aria-labelledby="reg-success-title" 
+             class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-xs p-4">
+            <div @click.away="showRegistrationSuccessModal = false" 
+                 x-transition:enter="transition ease-out duration-300 transform"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-200 transform"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+                 class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col w-full max-w-lg border border-slate-200 relative text-center p-6 sm:p-8 space-y-5">
+                
+                <!-- Close 'X' Button Top Right -->
+                <button type="button" @click="showRegistrationSuccessModal = false" aria-label="Tutup modal" class="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+
+                <!-- Icon Badge -->
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-100 text-emerald-700 border border-emerald-200 flex items-center justify-center text-3xl sm:text-4xl mx-auto shadow-inner">
+                    🎉
+                </div>
+
+                <!-- Content -->
+                <div class="space-y-2.5">
+                    <h3 id="reg-success-title" class="font-outfit text-xl sm:text-2xl font-extrabold text-slate-900">
+                        Selamat, Kucing Anda berhasil didaftarkan
+                    </h3>
+                    @if(session('registered_cat_name'))
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 text-teal-800 text-xs font-bold border border-teal-200">
+                            <span>🐱</span> <span>{{ session('registered_cat_name') }}</span>
+                        </div>
+                    @endif
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto pt-1">
+                        Selanjutnya silakan lakukan verifikasi keanggotaan Kucing Anda di <strong>Booth/Event KucingMu di Kota Anda</strong>.
+                    </p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+                    @if(isset($activeEvents) && $activeEvents->isNotEmpty())
+                        <a href="#events-section" @click="showRegistrationSuccessModal = false" class="w-full sm:w-auto button-primary text-xs font-bold py-3 px-5 shadow-sm flex items-center justify-center gap-1.5">
+                            <span>📍</span> Lihat Jadwal Booth / Event
+                        </a>
+                    @endif
+                    <button type="button" @click="showRegistrationSuccessModal = false" class="w-full sm:w-auto button-secondary text-xs font-semibold py-3 px-5">
+                        Mengerti & Tutup
+                    </button>
                 </div>
             </div>
         </div>
