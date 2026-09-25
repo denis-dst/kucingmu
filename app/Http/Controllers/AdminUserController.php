@@ -41,6 +41,15 @@ class AdminUserController extends Controller
             case 'name':
                 $query->orderBy('name', $direction);
                 break;
+            case 'email':
+                $query->orderBy('email', $direction);
+                break;
+            case 'phone':
+                $query->orderBy('phone', $direction);
+                break;
+            case 'muhammadiyah_id':
+                $query->orderBy('muhammadiyah_id', $direction);
+                break;
             case 'role':
                 $query->orderBy('role', $direction);
                 break;

@@ -1,3 +1,24 @@
+@php
+    $currentSort = $sort ?? 'created_at';
+    $currentDir = $direction ?? 'desc';
+
+    $makeSortUrl = function($col) use ($currentSort, $currentDir) {
+        $newDir = ($currentSort === $col && $currentDir === 'asc') ? 'desc' : 'asc';
+        return route('admin.users.index', array_merge(request()->query(), [
+            'sort' => $col,
+            'direction' => $newDir,
+            'page' => 1,
+        ]));
+    };
+
+    $getSortIndicator = function($col) use ($currentSort, $currentDir) {
+        if ($currentSort === $col) {
+            return $currentDir === 'asc' ? ' ▲' : ' ▼';
+        }
+        return ' ⇅';
+    };
+@endphp
+
 <x-app-layout>
     <div class="py-8" x-data="{ 
         roleModalOpen: false, 
@@ -70,7 +91,7 @@
 
             <!-- Stats Widgets -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                <a href="{{ route('admin.users.index', ['role' => 'all']) }}" 
+                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'all', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-teal-400 {{ $roleFilter === 'all' ? 'ring-2 ring-teal-600 bg-teal-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
                         <span>Semua Pengguna</span>
@@ -82,7 +103,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('admin.users.index', ['role' => 'member']) }}" 
+                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'member', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-teal-400 {{ $roleFilter === 'member' ? 'ring-2 ring-teal-600 bg-teal-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-teal-700 uppercase tracking-wider">
                         <span>Member Kucing</span>
@@ -94,7 +115,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('admin.users.index', ['role' => 'volunteer']) }}" 
+                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-indigo-400 {{ $roleFilter === 'volunteer' ? 'ring-2 ring-indigo-600 bg-indigo-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-indigo-700 uppercase tracking-wider">
                         <span>Relawan (Volunteer)</span>
@@ -106,7 +127,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('admin.users.index', ['role' => 'dokter']) }}" 
+                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'dokter', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-emerald-400 {{ $roleFilter === 'dokter' ? 'ring-2 ring-emerald-600 bg-emerald-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase tracking-wider">
                         <span>Dokter Hewan (Vet)</span>
@@ -118,7 +139,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('admin.users.index', ['role' => 'admin']) }}" 
+                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'admin', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-amber-400 {{ $roleFilter === 'admin' ? 'ring-2 ring-amber-600 bg-amber-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-amber-700 uppercase tracking-wider">
                         <span>Administrator</span>
@@ -137,31 +158,33 @@
                     
                     <!-- Role Filter Tabs -->
                     <div class="md:col-span-6 flex flex-wrap gap-1.5">
-                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'all'])) }}" 
+                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'all', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'all' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             Semua Peran ({{ $stats['total'] }})
                         </a>
-                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'member'])) }}" 
+                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'member', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'member' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             🐱 Member ({{ $stats['member'] }})
                         </a>
-                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer'])) }}" 
+                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'volunteer' ? 'bg-indigo-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             📋 Relawan ({{ $stats['volunteer'] }})
                         </a>
-                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'dokter'])) }}" 
+                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'dokter', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'dokter' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             🩺 Dokter ({{ $stats['dokter'] }})
                         </a>
-                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'admin'])) }}" 
+                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'admin', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'admin' ? 'bg-amber-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             🛡️ Admin ({{ $stats['admin'] }})
                         </a>
                     </div>
 
-                    <!-- Search Input -->
+                    <!-- Search Input & Hidden Sort Fields -->
                     <div class="md:col-span-6 flex gap-2">
                         <input type="hidden" name="role" value="{{ $roleFilter }}">
+                        <input type="hidden" name="sort" value="{{ $currentSort }}">
+                        <input type="hidden" name="direction" value="{{ $currentDir }}">
                         <div class="relative flex-1">
                             <input type="text" 
                                    name="search" 
@@ -173,7 +196,7 @@
                         <button type="submit" class="button-primary text-xs px-4 py-2 font-bold whitespace-nowrap">
                             Cari
                         </button>
-                        @if(!empty($search) || $roleFilter !== 'all')
+                        @if(!empty($search) || $roleFilter !== 'all' || $currentSort !== 'created_at' || $currentDir !== 'desc')
                             <a href="{{ route('admin.users.index') }}" class="button-secondary text-xs px-3 py-2 font-semibold whitespace-nowrap">
                                 Reset
                             </a>
@@ -188,11 +211,43 @@
                     <table class="w-full text-left text-xs text-slate-700 divide-y divide-slate-100">
                         <thead class="bg-slate-50/80 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
                             <tr>
-                                <th scope="col" class="py-3.5 px-4">Pengguna</th>
-                                <th scope="col" class="py-3.5 px-4">Kontak & NBM</th>
-                                <th scope="col" class="py-3.5 px-4">Peran (Role)</th>
-                                <th scope="col" class="py-3.5 px-4 text-center">Aktivitas</th>
-                                <th scope="col" class="py-3.5 px-4 text-center">Terdaftar Sejak</th>
+                                <th scope="col" class="py-3.5 px-4">
+                                    <a href="{{ $makeSortUrl('name') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition select-none group" title="Urutkan berdasarkan Nama Pengguna">
+                                        <span>Pengguna</span>
+                                        <span class="{{ $currentSort === 'name' ? 'text-teal-700 font-bold' : 'text-slate-400 group-hover:text-slate-600' }} text-[11px]">{{ $getSortIndicator('name') }}</span>
+                                    </a>
+                                </th>
+                                <th scope="col" class="py-3.5 px-4">
+                                    <div class="inline-flex items-center gap-1.5">
+                                        <a href="{{ $makeSortUrl('phone') }}" class="inline-flex items-center gap-0.5 hover:text-teal-800 transition select-none group" title="Urutkan Kontak Telepon/HP">
+                                            <span>Kontak</span>
+                                            <span class="{{ $currentSort === 'phone' ? 'text-teal-700 font-bold' : 'text-slate-400 group-hover:text-slate-600' }} text-[11px]">{{ $getSortIndicator('phone') }}</span>
+                                        </a>
+                                        <span class="text-slate-300">/</span>
+                                        <a href="{{ $makeSortUrl('muhammadiyah_id') }}" class="inline-flex items-center gap-0.5 hover:text-teal-800 transition select-none group" title="Urutkan NBM Muhammadiyah">
+                                            <span>NBM</span>
+                                            <span class="{{ $currentSort === 'muhammadiyah_id' ? 'text-teal-700 font-bold' : 'text-slate-400 group-hover:text-slate-600' }} text-[11px]">{{ $getSortIndicator('muhammadiyah_id') }}</span>
+                                        </a>
+                                    </div>
+                                </th>
+                                <th scope="col" class="py-3.5 px-4">
+                                    <a href="{{ $makeSortUrl('role') }}" class="inline-flex items-center gap-1 hover:text-teal-800 transition select-none group" title="Urutkan Peran Utama">
+                                        <span>Peran (Role)</span>
+                                        <span class="{{ $currentSort === 'role' ? 'text-teal-700 font-bold' : 'text-slate-400 group-hover:text-slate-600' }} text-[11px]">{{ $getSortIndicator('role') }}</span>
+                                    </a>
+                                </th>
+                                <th scope="col" class="py-3.5 px-4 text-center">
+                                    <a href="{{ $makeSortUrl('cats_count') }}" class="inline-flex items-center justify-center gap-1 hover:text-teal-800 transition select-none group" title="Urutkan Jumlah Kucing Dimiliki">
+                                        <span>Aktivitas</span>
+                                        <span class="{{ $currentSort === 'cats_count' ? 'text-teal-700 font-bold' : 'text-slate-400 group-hover:text-slate-600' }} text-[11px]">{{ $getSortIndicator('cats_count') }}</span>
+                                    </a>
+                                </th>
+                                <th scope="col" class="py-3.5 px-4 text-center">
+                                    <a href="{{ $makeSortUrl('created_at') }}" class="inline-flex items-center justify-center gap-1 hover:text-teal-800 transition select-none group" title="Urutkan Tanggal Terdaftar">
+                                        <span>Terdaftar Sejak</span>
+                                        <span class="{{ $currentSort === 'created_at' ? 'text-teal-700 font-bold' : 'text-slate-400 group-hover:text-slate-600' }} text-[11px]">{{ $getSortIndicator('created_at') }}</span>
+                                    </a>
+                                </th>
                                 <th scope="col" class="py-3.5 px-4 text-right">Aksi</th>
                             </tr>
                         </thead>
