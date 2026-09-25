@@ -11,6 +11,10 @@
 }
 
 @layer base {
+    html, body {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
     body {
         @apply bg-slate-50 font-sans text-slate-800 antialiased;
     }

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Cat extends Model
 {
@@ -97,7 +98,9 @@ class Cat extends Model
             if ($cat->isDirty('wilayah_code')) {
                 // Only re-generate unique_code if the cat has already been verified / assigned a unique_code
                 if (!empty($cat->unique_code) && !empty($cat->wilayah_code)) {
-                    $cat->unique_code = self::generateUniqueCode($cat->wilayah_code, $cat->id);
+                    $parts = explode('.', $cat->unique_code);
+                    $existingSeq = (int) end($parts);
+                    $cat->unique_code = self::generateUniqueCode($cat->wilayah_code, $existingSeq);
                 }
 
                 // Synchronize ktam_cards table if card exists
@@ -116,17 +119,44 @@ class Cat extends Model
     }
 
     /**
-     * Generate unique cat code with format: "kode_wilayah.kcg.00xx"
+     * Get the next sequential number for KTAM / NIAKuMu verification.
+     * Sequence starts at 61 (1-60 reserved for legacy registrations).
      */
-    public static function generateUniqueCode(?string $wilayahCode = null, ?int $id = null): ?string
+    public static function getNextVerificationSequence(): int
+    {
+        $dbMax = DB::table('cats')
+            ->whereNotNull('unique_code')
+            ->where('unique_code', '!=', '')
+            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(unique_code, '.', -1) AS UNSIGNED)) as max_seq")
+            ->value('max_seq');
+
+        $ktamMax = DB::table('ktam_cards')
+            ->whereNotNull('ktam_number')
+            ->where('ktam_number', '!=', '')
+            ->selectRaw("MAX(CAST(SUBSTRING_INDEX(ktam_number, '.', -1) AS UNSIGNED)) as max_seq")
+            ->value('max_seq');
+
+        $maxSeq = max((int) $dbMax, (int) $ktamMax);
+
+        return max(61, $maxSeq + 1);
+    }
+
+    /**
+     * Generate unique cat code with format: "kode_wilayah.kcg.00xx"
+     *
+     * @param string|null $wilayahCode
+     * @param int|null $seq Specific sequence number to use (preserves number on wilayah update), or null for next verification sequence.
+     * @return string
+     */
+    public static function generateUniqueCode(?string $wilayahCode = null, ?int $seq = null): string
     {
         if (empty($wilayahCode)) {
             $wilayahCode = '34';
         }
 
         $kode = strtolower(trim($wilayahCode));
-        $seq = $id ?: 1;
-        return $kode . '.kcg.' . str_pad($seq, 4, '0', STR_PAD_LEFT);
+        $sequence = $seq ?: self::getNextVerificationSequence();
+        return $kode . '.kcg.' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     /**

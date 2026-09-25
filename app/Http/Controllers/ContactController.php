@@ -53,6 +53,17 @@ class ContactController extends Controller
             'captcha.required' => 'Verifikasi keamanan (Captcha) wajib diisi.',
         ]);
 
+        // Anti-double submission safeguard for contact messages
+        $duplicateMsg = ContactMessage::where('email', strtolower(trim($request->email)))
+            ->where('subject', trim($request->subject))
+            ->where('message', trim($request->message))
+            ->where('created_at', '>=', now()->subSeconds(15))
+            ->first();
+
+        if ($duplicateMsg) {
+            return redirect()->back()->with('contact_success', 'Pesan Anda berhasil dikirim! Tim administrator KucingMu akan segera meninjau dan merespon pesan Anda.');
+        }
+
         ContactMessage::create([
             'user_id' => Auth::id(),
             'name' => trim($request->name),

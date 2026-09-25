@@ -30,7 +30,7 @@
     <!-- Styles / Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-slate-50 font-sans antialiased text-slate-800" x-data="{ mobileNavOpen: false }">
+<body class="bg-slate-50 font-sans antialiased text-slate-800 overflow-x-hidden" x-data="{ mobileNavOpen: false }">
 
     <!-- Skip Link for Keyboard Accessibility -->
     <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-teal-800 focus:text-white focus:rounded-md focus:shadow-md focus:font-semibold">
@@ -41,13 +41,13 @@
     <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <!-- Brand Logo -->
-            <a href="#" class="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-700 rounded-lg p-1">
+            <a href="#" class="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-700 rounded-lg p-1 shrink-0">
                 @if(isset($app_settings['app_logo']))
-                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="32" height="32" class="h-8 w-auto object-contain" decoding="async">
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="32" height="32" class="h-7 sm:h-8 w-auto object-contain" decoding="async">
                 @else
-                    <span class="text-2xl" aria-hidden="true">🐱</span>
+                    <span class="text-xl sm:text-2xl" aria-hidden="true">🐱</span>
                 @endif
-                <span class="font-outfit font-extrabold text-teal-900 text-xl tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
+                <span class="font-outfit font-extrabold text-teal-900 text-lg sm:text-xl tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
             </a>
 
             <!-- Desktop Nav Links -->
@@ -63,27 +63,27 @@
             </nav>
 
             <!-- Language Switcher & Auth Buttons -->
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
                 <div class="flex border border-slate-300 rounded-lg overflow-hidden text-xs bg-slate-100 font-semibold shadow-xs" role="group" aria-label="Pilih Bahasa">
-                    <a href="{{ route('lang.switch', 'id') }}" aria-label="Bahasa Indonesia" class="min-h-[38px] px-2.5 flex items-center gap-1 {{ app()->getLocale() == 'id' ? 'bg-teal-800 text-white font-bold' : 'text-slate-700 hover:bg-slate-200' }}">
+                    <a href="{{ route('lang.switch', 'id') }}" aria-label="Bahasa Indonesia" class="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 flex items-center gap-1 {{ app()->getLocale() == 'id' ? 'bg-teal-800 text-white font-bold' : 'text-slate-700 hover:bg-slate-200' }}">
                         <span aria-hidden="true">🇮🇩</span> <span>ID</span>
                     </a>
-                    <a href="{{ route('lang.switch', 'en') }}" aria-label="English Language" class="min-h-[38px] px-2.5 flex items-center gap-1 {{ app()->getLocale() == 'en' ? 'bg-teal-800 text-white font-bold' : 'text-slate-700 hover:bg-slate-200' }}">
+                    <a href="{{ route('lang.switch', 'en') }}" aria-label="English Language" class="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 flex items-center gap-1 {{ app()->getLocale() == 'en' ? 'bg-teal-800 text-white font-bold' : 'text-slate-700 hover:bg-slate-200' }}">
                         <span aria-hidden="true">🇬🇧</span> <span>EN</span>
                     </a>
                 </div>
 
                 @if (Route::has('login'))
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="button-primary min-h-[40px] px-4 py-2 text-xs">
+                        <a href="{{ url('/dashboard') }}" class="button-primary min-h-[36px] sm:min-h-[40px] px-3 sm:px-4 py-1.5 sm:py-2 text-xs">
                             Dashboard
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="button-secondary min-h-[40px] px-3.5 py-2 text-xs">
+                        <a href="{{ route('login') }}" class="button-secondary hidden sm:inline-flex min-h-[40px] px-3.5 py-2 text-xs">
                             {{ app()->getLocale() == 'en' ? 'Login' : 'Masuk' }}
                         </a>
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="button-primary min-h-[40px] px-3.5 py-2 text-xs">
+                            <a href="{{ route('register') }}" class="button-primary hidden sm:inline-flex min-h-[40px] px-3.5 py-2 text-xs">
                                 {{ app()->getLocale() == 'en' ? 'Register' : 'Daftar' }}
                             </a>
                         @endif
@@ -91,7 +91,7 @@
                 @endif
 
                 <!-- Mobile Hamburger -->
-                <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Buka Menu" class="md:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-teal-700">
+                <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Buka Menu" class="md:hidden inline-flex min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] items-center justify-center p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-teal-700">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path :class="{'hidden': mobileNavOpen, 'inline-flex': !mobileNavOpen}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': !mobileNavOpen, 'inline-flex': mobileNavOpen}" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -110,14 +110,33 @@
             <a href="#faq" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">FAQ</a>
             <a href="#verifikasi" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'KTAKuMu Verification' : 'Verifikasi KTAKuMu' }}</a>
             <a href="#kontak" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</a>
+            
+            @if (Route::has('login'))
+                <div class="pt-3 mt-2 border-t border-slate-100 flex flex-col gap-2">
+                    @auth
+                        <a href="{{ url('/dashboard') }}" class="w-full button-primary text-center py-2.5 text-xs font-bold">
+                            Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="w-full button-secondary text-center py-2.5 text-xs font-semibold">
+                            {{ app()->getLocale() == 'en' ? 'Login' : 'Masuk' }}
+                        </a>
+                        @if (Route::has('register'))
+                            <a href="{{ route('register') }}" class="w-full button-primary text-center py-2.5 text-xs font-bold">
+                                {{ app()->getLocale() == 'en' ? 'Register' : 'Daftar' }}
+                            </a>
+                        @endif
+                    @endauth
+                </div>
+            @endif
         </div>
     </header>
 
     <main id="main-content" tabindex="-1" class="focus:outline-none">
         <!-- Hero Section -->
-        <section class="bg-gradient-to-br from-teal-900 via-teal-800 to-sky-800 text-white py-16 lg:py-24 border-b border-teal-950">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-12 lg:grid-cols-12 items-center">
-                <div class="lg:col-span-7 space-y-6">
+        <section class="bg-gradient-to-br from-teal-900 via-teal-800 to-sky-800 text-white py-12 sm:py-16 lg:py-24 border-b border-teal-950 overflow-hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-8 lg:gap-12 lg:grid-cols-12 items-center">
+                <div class="lg:col-span-7 space-y-5 sm:space-y-6 min-w-0">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-100 text-xs font-semibold uppercase tracking-wider backdrop-blur">
                         Inisiatif Bidang Kesehatan DPD IMM DIY
                     </span>
@@ -137,7 +156,7 @@
                     </div>
                 </div>
                 <!-- Preview Slide Foto Kegiatan -->
-                <div class="lg:col-span-5 w-full" x-data="{
+                <div class="lg:col-span-5 w-full min-w-0" x-data="{
                     activeIndex: 0,
                     autoplay: true,
                     interval: null,
@@ -163,12 +182,12 @@
                     }
                 }" @mouseenter="autoplay = false" @mouseleave="autoplay = true">
                     
-                    <!-- Carousel Container with Guaranteed Height -->
-                    <div class="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 aspect-[3/2] sm:aspect-[16/10] md:h-[400px] w-full group" style="min-height: 320px; aspect-ratio: 3/2;">
+                    <!-- Carousel Container with Responsive Aspect Ratio & Sizing -->
+                    <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 w-full max-w-full aspect-[4/3] sm:aspect-[16/10] md:h-[380px] lg:h-[400px] md:aspect-auto group">
                         
                         <!-- Top Header Pill -->
-                        <div class="absolute top-4 left-4 z-20 flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-bold shadow-sm">
+                        <div class="absolute top-3 sm:top-4 left-3 sm:left-4 z-20 flex items-center gap-1.5 sm:gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-xs font-bold shadow-sm">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                                 <span>Album Kegiatan</span>
                             </span>
@@ -200,22 +219,22 @@
                                     <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
 
                                     <!-- Category Badge Top Right -->
-                                    <div class="absolute top-4 right-4 z-20">
-                                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-500/80 backdrop-blur-md text-white border border-teal-300/30">
+                                    <div class="absolute top-3 sm:top-4 right-3 sm:right-4 z-20">
+                                        <span class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-teal-500/80 backdrop-blur-md text-white border border-teal-300/30 max-w-[120px] sm:max-w-none truncate block">
                                             {{ $album->category }}
                                         </span>
                                     </div>
 
                                     <!-- Content Overlay Bottom -->
-                                    <div class="absolute bottom-0 inset-x-0 p-5 sm:p-6 z-20 text-white space-y-1.5">
-                                        <div class="text-[11px] font-semibold text-teal-300 flex items-center gap-1.5">
+                                    <div class="absolute bottom-0 inset-x-0 p-4 sm:p-6 z-20 text-white space-y-1 sm:space-y-1.5">
+                                        <div class="text-[10px] sm:text-[11px] font-semibold text-teal-300 flex items-center gap-1.5">
                                             <span>📅</span> {{ $album->activity_date ? $album->activity_date->translatedFormat('d F Y') : 'Dokumentasi Program' }}
                                         </div>
-                                        <p class="font-outfit text-base sm:text-lg font-bold leading-snug line-clamp-2 text-white">
+                                        <p class="font-outfit text-sm sm:text-base lg:text-lg font-bold leading-snug line-clamp-2 text-white">
                                             {{ $album->title }}
                                         </p>
                                         @if($album->caption)
-                                            <p class="text-xs text-teal-100/80 line-clamp-2 leading-relaxed">
+                                            <p class="text-[11px] sm:text-xs text-teal-100/80 line-clamp-1 sm:line-clamp-2 leading-relaxed">
                                                 {{ $album->caption }}
                                             </p>
                                         @endif
@@ -224,58 +243,58 @@
                             @endforeach
                         @else
                             <!-- Fallback Demo Slide 1 -->
-                            <div x-show="activeIndex === 0" class="absolute inset-0 w-full h-full bg-gradient-to-br from-teal-800 to-slate-900 flex flex-col justify-between p-6 text-white">
+                            <div x-show="activeIndex === 0" class="absolute inset-0 w-full h-full bg-gradient-to-br from-teal-800 to-slate-900 flex flex-col justify-between p-4 sm:p-6 text-white">
                                 <div class="flex justify-between items-start">
                                     <div></div>
-                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-500/80 text-white">Pemeriksaan</span>
+                                    <span class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-teal-500/80 text-white">Pemeriksaan</span>
                                 </div>
-                                <div class="text-center py-6">
-                                    <div class="text-5xl mb-2">🩺</div>
-                                    <p class="font-outfit text-lg font-bold text-white">Pemeriksaan Medis Dokter Hewan</p>
-                                    <p class="text-xs text-teal-100 mt-1">Layanan cek fisik, telinga, mata, dan pemberian vitamin kucing gratis mitra DPD IMM DIY.</p>
+                                <div class="text-center py-4 sm:py-6">
+                                    <div class="text-4xl sm:text-5xl mb-2">🩺</div>
+                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Pemeriksaan Medis Dokter Hewan</p>
+                                    <p class="text-[11px] sm:text-xs text-teal-100 mt-1 line-clamp-2">Layanan cek fisik, telinga, mata, dan pemberian vitamin kucing gratis mitra DPD IMM DIY.</p>
                                 </div>
-                                <div class="text-[11px] text-teal-300 font-semibold">📅 Pelayanan Berkala Komunitas</div>
+                                <div class="text-[10px] sm:text-[11px] text-teal-300 font-semibold">📅 Pelayanan Berkala Komunitas</div>
                             </div>
 
                             <!-- Fallback Demo Slide 2 -->
-                            <div x-show="activeIndex === 1" class="absolute inset-0 w-full h-full bg-gradient-to-br from-sky-900 to-indigo-950 flex flex-col justify-between p-6 text-white" style="display: none;">
+                            <div x-show="activeIndex === 1" class="absolute inset-0 w-full h-full bg-gradient-to-br from-sky-900 to-indigo-950 flex flex-col justify-between p-4 sm:p-6 text-white" style="display: none;">
                                 <div class="flex justify-between items-start">
                                     <div></div>
-                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/80 text-white">Sensus PTMA</span>
+                                    <span class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-sky-500/80 text-white">Sensus PTMA</span>
                                 </div>
-                                <div class="text-center py-6">
-                                    <div class="text-5xl mb-2">📊</div>
-                                    <p class="font-outfit text-lg font-bold text-white">Sensus & Surveilans Kucing Liar</p>
-                                    <p class="text-xs text-sky-100 mt-1">Pendataan populasi stray cat berbasis klaster kampus PTMA dan pemantauan Body Condition Score.</p>
+                                <div class="text-center py-4 sm:py-6">
+                                    <div class="text-4xl sm:text-5xl mb-2">📊</div>
+                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Sensus & Surveilans Kucing Liar</p>
+                                    <p class="text-[11px] sm:text-xs text-sky-100 mt-1 line-clamp-2">Pendataan populasi stray cat berbasis klaster kampus PTMA dan pemantauan Body Condition Score.</p>
                                 </div>
-                                <div class="text-[11px] text-sky-300 font-semibold">📅 Klaster Kampus PTMA</div>
+                                <div class="text-[10px] sm:text-[11px] text-sky-300 font-semibold">📅 Klaster Kampus PTMA</div>
                             </div>
 
                             <!-- Fallback Demo Slide 3 -->
-                            <div x-show="activeIndex === 2" class="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-900 to-slate-950 flex flex-col justify-between p-6 text-white" style="display: none;">
+                            <div x-show="activeIndex === 2" class="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-900 to-slate-950 flex flex-col justify-between p-4 sm:p-6 text-white" style="display: none;">
                                 <div class="flex justify-between items-start">
                                     <div></div>
-                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/80 text-white">Identitas Digital</span>
+                                    <span class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-500/80 text-white">Identitas Digital</span>
                                 </div>
-                                <div class="text-center py-6">
-                                    <div class="text-5xl mb-2">🪪</div>
-                                    <p class="font-outfit text-lg font-bold text-white">Penerbitan Kartu KTAKuMu Digital</p>
-                                    <p class="text-xs text-emerald-100 mt-1">Kartu Tanda Anggota KucingMu dilengkapi kode unik wilayah dan QR code verifikasi instan.</p>
+                                <div class="text-center py-4 sm:py-6">
+                                    <div class="text-4xl sm:text-5xl mb-2">🪪</div>
+                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Penerbitan Kartu KTAKuMu Digital</p>
+                                    <p class="text-[11px] sm:text-xs text-emerald-100 mt-1 line-clamp-2">Kartu Tanda Anggota KucingMu dilengkapi kode unik wilayah dan QR code verifikasi instan.</p>
                                 </div>
-                                <div class="text-[11px] text-emerald-300 font-semibold">📅 Kartu Terverifikasi Digital</div>
+                                <div class="text-[10px] sm:text-[11px] text-emerald-300 font-semibold">📅 Kartu Terverifikasi Digital</div>
                             </div>
                         @endif
 
                         <!-- Navigation Arrows (Accessible Touch Targets >= 44x44px) -->
-                        <button type="button" @click.stop="prev()" aria-label="Slide sebelumnya" class="absolute left-3 top-1/2 -translate-y-1/2 z-30 w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
-                            <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        <button type="button" @click.stop="prev()" aria-label="Slide sebelumnya" class="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-11 sm:h-11 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
                         </button>
-                        <button type="button" @click.stop="next()" aria-label="Slide berikutnya" class="absolute right-3 top-1/2 -translate-y-1/2 z-30 w-11 h-11 min-h-[44px] min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
-                            <svg class="w-5 h-5" width="20" height="20" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        <button type="button" @click.stop="next()" aria-label="Slide berikutnya" class="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-11 sm:h-11 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                         </button>
 
                         <!-- Indicators Dots with Touch Target Padding (Zero-CLS pre-rendered in Blade) -->
-                        <div class="absolute bottom-3 right-4 z-30 flex items-center gap-1">
+                        <div class="absolute bottom-2.5 sm:bottom-3 right-3 sm:right-4 z-30 flex items-center gap-1">
                             @php
                                 $totalAlbumSlides = (isset($activityAlbums) && count($activityAlbums) > 0) ? count($activityAlbums) : 3;
                             @endphp
@@ -283,9 +302,9 @@
                                 <button type="button" 
                                         @click.stop="activeIndex = {{ $i }}" 
                                         aria-label="Buka slide {{ $i + 1 }}" 
-                                        class="min-h-[40px] min-w-[32px] sm:min-w-[36px] flex items-center justify-center p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-full">
-                                    <span :class="activeIndex === {{ $i }} ? 'w-6 bg-amber-400' : 'w-2 bg-white/50 hover:bg-white/80'" 
-                                          class="h-2 rounded-full transition-all duration-300 shadow-xs {{ $i === 0 ? 'w-6 bg-amber-400' : 'w-2 bg-white/50' }}"></span>
+                                        class="min-h-[32px] sm:min-h-[40px] min-w-[20px] sm:min-w-[32px] flex items-center justify-center p-0.5 sm:p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-full">
+                                    <span :class="activeIndex === {{ $i }} ? 'w-5 sm:w-6 bg-amber-400' : 'w-2 bg-white/50 hover:bg-white/80'" 
+                                          class="h-1.5 sm:h-2 rounded-full transition-all duration-300 shadow-xs {{ $i === 0 ? 'w-5 sm:w-6 bg-amber-400' : 'w-2 bg-white/50' }}"></span>
                                 </button>
                             @endfor
                         </div>

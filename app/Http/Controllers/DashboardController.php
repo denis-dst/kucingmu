@@ -493,7 +493,9 @@ class DashboardController extends Controller
 
         // Only update uniqueCode if the cat was already verified / assigned a unique_code and wilayah changed
         if (!empty($uniqueCode) && $oldWilayah !== $newWilayah) {
-            $uniqueCode = Cat::generateUniqueCode($newWilayah, $cat->id);
+            $parts = explode('.', $uniqueCode);
+            $existingSeq = (int) end($parts);
+            $uniqueCode = Cat::generateUniqueCode($newWilayah, $existingSeq);
         }
 
         $catStatus = $request->filled('status') ? (in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive') : ($cat->status ?: 'alive');
@@ -737,6 +739,11 @@ class DashboardController extends Controller
      */
     public function storeCheckup(Request $request, Appointment $appointment)
     {
+        // Safeguard against duplicate submissions
+        if ($appointment->status === 'completed' || MedicalRecord::where('appointment_id', $appointment->id)->exists()) {
+            return redirect()->route('dashboard')->with('success', 'Rekam medis berhasil disimpan. Data kucing masuk ke antrian Verifikasi Admin untuk penerbitan KTAM.');
+        }
+
         $request->validate([
             'weight' => 'required|numeric|min:0',
             'temperature' => 'required|numeric|min:0',
