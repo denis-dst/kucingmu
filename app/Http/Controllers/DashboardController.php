@@ -16,6 +16,7 @@ use Carbon\Carbon;
 use App\Mail\RegistrationSuccessMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -320,97 +321,110 @@ class DashboardController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $photoPath = null;
-        $mainPhotoInput = $request->file('photo') ?: $request->input('photo_cam');
-        if ($mainPhotoInput) {
-            $photoPath = $this->compressAndStorePhoto($mainPhotoInput);
-        }
+        try {
+            DB::beginTransaction();
 
-        $biometricPhotoPath = null;
-        $biometricInput = $request->file('biometric_photo') ?: $request->input('biometric_photo_cam');
-        if ($biometricInput) {
-            $biometricPhotoPath = $this->compressAndStorePhoto($biometricInput, 'biometrics');
-        }
+            $photoPath = null;
+            $mainPhotoInput = $request->file('photo') ?: $request->input('photo_cam');
+            if ($mainPhotoInput) {
+                $photoPath = $this->compressAndStorePhoto($mainPhotoInput);
+            }
 
-        $wilayahCode = $request->wilayah_code ?: '34';
+            $biometricPhotoPath = null;
+            $biometricInput = $request->file('biometric_photo') ?: $request->input('biometric_photo_cam');
+            if ($biometricInput) {
+                $biometricPhotoPath = $this->compressAndStorePhoto($biometricInput, 'biometrics');
+            }
 
-        // Process breed and auto-register if custom/new
-        $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : $request->breed);
-        MasterBreed::registerBreedIfNotExists($finalBreed);
+            $wilayahCode = $request->wilayah_code ?: '34';
 
-        // Anti-double submission safeguard: check if identical cat was registered within the last 15 seconds
-        $duplicateCat = Cat::where('user_id', Auth::id())
-            ->where('name', $request->name)
-            ->where('date_of_birth', $request->date_of_birth)
-            ->where('gender', $request->gender)
-            ->where('created_at', '>=', now()->subSeconds(15))
-            ->first();
+            // Process breed and auto-register if custom/new
+            $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : $request->breed);
+            MasterBreed::registerBreedIfNotExists($finalBreed);
 
-        if ($duplicateCat) {
-            return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil dibuat.');
-        }
+            // Anti-double submission safeguard: check if identical cat was registered within the last 15 seconds
+            $duplicateCat = Cat::where('user_id', Auth::id())
+                ->where('name', $request->name)
+                ->where('date_of_birth', $request->date_of_birth)
+                ->where('gender', $request->gender)
+                ->where('created_at', '>=', now()->subSeconds(15))
+                ->first();
 
-        $cat = Cat::create([
-            'user_id' => Auth::id(),
-            'name' => $request->name,
-            'breed' => $finalBreed,
-            'gender' => $request->gender,
-            'status' => in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive',
-            'date_of_birth' => $request->date_of_birth,
-            'wilayah_code' => $wilayahCode,
-            'color' => $request->color,
-            'photo_path' => $photoPath,
-            'biometric_type' => $request->biometric_type ?? 'none',
-            'biometric_photo_path' => $biometricPhotoPath,
-            'biometric_code' => $request->biometric_code,
-            'allergies' => $request->allergies,
-            'vaccine_history' => $request->vaccine_history,
-            'notes' => $request->notes,
-        ]);
+            if ($duplicateCat) {
+                DB::commit();
+                return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil dibuat.');
+            }
 
-        if ($photoPath) {
-            CatPhoto::create([
-                'cat_id' => $cat->id,
+            $cat = Cat::create([
+                'user_id' => Auth::id(),
+                'name' => $request->name,
+                'breed' => $finalBreed,
+                'gender' => $request->gender,
+                'status' => in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive',
+                'date_of_birth' => $request->date_of_birth,
+                'wilayah_code' => $wilayahCode,
+                'color' => $request->color,
                 'photo_path' => $photoPath,
-                'label' => 'Tampak Depan',
-                'is_primary' => true,
+                'biometric_type' => $request->biometric_type ?? 'none',
+                'biometric_photo_path' => $biometricPhotoPath,
+                'biometric_code' => $request->biometric_code,
+                'allergies' => $request->allergies,
+                'vaccine_history' => $request->vaccine_history,
+                'notes' => $request->notes,
             ]);
-        }
 
-        $uploadedPhotos = $request->file('photos', []);
-        $cameraPhotos = $request->input('photos_cam', []);
-        $allPhotoKeys = array_unique(array_merge(array_keys($uploadedPhotos), array_keys($cameraPhotos)));
-
-        if (!empty($allPhotoKeys)) {
-            $labels = $request->input('photo_labels', []);
-            $primaryIdx = (int) $request->input('primary_photo_index', -1);
-
-            foreach ($allPhotoKeys as $index) {
-                $rawFile = $uploadedPhotos[$index] ?? ($cameraPhotos[$index] ?? null);
-                if (!$rawFile) continue;
-
-                $savedPath = $this->compressAndStorePhoto($rawFile);
-                $label = isset($labels[$index]) && !empty($labels[$index]) ? $labels[$index] : 'Foto ' . ($index + 1);
-                $isPrimary = ($index === $primaryIdx) || (!$photoPath && $index === 0);
-
-                if ($isPrimary && $photoPath) {
-                    CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
-                    $cat->update(['photo_path' => $savedPath]);
-                }
-
+            if ($photoPath) {
                 CatPhoto::create([
                     'cat_id' => $cat->id,
-                    'photo_path' => $savedPath,
-                    'label' => $label,
-                    'is_primary' => $isPrimary,
+                    'photo_path' => $photoPath,
+                    'label' => 'Tampak Depan',
+                    'is_primary' => true,
                 ]);
             }
-        }
 
-        return redirect()->route('dashboard')
-            ->with('cat_registered', true)
-            ->with('registered_cat_name', $cat->name)
-            ->with('success', 'Profil kucing ' . $cat->name . ' berhasil dibuat.');
+            $uploadedPhotos = $request->file('photos', []);
+            $cameraPhotos = $request->input('photos_cam', []);
+            $allPhotoKeys = array_unique(array_merge(array_keys($uploadedPhotos), array_keys($cameraPhotos)));
+
+            if (!empty($allPhotoKeys)) {
+                $labels = $request->input('photo_labels', []);
+                $primaryIdx = (int) $request->input('primary_photo_index', -1);
+
+                foreach ($allPhotoKeys as $index) {
+                    $rawFile = $uploadedPhotos[$index] ?? ($cameraPhotos[$index] ?? null);
+                    if (!$rawFile) continue;
+
+                    $savedPath = $this->compressAndStorePhoto($rawFile);
+                    $label = isset($labels[$index]) && !empty($labels[$index]) ? $labels[$index] : 'Foto ' . ($index + 1);
+                    $isPrimary = ($index === $primaryIdx) || (!$photoPath && $index === 0);
+
+                    if ($isPrimary && $photoPath) {
+                        CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
+                        $cat->update(['photo_path' => $savedPath]);
+                    }
+
+                    CatPhoto::create([
+                        'cat_id' => $cat->id,
+                        'photo_path' => $savedPath,
+                        'label' => $label,
+                        'is_primary' => $isPrimary,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('dashboard')
+                ->with('cat_registered', true)
+                ->with('registered_cat_name', $cat->name)
+                ->with('success', 'Profil kucing ' . $cat->name . ' berhasil dibuat.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal mendaftarkan kucing: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal mendaftarkan kucing: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -461,113 +475,125 @@ class DashboardController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : $request->breed);
-        MasterBreed::registerBreedIfNotExists($finalBreed);
+        try {
+            DB::beginTransaction();
 
-        $photoPath = $cat->photo_path;
-        $mainPhotoInput = $request->file('photo') ?: $request->input('photo_cam');
-        if ($mainPhotoInput) {
-            if ($cat->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($cat->photo_path)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
+            $finalBreed = trim($request->breed === 'Lainnya' ? ($request->breed_custom ?: 'Lainnya') : $request->breed);
+            MasterBreed::registerBreedIfNotExists($finalBreed);
+
+            $photoPath = $cat->photo_path;
+            $mainPhotoInput = $request->file('photo') ?: $request->input('photo_cam');
+            if ($mainPhotoInput) {
+                if ($cat->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($cat->photo_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->photo_path);
+                }
+                $photoPath = $this->compressAndStorePhoto($mainPhotoInput);
+
+                CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
+                CatPhoto::create([
+                    'cat_id' => $cat->id,
+                    'photo_path' => $photoPath,
+                    'label' => 'Tampak Depan',
+                    'is_primary' => true,
+                ]);
             }
-            $photoPath = $this->compressAndStorePhoto($mainPhotoInput);
 
-            CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
-            CatPhoto::create([
-                'cat_id' => $cat->id,
+            $biometricPhotoPath = $cat->biometric_photo_path;
+            $biometricInput = $request->file('biometric_photo') ?: $request->input('biometric_photo_cam');
+            if ($biometricInput) {
+                if ($cat->biometric_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($cat->biometric_photo_path)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->biometric_photo_path);
+                }
+                $biometricPhotoPath = $this->compressAndStorePhoto($biometricInput, 'biometrics');
+            }
+
+            $oldWilayah = $cat->wilayah_code;
+            $newWilayah = $request->wilayah_code ?: ($oldWilayah ?: '34');
+            $uniqueCode = $cat->unique_code;
+
+            // Only update uniqueCode if the cat was already verified / assigned a unique_code and wilayah changed
+            if (!empty($uniqueCode) && $oldWilayah !== $newWilayah) {
+                $parts = explode('.', $uniqueCode);
+                $existingSeq = (int) end($parts);
+                $uniqueCode = Cat::generateUniqueCode($newWilayah, $existingSeq);
+            }
+
+            $catStatus = $request->filled('status') ? (in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive') : ($cat->status ?: 'alive');
+
+            $cat->update([
+                'name' => $request->name,
+                'breed' => $finalBreed,
+                'gender' => $request->gender,
+                'status' => $catStatus,
+                'date_of_birth' => $request->date_of_birth,
+                'wilayah_code' => $newWilayah,
+                'unique_code' => $uniqueCode,
+                'color' => $request->color,
                 'photo_path' => $photoPath,
-                'label' => 'Tampak Depan',
-                'is_primary' => true,
+                'biometric_type' => $request->biometric_type ?? $cat->biometric_type,
+                'biometric_photo_path' => $biometricPhotoPath,
+                'biometric_code' => $request->biometric_code ?? $cat->biometric_code,
+                'allergies' => $request->allergies,
+                'vaccine_history' => $request->vaccine_history,
+                'notes' => $request->notes,
             ]);
-        }
 
-        $biometricPhotoPath = $cat->biometric_photo_path;
-        $biometricInput = $request->file('biometric_photo') ?: $request->input('biometric_photo_cam');
-        if ($biometricInput) {
-            if ($cat->biometric_photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($cat->biometric_photo_path)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($cat->biometric_photo_path);
-            }
-            $biometricPhotoPath = $this->compressAndStorePhoto($biometricInput, 'biometrics');
-        }
+            $uploadedPhotos = $request->file('photos', []);
+            $cameraPhotos = $request->input('photos_cam', []);
+            $allPhotoKeys = array_unique(array_merge(array_keys($uploadedPhotos), array_keys($cameraPhotos)));
 
-        $oldWilayah = $cat->wilayah_code;
-        $newWilayah = $request->wilayah_code ?: ($oldWilayah ?: '34');
-        $uniqueCode = $cat->unique_code;
+            if (!empty($allPhotoKeys)) {
+                $labels = $request->input('photo_labels', []);
 
-        // Only update uniqueCode if the cat was already verified / assigned a unique_code and wilayah changed
-        if (!empty($uniqueCode) && $oldWilayah !== $newWilayah) {
-            $parts = explode('.', $uniqueCode);
-            $existingSeq = (int) end($parts);
-            $uniqueCode = Cat::generateUniqueCode($newWilayah, $existingSeq);
-        }
+                foreach ($allPhotoKeys as $key) {
+                    $rawFile = $uploadedPhotos[$key] ?? ($cameraPhotos[$key] ?? null);
+                    if (!$rawFile) continue;
 
-        $catStatus = $request->filled('status') ? (in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive') : ($cat->status ?: 'alive');
+                    $savedPath = $this->compressAndStorePhoto($rawFile);
+                    $label = isset($labels[$key]) && !empty($labels[$key]) ? $labels[$key] : 'Foto Kucing';
 
-        $cat->update([
-            'name' => $request->name,
-            'breed' => $finalBreed,
-            'gender' => $request->gender,
-            'status' => $catStatus,
-            'date_of_birth' => $request->date_of_birth,
-            'wilayah_code' => $newWilayah,
-            'unique_code' => $uniqueCode,
-            'color' => $request->color,
-            'photo_path' => $photoPath,
-            'biometric_type' => $request->biometric_type ?? $cat->biometric_type,
-            'biometric_photo_path' => $biometricPhotoPath,
-            'biometric_code' => $request->biometric_code ?? $cat->biometric_code,
-            'allergies' => $request->allergies,
-            'vaccine_history' => $request->vaccine_history,
-            'notes' => $request->notes,
-        ]);
+                    $existingForLabel = CatPhoto::where('cat_id', $cat->id)
+                        ->whereRaw('LOWER(label) = ?', [strtolower(trim($label))])
+                        ->first();
 
-        $uploadedPhotos = $request->file('photos', []);
-        $cameraPhotos = $request->input('photos_cam', []);
-        $allPhotoKeys = array_unique(array_merge(array_keys($uploadedPhotos), array_keys($cameraPhotos)));
+                    if ($existingForLabel) {
+                        if ($existingForLabel->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingForLabel->photo_path)) {
+                            \Illuminate\Support\Facades\Storage::disk('public')->delete($existingForLabel->photo_path);
+                        }
+                        $existingForLabel->update([
+                            'photo_path' => $savedPath,
+                        ]);
+                        if ($existingForLabel->is_primary || strtolower(trim($label)) === 'tampak depan') {
+                            $cat->update(['photo_path' => $savedPath]);
+                        }
+                    } else {
+                        $hasPrimary = CatPhoto::where('cat_id', $cat->id)->where('is_primary', true)->exists();
+                        $isPrimary = (strtolower(trim($label)) === 'tampak depan' && !$hasPrimary) || (!$hasPrimary);
 
-        if (!empty($allPhotoKeys)) {
-            $labels = $request->input('photo_labels', []);
+                        CatPhoto::create([
+                            'cat_id' => $cat->id,
+                            'photo_path' => $savedPath,
+                            'label' => $label,
+                            'is_primary' => $isPrimary,
+                        ]);
 
-            foreach ($allPhotoKeys as $key) {
-                $rawFile = $uploadedPhotos[$key] ?? ($cameraPhotos[$key] ?? null);
-                if (!$rawFile) continue;
-
-                $savedPath = $this->compressAndStorePhoto($rawFile);
-                $label = isset($labels[$key]) && !empty($labels[$key]) ? $labels[$key] : 'Foto Kucing';
-
-                $existingForLabel = CatPhoto::where('cat_id', $cat->id)
-                    ->whereRaw('LOWER(label) = ?', [strtolower(trim($label))])
-                    ->first();
-
-                if ($existingForLabel) {
-                    if ($existingForLabel->photo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($existingForLabel->photo_path)) {
-                        \Illuminate\Support\Facades\Storage::disk('public')->delete($existingForLabel->photo_path);
-                    }
-                    $existingForLabel->update([
-                        'photo_path' => $savedPath,
-                    ]);
-                    if ($existingForLabel->is_primary || strtolower(trim($label)) === 'tampak depan') {
-                        $cat->update(['photo_path' => $savedPath]);
-                    }
-                } else {
-                    $hasPrimary = CatPhoto::where('cat_id', $cat->id)->where('is_primary', true)->exists();
-                    $isPrimary = (strtolower(trim($label)) === 'tampak depan' && !$hasPrimary) || (!$hasPrimary);
-
-                    CatPhoto::create([
-                        'cat_id' => $cat->id,
-                        'photo_path' => $savedPath,
-                        'label' => $label,
-                        'is_primary' => $isPrimary,
-                    ]);
-
-                    if ($isPrimary) {
-                        $cat->update(['photo_path' => $savedPath]);
+                        if ($isPrimary) {
+                            $cat->update(['photo_path' => $savedPath]);
+                        }
                     }
                 }
             }
-        }
 
-        return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil diperbarui.');
+            DB::commit();
+
+            return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil diperbarui.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal memperbarui data kucing: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui profil kucing: ' . $e->getMessage());
+        }
     }
 
     /**

@@ -64,6 +64,32 @@
                 </div>
             @endif
 
+            <!-- Error Alert -->
+            @if(session('error'))
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-sm flex items-start gap-3 shadow-xs" role="alert">
+                    <span class="text-rose-600 text-lg shrink-0">⚠️</span>
+                    <div>
+                        <strong class="block font-bold">Terjadi Kendala:</strong>
+                        <p class="text-xs text-rose-800 mt-0.5">{{ session('error') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Validation Errors Alert -->
+            @if($errors->any())
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-sm flex items-start gap-3 shadow-xs" role="alert">
+                    <span class="text-rose-600 text-lg shrink-0">⚠️</span>
+                    <div class="space-y-1">
+                        <strong class="block font-bold text-rose-900">Periksa kembali data formulir pendaftaran:</strong>
+                        <ul class="list-disc list-inside text-xs text-rose-800 space-y-0.5">
+                            @foreach($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endif
+
             <!-- Main grid -->
             <div class="grid gap-6 lg:grid-cols-3">
                 
