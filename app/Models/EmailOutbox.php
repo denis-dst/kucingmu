@@ -77,6 +77,7 @@ class EmailOutbox extends Model
         return match ($this->mail_type) {
             'direct_compose' => 'Tulis Langsung',
             'contact_reply' => 'Balasan Kontak',
+            'ktam_broadcast' => 'Mailing List KTA',
             'registration_notice' => 'Notifikasi Akun',
             'test_smtp' => 'Tes Koneksi SMTP',
             'system' => 'Sistem Otomatis',
@@ -92,6 +93,7 @@ class EmailOutbox extends Model
         return match ($this->mail_type) {
             'direct_compose' => 'bg-indigo-50 text-indigo-800 border-indigo-200',
             'contact_reply' => 'bg-teal-50 text-teal-800 border-teal-200',
+            'ktam_broadcast' => 'bg-amber-50 text-amber-900 border-amber-300 font-bold',
             'registration_notice' => 'bg-cyan-50 text-cyan-800 border-cyan-200',
             'test_smtp' => 'bg-purple-50 text-purple-800 border-purple-200',
             default => 'bg-slate-100 text-slate-700 border-slate-200',

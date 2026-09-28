@@ -8,11 +8,14 @@
                 </h1>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" @click="showBroadcastModal = true" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 transition shadow-xs inline-flex items-center gap-2 cursor-pointer">
+                    <span>📢</span> Mailing List KTAKuMu
+                </button>
                 <button type="button" @click="showComposeModal = true" class="button-primary text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer">
                     <span>✍️</span> Tulis Email Baru
                 </button>
                 <a href="{{ route('admin.mail.inbox') }}" class="button-secondary text-xs font-semibold px-3.5 py-2 inline-flex items-center gap-1.5 shadow-2xs">
-                    <span>📬</span> Buka Kotak Masuk (Inbox)
+                    <span>📬</span> Buka Kotak Masuk
                     @if($unreadInboxCount > 0)
                         <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-600 text-white">
                             {{ $unreadInboxCount }}
@@ -25,12 +28,16 @@
 
     <div class="py-8" x-data="{ 
         showComposeModal: false, 
+        showBroadcastModal: false,
         showTestModal: false, 
         testEmail: '{{ Auth::user()->email }}',
         recipientEmail: '',
         recipientName: '',
         subject: '',
         body: '',
+        broadcastWilayah: 'all',
+        broadcastSubject: '[KucingMu] Pemberitahuan Penyesuaian Nomor & Versi KTAKuMu Terbaru',
+        broadcastNote: '',
         selectUser(u) {
             this.recipientEmail = u.email;
             this.recipientName = u.name;
@@ -82,9 +89,12 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                    <button type="button" @click="showBroadcastModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+                        <span>📢</span> Broadcast KTAKuMu
+                    </button>
                     <button type="button" @click="showTestModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-teal-900 hover:bg-teal-50 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
-                        <span>🧪</span> Uji Koneksi SMTP
+                        <span>🧪</span> Uji SMTP
                     </button>
                     <button type="button" @click="showComposeModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
                         <span>✍️</span> Tulis Email
@@ -93,7 +103,7 @@
             </div>
 
             <!-- Outbox Stat Cards -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <a href="{{ route('admin.mail.outbox', ['status' => 'all', 'type' => 'all']) }}" 
                    class="content-card p-4 transition hover:border-teal-400 hover:shadow-md bg-white block {{ ($statusFilter === 'all' && $typeFilter === 'all') && !request('search') ? 'ring-2 ring-teal-500/20 border-teal-300' : '' }}">
                     <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Email Keluar</span>
@@ -105,7 +115,7 @@
 
                 <a href="{{ route('admin.mail.outbox', ['status' => 'sent']) }}" 
                    class="content-card p-4 transition hover:border-emerald-400 hover:shadow-md bg-emerald-50/40 border border-emerald-200 block {{ $statusFilter === 'sent' ? 'ring-2 ring-emerald-500/30' : '' }}">
-                    <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Berhasil Terkirim (SMTP 250)</span>
+                    <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Berhasil Terkirim</span>
                     <div class="mt-1 flex items-baseline gap-1.5">
                         <span class="font-outfit text-2xl font-bold text-emerald-800">{{ number_format($stats['sent']) }}</span>
                         <span class="text-xs font-semibold text-emerald-700">Terkirim</span>
@@ -123,6 +133,15 @@
                     <div class="mt-1 flex items-baseline gap-1.5">
                         <span class="font-outfit text-2xl font-bold text-rose-700">{{ number_format($stats['failed']) }}</span>
                         <span class="text-xs font-semibold text-rose-600">Perlu Dicek</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('admin.mail.outbox', ['type' => 'ktam_broadcast']) }}" 
+                   class="content-card p-4 transition hover:border-amber-400 hover:shadow-md bg-amber-50/50 border border-amber-200 block {{ $typeFilter === 'ktam_broadcast' ? 'ring-2 ring-amber-500/30' : '' }}">
+                    <span class="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">Mailing List KTA</span>
+                    <div class="mt-1 flex items-baseline gap-1.5">
+                        <span class="font-outfit text-2xl font-bold text-amber-900">{{ number_format($stats['broadcasts'] ?? 0) }}</span>
+                        <span class="text-xs font-semibold text-amber-700">Broadcast</span>
                     </div>
                 </a>
 
@@ -154,6 +173,10 @@
                         <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['status' => 'failed'])) }}" 
                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $statusFilter === 'failed' ? 'bg-rose-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             ❌ Gagal ({{ $stats['failed'] }})
+                        </a>
+                        <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['type' => 'ktam_broadcast'])) }}" 
+                           class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $typeFilter === 'ktam_broadcast' ? 'bg-amber-600 text-white shadow-xs font-bold' : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100' }}">
+                            📢 Mailing List KTA ({{ $stats['broadcasts'] ?? 0 }})
                         </a>
                         <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['type' => 'direct_compose'])) }}" 
                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $typeFilter === 'direct_compose' ? 'bg-indigo-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
@@ -193,6 +216,9 @@
                         <h3 class="text-sm font-bold text-slate-800">Tidak ada log email keluar yang sesuai</h3>
                         <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Kotak keluar kosong atau belum ada email terkirim dengan filter saat ini.</p>
                         <div class="mt-3 flex items-center justify-center gap-3">
+                            <button type="button" @click="showBroadcastModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-xs">
+                                📢 Kirim Broadcast KTAKuMu
+                            </button>
                             <button type="button" @click="showComposeModal = true" class="button-primary text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs">
                                 ✍️ Tulis Email Sekarang
                             </button>
@@ -221,8 +247,8 @@
                                     <tr class="hover:bg-teal-50/20 transition {{ $out->status === 'failed' ? 'bg-rose-50/20' : '' }}">
                                         <!-- Penerima -->
                                         <td class="py-3.5 px-4 whitespace-nowrap">
-                                            <div class="font-bold text-slate-900">{{ $out->recipient_name ?: '-' }}</div>
-                                            <div class="text-[11px] text-slate-500 font-mono">{{ $out->recipient_email }}</div>
+                                             <div class="font-bold text-slate-900">{{ $out->recipient_name ?: '-' }}</div>
+                                             <div class="text-[11px] text-slate-500 font-mono">{{ $out->recipient_email }}</div>
                                         </td>
 
                                         <!-- Subjek & Tipe -->
@@ -362,6 +388,90 @@
                 @endif
             </div>
 
+        </div>
+
+        <!-- Modal Mailing List / Broadcast KTAKuMu -->
+        <div x-show="showBroadcastModal" 
+             x-cloak 
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+            <div class="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-slate-200 my-8" @click.away="showBroadcastModal = false">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">📢</span>
+                        <div>
+                            <h3 class="font-outfit text-base font-bold text-slate-900">Mailing List / Broadcast Pemilik KTAKuMu</h3>
+                            <p class="text-[11px] text-slate-500">Kirim email pemberitahuan ke seluruh member pemilik KTAKuMu terbit untuk memeriksa versi kartu terbarunya.</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showBroadcastModal = false" class="text-slate-400 hover:text-slate-700 font-bold text-sm">✕</button>
+                </div>
+
+                <!-- Summary Badge Info -->
+                <div class="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 flex items-center justify-between gap-3 text-xs text-amber-900">
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-2xl">🐱</span>
+                        <div>
+                            <div class="font-bold text-slate-900">Target Penerima: {{ $ktamMembersCount ?? 0 }} Member Terdaftar</div>
+                            <div class="text-[11px] text-amber-800 font-medium">Total {{ $ktamIssuedCatsCount ?? 0 }} kucing ber-KTAKuMu resmi aktif di sistem</div>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-200/80 text-amber-950 shrink-0">
+                        SMTP Otomatis
+                    </span>
+                </div>
+
+                <form method="POST" action="{{ route('admin.mail.broadcast-ktam') }}" class="space-y-4" onsubmit="return confirm('Kirim email broadcast ke seluruh pemilik KTAKuMu terpilih via SMTP sekarang?')">
+                    @csrf
+
+                    <!-- Filter Wilayah -->
+                    <div>
+                        <label class="form-label text-xs font-bold text-slate-700">Filter Wilayah Penerima:</label>
+                        <select name="wilayah_code" x-model="broadcastWilayah" class="w-full text-xs py-2 px-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 font-medium">
+                            <option value="all">🌐 Semua Wilayah (Seluruh Member Pemilik KTAKuMu)</option>
+                            @if(isset($wilayahList))
+                                @foreach($wilayahList as $w)
+                                    <option value="{{ $w->kode }}">{{ $w->kode }} - {{ $w->nama }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Pilih wilayah tertentu (misal kode 11) atau biarkan Semua Wilayah.</span>
+                    </div>
+
+                    <!-- Subjek Email -->
+                    <div>
+                        <label class="form-label text-xs font-bold text-slate-700">Subjek Email:</label>
+                        <input type="text" name="subject" x-model="broadcastSubject" required class="form-input text-xs" placeholder="Subjek email pemberitahuan...">
+                    </div>
+
+                    <!-- Catatan Tambahan Kustom -->
+                    <div>
+                        <label class="form-label text-xs font-bold text-slate-700">Catatan Tambahan Admin (Opsional):</label>
+                        <textarea name="custom_note" x-model="broadcastNote" rows="3" class="form-input text-xs leading-relaxed" placeholder="Contoh: Silakan login ke portal dan buka menu Kucing Saya untuk melihat serta mengunduh versi KTAKuMu terbaru Anda..."></textarea>
+                    </div>
+
+                    <!-- Preview Isi Template Email -->
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                        <div class="font-bold text-slate-700 flex items-center gap-1">
+                            <span>👁️</span> Format Email Otomatis:
+                        </div>
+                        <ul class="text-[11px] text-slate-500 list-disc list-inside space-y-0.5">
+                            <li>Menyapa nama masing-masing pemilik secara personal.</li>
+                            <li>Menyertakan rincian nama kucing dan nomor KTAKuMu terbaru milik member tersebut.</li>
+                            <li>Menyertakan tombol langsung (CTA) menuju portal <strong>KTAKuMu Saya</strong>.</li>
+                            <li>Semua email keluar akan dicatat otomatis di Kotak Keluar (Outbox).</li>
+                        </ul>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                        <button type="button" @click="showBroadcastModal = false" class="button-secondary text-xs px-4 py-2.5 rounded-xl">
+                            Batal
+                        </button>
+                        <button type="submit" class="button-primary text-xs font-bold px-5 py-2.5 shadow-sm rounded-xl bg-amber-600 hover:bg-amber-700 text-white inline-flex items-center gap-1.5">
+                            <span>🚀</span> Kirim Broadcast via SMTP
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Modal Tulis Email Baru (Compose Modal) -->
