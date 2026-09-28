@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-8" x-data="{ searchKtam: '', searchPending: '', showModal: false, activeCat: null }">
+    <div class="py-8" x-data="{ searchKtam: '', searchPending: '', filterPendingType: 'all', showModal: false, activeCat: null }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <!-- Hero Panel -->
@@ -104,12 +104,18 @@
                 </div>
             </div>
 
-            <!-- Stats Widgets: Kucing & Medis -->
+            <!-- Stats Widgets: Kucing & Status Penerbitan KTAKuMu -->
             <div class="space-y-2">
-                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Statistik Data Kucing & Layanan Medis</h2>
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Statistik Data Kucing & Status Penerbitan KTAKuMu</h2>
+                    <span class="text-[11px] text-slate-400">💡 Klik kartu statistik untuk memfilter data di tabel</span>
+                </div>
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     
-                    <div class="content-card bg-white border border-slate-200 p-4">
+                    <!-- Total Kucing -->
+                    <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'all'])) }}#cat-registry-table" 
+                       class="content-card bg-white border border-slate-200 p-4 transition hover:border-teal-400 hover:shadow-md block {{ ($ktamStatusFilter ?? 'all') === 'all' && !request('status') ? 'ring-2 ring-teal-500/30' : '' }}"
+                       title="Lihat semua data kucing">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Kucing</span>
                             <div class="flex items-center gap-1.5 text-[10px] font-bold">
@@ -121,38 +127,62 @@
                             <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['cats_count'] }}</span>
                             <span class="text-xs font-semibold text-teal-700">Ekor</span>
                         </div>
-                    </div>
-                    
+                        <p class="text-[10px] text-slate-400 mt-1">Semua data terdaftar &rarr;</p>
+                    </a>
+
+                    <!-- KTAKuMu Terbit -->
+                    <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'issued'])) }}#cat-registry-table" 
+                       class="content-card bg-teal-50/40 border border-teal-200 p-4 transition hover:border-teal-500 hover:shadow-md block {{ ($ktamStatusFilter ?? '') === 'issued' ? 'ring-2 ring-teal-600 bg-teal-50' : '' }}"
+                       title="Filter Kucing dengan KTAKuMu Resmi Terbit">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-teal-800 uppercase tracking-wider">KTAKuMu Terbit</span>
+                            <span class="text-xs font-bold text-teal-700">✓ Resmi</span>
+                        </div>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-teal-800">{{ $stats['ktam_count'] }}</span>
+                            <span class="text-xs font-semibold text-teal-700">Kartu</span>
+                        </div>
+                        <p class="text-[10px] text-teal-700 font-medium mt-1">Sudah terverifikasi & terbit &rarr;</p>
+                    </a>
+
+                    <!-- Perlu Verifikasi (Sudah Diperiksa Dokter) -->
+                    <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'need_verification'])) }}#cat-registry-table" 
+                       class="content-card bg-amber-50/70 border border-amber-300 p-4 transition hover:border-amber-500 hover:shadow-md block {{ ($ktamStatusFilter ?? '') === 'need_verification' ? 'ring-2 ring-amber-500 bg-amber-100/70' : '' }}"
+                       title="Filter Kucing Siap Terbit (Sudah Diperiksa Dokter)">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">Perlu Verifikasi</span>
+                            <span class="text-xs font-bold text-amber-800">⏳ Siap</span>
+                        </div>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-amber-900">{{ $stats['need_verification_count'] }}</span>
+                            <span class="text-xs font-semibold text-amber-700">Siap Terbit</span>
+                        </div>
+                        <p class="text-[10px] text-amber-800 font-medium mt-1">Sudah periksa dokter &rarr;</p>
+                    </a>
+
+                    <!-- Belum Verifikasi / Belum Periksa Medis -->
+                    <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'unverified'])) }}#cat-registry-table" 
+                       class="content-card bg-slate-50 border border-slate-200 p-4 transition hover:border-slate-400 hover:shadow-md block {{ ($ktamStatusFilter ?? '') === 'unverified' ? 'ring-2 ring-slate-500 bg-slate-100' : '' }}"
+                       title="Filter Kucing Belum Ada Rekam Medis">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Belum Verifikasi</span>
+                            <span class="text-xs font-semibold text-slate-400">• Antri</span>
+                        </div>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-800">{{ $stats['unverified_count'] }}</span>
+                            <span class="text-xs font-semibold text-slate-500">Ekor</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Belum periksa medis &rarr;</p>
+                    </a>
+
+                    <!-- Total Rekam Medis Selesai -->
                     <div class="content-card bg-white border border-slate-200 p-4">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pemeriksaan Dokter</span>
                         <div class="mt-1.5 flex items-baseline gap-1.5">
                             <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['records_count'] }}</span>
                             <span class="text-xs font-semibold text-teal-700">Selesai</span>
                         </div>
-                    </div>
-
-                    <div class="content-card bg-amber-50/70 border border-amber-200 p-4">
-                        <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Pending Verifikasi</span>
-                        <div class="mt-1.5 flex items-baseline gap-1.5">
-                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-amber-900">{{ $stats['pending_verification_count'] }}</span>
-                            <span class="text-xs font-semibold text-amber-700">Perlu KTAKuMu</span>
-                        </div>
-                    </div>
-
-                    <div class="content-card bg-white border border-slate-200 p-4">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">KTAKuMu Terbit</span>
-                        <div class="mt-1.5 flex items-baseline gap-1.5">
-                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-teal-800">{{ $stats['ktam_count'] }}</span>
-                            <span class="text-xs font-semibold text-teal-700">Kartu</span>
-                        </div>
-                    </div>
-
-                    <div class="content-card bg-white border border-slate-200 p-4">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Janji Temu</span>
-                        <div class="mt-1.5 flex items-baseline gap-1.5">
-                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['appointments_count'] }}</span>
-                            <span class="text-xs font-semibold text-slate-500">Janji</span>
-                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Rekam medis masuk</p>
                     </div>
 
                 </div>
@@ -174,7 +204,31 @@
                                     </span>
                                 @endif
                             </div>
-                            <p class="text-xs text-slate-500 mt-1">Kucing di bawah ini telah diperiksa dokter dan menunggu peninjauan Admin untuk penerbitan Kartu KTAKuMu resmi.</p>
+                            <p class="text-xs text-slate-500 mt-1">Tinjau hasil pemeriksaan dokter hewan dan profil kucing untuk menerbitkan Kartu KTAKuMu resmi.</p>
+                            
+                            <!-- Quick Filter Pills for Pending Cards -->
+                            @if($pendingVerificationCats->count() > 0)
+                                <div class="flex items-center gap-1.5 flex-wrap mt-2.5">
+                                    <button type="button" 
+                                            @click="filterPendingType = 'all'" 
+                                            :class="filterPendingType === 'all' ? 'bg-amber-800 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
+                                            class="text-[11px] px-2.5 py-1 rounded-lg transition">
+                                        Semua ({{ $pendingVerificationCats->count() }})
+                                    </button>
+                                    <button type="button" 
+                                            @click="filterPendingType = 'medical'" 
+                                            :class="filterPendingType === 'medical' ? 'bg-amber-600 text-white font-bold' : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'" 
+                                            class="text-[11px] px-2.5 py-1 rounded-lg transition">
+                                        ⏳ Perlu Verifikasi (Ada Rekam Medis: {{ $pendingVerificationCats->filter(fn($c) => $c->medicalRecords->isNotEmpty())->count() }})
+                                    </button>
+                                    <button type="button" 
+                                            @click="filterPendingType = 'non_medical'" 
+                                            :class="filterPendingType === 'non_medical' ? 'bg-slate-700 text-white font-bold' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'" 
+                                            class="text-[11px] px-2.5 py-1 rounded-lg transition">
+                                        • Belum Ada Medis ({{ $pendingVerificationCats->filter(fn($c) => $c->medicalRecords->isEmpty())->count() }})
+                                    </button>
+                                </div>
+                            @endif
                         </div>
 
                         @if($pendingVerificationCats->count() > 0)
@@ -203,7 +257,7 @@
                 @else
                     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" style="width: 100%; box-sizing: border-box;">
                         @foreach($pendingVerificationCats as $cat)
-                            <div x-show="!searchPending || '{{ strtolower(addslashes($cat->name . ' ' . $cat->breed . ' ' . $cat->owner->name . ' ' . ($cat->owner->muhammadiyah_id ?? '') . ' ' . ($cat->owner->phone ?? ''))) }}'.includes(searchPending.toLowerCase().trim())"
+                            <div x-show="(!searchPending || '{{ strtolower(addslashes($cat->name . ' ' . $cat->breed . ' ' . $cat->owner->name . ' ' . ($cat->owner->muhammadiyah_id ?? '') . ' ' . ($cat->owner->phone ?? ''))) }}'.includes(searchPending.toLowerCase().trim())) && (filterPendingType === 'all' || (filterPendingType === 'medical' && {{ $cat->medicalRecords->isNotEmpty() ? 'true' : 'false' }}) || (filterPendingType === 'non_medical' && {{ $cat->medicalRecords->isEmpty() ? 'true' : 'false' }}))"
                                  x-transition
                                  class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-3 flex flex-col justify-between hover:shadow-md hover:border-amber-300 transition"
                                  style="overflow: hidden; box-sizing: border-box;">
@@ -286,6 +340,7 @@
                     $currentSort = $sort ?? 'created_at';
                     $currentDir = $direction ?? 'desc';
                     $currentStatus = $statusFilter ?? 'all';
+                    $currentKtamStatus = $ktamStatusFilter ?? 'all';
                     
                     $makeSortUrl = function($col) use ($currentSort, $currentDir) {
                         $newDir = ($currentSort === $col && $currentDir === 'asc') ? 'desc' : 'asc';
@@ -316,8 +371,8 @@
                             <p class="text-xs text-slate-500 mt-1">Kelola data identitas, status kehidupan, kartu KTAKuMu, serta aksi verifikasi & penghapusan.</p>
                         </div>
 
-                        @if(request('search') || request('status') || request('sort'))
-                            <a href="{{ route('dashboard') }}#cat-registry-table" class="button-secondary text-xs px-3 py-1.5 rounded-xl text-slate-600 hover:text-slate-900 self-start sm:self-auto shrink-0 inline-flex items-center gap-1">
+                        @if(request('search') || (request('status') && request('status') !== 'all') || (request('ktam_status') && request('ktam_status') !== 'all') || request('sort'))
+                            <a href="{{ route('dashboard') }}#cat-registry-table" class="button-secondary text-xs px-3 py-1.5 rounded-xl text-slate-600 hover:text-slate-900 self-start sm:self-auto shrink-0 inline-flex items-center gap-1 font-semibold">
                                 <span>✕</span> Reset Semua Filter
                             </a>
                         @endif
@@ -325,8 +380,8 @@
 
                     <!-- Filter, Search, & Sort Bar -->
                     <form method="GET" action="{{ route('dashboard') }}#cat-registry-table" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-2">
-                        <!-- Search Input (Span 5 on LG) -->
-                        <div class="sm:col-span-2 lg:col-span-5 relative">
+                        <!-- Search Input (Span 4 on LG) -->
+                        <div class="sm:col-span-2 lg:col-span-4 relative">
                             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
@@ -340,17 +395,27 @@
                             @endif
                         </div>
 
-                        <!-- Filter Status Dropdown (Span 3 on LG) -->
-                        <div class="lg:col-span-3">
+                        <!-- Filter Status Kehidupan (Span 2 on LG) -->
+                        <div class="lg:col-span-2">
                             <select id="admin_filter_status" name="status" onchange="this.form.submit()" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-100 transition font-medium text-slate-700">
-                                <option value="all" {{ $currentStatus === 'all' ? 'selected' : '' }}>Semua Status Kehidupan</option>
+                                <option value="all" {{ $currentStatus === 'all' ? 'selected' : '' }}>Semua Status Hidup</option>
                                 <option value="alive" {{ $currentStatus === 'alive' ? 'selected' : '' }}>🟢 Hidup (Aktif)</option>
                                 <option value="deceased" {{ $currentStatus === 'deceased' ? 'selected' : '' }}>⚪ Mati (Meninggal)</option>
                             </select>
                         </div>
 
-                        <!-- Quick Sort Dropdown (Span 3 on LG) -->
+                        <!-- Filter Status KTAKuMu (Span 3 on LG) -->
                         <div class="lg:col-span-3">
+                            <select id="admin_filter_ktam_status" name="ktam_status" onchange="this.form.submit()" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-100 transition font-medium text-slate-700">
+                                <option value="all" {{ ($currentKtamStatus ?? 'all') === 'all' ? 'selected' : '' }}>Semua Status KTAKuMu</option>
+                                <option value="issued" {{ ($currentKtamStatus ?? '') === 'issued' ? 'selected' : '' }}>✓ KTAKuMu Terbit ({{ $stats['ktam_count'] }})</option>
+                                <option value="need_verification" {{ ($currentKtamStatus ?? '') === 'need_verification' ? 'selected' : '' }}>⏳ Perlu Verifikasi ({{ $stats['need_verification_count'] }})</option>
+                                <option value="unverified" {{ ($currentKtamStatus ?? '') === 'unverified' ? 'selected' : '' }}>• Belum Verifikasi ({{ $stats['unverified_count'] }})</option>
+                            </select>
+                        </div>
+
+                        <!-- Quick Sort Dropdown (Span 2 on LG) -->
+                        <div class="lg:col-span-2">
                             <select id="admin_sort_select" name="sort_direction" onchange="
                                 const val = this.value.split(':');
                                 const sortInput = this.form.querySelector('input[name=sort]');
@@ -361,8 +426,8 @@
                                     this.form.submit();
                                 }
                             " class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-100 transition font-medium text-slate-700">
-                                <option value="created_at:desc" {{ ($currentSort == 'created_at' && $currentDir == 'desc') ? 'selected' : '' }}>Urutan: Terbaru Terdaftar</option>
-                                <option value="created_at:asc" {{ ($currentSort == 'created_at' && $currentDir == 'asc') ? 'selected' : '' }}>Urutan: Terlama Terdaftar</option>
+                                <option value="created_at:desc" {{ ($currentSort == 'created_at' && $currentDir == 'desc') ? 'selected' : '' }}>Urutan: Terbaru</option>
+                                <option value="created_at:asc" {{ ($currentSort == 'created_at' && $currentDir == 'asc') ? 'selected' : '' }}>Urutan: Terlama</option>
                                 <option value="name:asc" {{ ($currentSort == 'name' && $currentDir == 'asc') ? 'selected' : '' }}>Nama Kucing (A - Z)</option>
                                 <option value="name:desc" {{ ($currentSort == 'name' && $currentDir == 'desc') ? 'selected' : '' }}>Nama Kucing (Z - A)</option>
                                 <option value="owner:asc" {{ ($currentSort == 'owner' && $currentDir == 'asc') ? 'selected' : '' }}>Pemilik (A - Z)</option>
@@ -370,8 +435,8 @@
                                 <option value="breed:asc" {{ ($currentSort == 'breed' && $currentDir == 'asc') ? 'selected' : '' }}>Ras Kucing (A - Z)</option>
                                 <option value="date_of_birth:asc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'asc') ? 'selected' : '' }}>Umur (Paling Tua)</option>
                                 <option value="date_of_birth:desc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'desc') ? 'selected' : '' }}>Umur (Paling Muda)</option>
-                                <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor NIAKuMu (Asc)</option>
-                                <option value="status:asc" {{ ($currentSort == 'status' && $currentDir == 'asc') ? 'selected' : '' }}>Status Hidup / Mati</option>
+                                <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor NIAKuMu</option>
+                                <option value="status:asc" {{ ($currentSort == 'status' && $currentDir == 'asc') ? 'selected' : '' }}>Status Hidup/Mati</option>
                             </select>
                             <input type="hidden" name="sort" value="{{ $currentSort }}">
                             <input type="hidden" name="direction" value="{{ $currentDir }}">
@@ -432,7 +497,14 @@
                                             <span class="text-teal-700 font-bold">{{ $getSortIndicator('status') }}</span>
                                         </a>
                                     </th>
-                                    <th class="py-3.5 px-4">Status KTAKuMu</th>
+                                    <th class="py-3.5 px-4">
+                                        <div class="flex items-center gap-1">
+                                            <span>Status KTAKuMu</span>
+                                            @if(request('ktam_status') && request('ktam_status') !== 'all')
+                                                <span class="w-2 h-2 rounded-full bg-teal-500 animate-pulse" title="Filter KTAKuMu aktif"></span>
+                                            @endif
+                                        </div>
+                                    </th>
                                     <th class="py-3.5 px-4 text-right whitespace-nowrap">Aksi / Tindakan</th>
                                 </tr>
                             </thead>
@@ -529,20 +601,26 @@
                                             </div>
                                         </td>
 
-                                        <!-- Status Penerbitan KTAKuMu -->
+                                        <!-- Status Penerbitan KTAKuMu (Clickable Filters) -->
                                         <td class="py-3.5 px-4 whitespace-nowrap">
                                             @if($cat->unique_code && $cat->ktamCard)
-                                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 text-teal-800 border border-teal-200 inline-flex items-center gap-1">
+                                                <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'issued'])) }}#cat-registry-table" 
+                                                   title="Klik untuk filter semua KTAKuMu Terbit" 
+                                                   class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 inline-flex items-center gap-1 transition cursor-pointer">
                                                     <span>✓</span> KTAKuMu Terbit
-                                                </span>
+                                                </a>
                                             @elseif($cat->medicalRecords->isNotEmpty())
-                                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
+                                                <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'need_verification'])) }}#cat-registry-table" 
+                                                   title="Sudah periksa dokter - Klik untuk filter Perlu Verifikasi" 
+                                                   class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1 transition cursor-pointer">
                                                     <span>⏳</span> Perlu Verifikasi
-                                                </span>
+                                                </a>
                                             @else
-                                                <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
+                                                <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'unverified'])) }}#cat-registry-table" 
+                                                   title="Belum ada rekam medis dokter - Klik untuk filter Belum Verifikasi" 
+                                                   class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 inline-flex items-center gap-1 transition cursor-pointer">
                                                     <span>•</span> Belum Verif
-                                                </span>
+                                                </a>
                                             @endif
                                         </td>
 
@@ -607,17 +685,17 @@
                                         @endif
 
                                         @if($cat->unique_code && $cat->ktamCard)
-                                            <span class="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                                            <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'issued'])) }}#cat-registry-table" class="text-[10px] font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 px-2 py-0.5 rounded border border-teal-200 transition">
                                                 KTAKuMu Terbit
-                                            </span>
+                                            </a>
                                         @elseif($cat->medicalRecords->isNotEmpty())
-                                            <span class="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                            <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'need_verification'])) }}#cat-registry-table" class="text-[10px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded border border-amber-200 transition">
                                                 Perlu Verifikasi
-                                            </span>
+                                            </a>
                                         @else
-                                            <span class="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                            <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'unverified'])) }}#cat-registry-table" class="text-[10px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded border border-slate-200 transition">
                                                 Belum Verif
-                                            </span>
+                                            </a>
                                         @endif
                                     </div>
                                 </div>

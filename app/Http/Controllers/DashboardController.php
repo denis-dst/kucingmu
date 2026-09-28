@@ -82,14 +82,21 @@ class DashboardController extends Controller
             COUNT(CASE WHEN role IN ('admin', 'superadmin') THEN 1 END) as admin
         ")->first();
 
+        $ktamCount = KtamCard::count();
+        $needVerificationCount = Cat::whereNull('unique_code')->whereHas('medicalRecords')->count();
+        $unverifiedCount = Cat::whereNull('unique_code')->whereDoesntHave('medicalRecords')->count();
+        $pendingVerificationCount = Cat::whereNull('unique_code')->count();
+
         $stats = [
             'cats_count' => (int) ($catStats->total ?? 0),
             'cats_alive_count' => (int) ($catStats->alive ?? 0),
             'cats_deceased_count' => (int) ($catStats->deceased ?? 0),
             'appointments_count' => Appointment::count(),
             'records_count' => MedicalRecord::count(),
-            'ktam_count' => KtamCard::count(),
-            'pending_verification_count' => Cat::whereNull('unique_code')->count(),
+            'ktam_count' => $ktamCount,
+            'need_verification_count' => $needVerificationCount,
+            'unverified_count' => $unverifiedCount,
+            'pending_verification_count' => $pendingVerificationCount,
 
             // User Role Statistics matching /admin/users
             'users_total' => (int) ($userStats->total ?? 0),
@@ -101,14 +108,26 @@ class DashboardController extends Controller
 
         $catQuery = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah']);
 
-        // Filter status: all, alive, deceased
+        // Filter status kehidupan: all, alive, deceased
         $statusFilter = $request->filled('status') ? strtolower(trim($request->status)) : 'all';
         if ($statusFilter === 'alive') {
             $catQuery->where(function($q) {
-                $q->whereNull('status')->orWhereIn('status', ['alive', 'hidup']);
+                $q->whereNull('cats.status')->orWhereIn('cats.status', ['alive', 'hidup']);
             });
         } elseif ($statusFilter === 'deceased') {
-            $catQuery->whereIn('status', ['deceased', 'mati']);
+            $catQuery->whereIn('cats.status', ['deceased', 'mati']);
+        }
+
+        // Filter status penerbitan KTAKuMu: all, issued, need_verification, unverified, pending
+        $ktamStatusFilter = $request->filled('ktam_status') ? strtolower(trim($request->ktam_status)) : 'all';
+        if ($ktamStatusFilter === 'issued' || $ktamStatusFilter === 'terbit') {
+            $catQuery->whereNotNull('cats.unique_code')->whereHas('ktamCard');
+        } elseif ($ktamStatusFilter === 'need_verification' || $ktamStatusFilter === 'perlu_verifikasi') {
+            $catQuery->whereNull('cats.unique_code')->whereHas('medicalRecords');
+        } elseif ($ktamStatusFilter === 'unverified' || $ktamStatusFilter === 'belum_verifikasi') {
+            $catQuery->whereNull('cats.unique_code')->whereDoesntHave('medicalRecords');
+        } elseif ($ktamStatusFilter === 'pending') {
+            $catQuery->whereNull('cats.unique_code');
         }
 
         // Search query
@@ -181,7 +200,7 @@ class DashboardController extends Controller
             
         $appointments = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments', 'sort', 'direction', 'statusFilter'));
+        return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter'));
     }
 
     /**
