@@ -77,13 +77,13 @@ class Cat extends Model
 
         $now = now();
         $years = (int) $this->date_of_birth->diffInYears($now);
-        $months = (int) ($this->date_of_birth->diffInMonths($now) % 12);
+        $totalMonths = (int) $this->date_of_birth->diffInMonths($now);
+        $months = $totalMonths % 12;
 
         if ($years > 0) {
             return $years . ' thn' . ($months > 0 ? ' ' . $months . ' bln' : '');
         }
 
-        $totalMonths = (int) $this->date_of_birth->diffInMonths($now);
         if ($totalMonths > 0) {
             return $totalMonths . ' bln';
         }

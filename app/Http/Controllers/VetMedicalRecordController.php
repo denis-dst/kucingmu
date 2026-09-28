@@ -100,8 +100,8 @@ class VetMedicalRecordController extends Controller
      */
     public function create(Request $request)
     {
-        $selectedCatId = $request->input('cat_id');
-        $selectedAppointmentId = $request->input('appointment_id');
+        $selectedCatId = old('cat_id') ?: $request->input('cat_id');
+        $selectedAppointmentId = old('appointment_id') ?: $request->input('appointment_id');
         $selectedCat = null;
         $appointment = null;
 
@@ -115,12 +115,28 @@ class VetMedicalRecordController extends Controller
         }
 
         // Only show cats that have been verified and have an official KTAKuMu
-        $availableCats = Cat::with(['owner', 'ktamCard'])
+        $availableCats = Cat::with(['owner', 'ktamCard', 'photos'])
             ->verifiedWithKtakumu()
             ->orderBy('name', 'asc')
             ->get();
 
-        return view('dokter.medical-records.create', compact('selectedCat', 'appointment', 'availableCats'));
+        $availableCatsData = $availableCats->map(function ($cat) {
+            return [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'unique_code' => $cat->unique_code,
+                'breed' => $cat->breed,
+                'gender' => $cat->gender === 'male' ? 'Jantan' : 'Betina',
+                'age_text' => $cat->age_text,
+                'owner_name' => $cat->owner->name ?? '-',
+                'owner_nbm' => $cat->owner->formatted_nbm ?? '-',
+                'owner_phone' => $cat->owner->phone ?? '-',
+                'photo_url' => $cat->primary_photo_url,
+                'search_text' => strtolower($cat->name . ' ' . $cat->unique_code . ' ' . ($cat->owner->name ?? '') . ' ' . ($cat->owner->muhammadiyah_id ?? '') . ' ' . $cat->breed),
+            ];
+        });
+
+        return view('dokter.medical-records.create', compact('selectedCat', 'appointment', 'availableCats', 'availableCatsData'));
     }
 
     /**
