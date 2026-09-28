@@ -17,6 +17,12 @@
                         <a href="{{ route('admin.users.index') }}" class="button-primary text-xs font-bold px-4 py-2.5 shadow-sm bg-teal-800 hover:bg-teal-900">
                             <span>👥</span> Kelola & Rekrut Pengguna
                         </a>
+                        <a href="{{ route('admin.mail.inbox') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
+                            <span>📬</span> Kotak Masuk
+                        </a>
+                        <a href="{{ route('admin.mail.outbox') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
+                            <span>📤</span> Kotak Keluar
+                        </a>
                         <a href="{{ route('export-data') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
                             <span>📊</span> Ekspor Data (CSV)
                         </a>

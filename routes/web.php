@@ -86,6 +86,8 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
 Route::get('/kontak', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/kontak', [ContactController::class, 'store'])->name('contact.store');
 
+use App\Http\Controllers\Admin\AdminMailboxController;
+
 // Admin & Superadmin Routes
 Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/export-data', [DashboardController::class, 'exportData'])->name('export-data');
@@ -94,12 +96,26 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::put('/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
     Route::resource('/events', EventController::class, ['names' => 'admin.events']);
 
-    // Admin Contact Messages & Response Management
-    Route::get('/admin/contacts', [AdminContactController::class, 'index'])->name('admin.contacts.index');
-    Route::get('/admin/contacts/{contact}', [AdminContactController::class, 'show'])->name('admin.contacts.show');
-    Route::post('/admin/contacts/{contact}/respond', [AdminContactController::class, 'respond'])->name('admin.contacts.respond');
-    Route::post('/admin/contacts/{contact}/status', [AdminContactController::class, 'markStatus'])->name('admin.contacts.status');
-    Route::delete('/admin/contacts/{contact}', [AdminContactController::class, 'destroy'])->name('admin.contacts.destroy');
+    // Admin Mailbox (Inbox & Outbox) Management
+    Route::get('/admin/mail/inbox', [AdminMailboxController::class, 'inbox'])->name('admin.mail.inbox');
+    Route::get('/admin/mail/inbox/{contact}', [AdminMailboxController::class, 'showInbox'])->name('admin.mail.inbox.show');
+    Route::post('/admin/mail/inbox/{contact}/reply', [AdminMailboxController::class, 'replyInbox'])->name('admin.mail.inbox.reply');
+    Route::post('/admin/mail/inbox/{contact}/status', [AdminMailboxController::class, 'markInboxStatus'])->name('admin.mail.inbox.status');
+    Route::delete('/admin/mail/inbox/{contact}', [AdminMailboxController::class, 'destroyInbox'])->name('admin.mail.inbox.destroy');
+
+    Route::get('/admin/mail/outbox', [AdminMailboxController::class, 'outbox'])->name('admin.mail.outbox');
+    Route::get('/admin/mail/outbox/{outbox}', [AdminMailboxController::class, 'showOutbox'])->name('admin.mail.outbox.show');
+    Route::post('/admin/mail/compose', [AdminMailboxController::class, 'compose'])->name('admin.mail.compose');
+    Route::post('/admin/mail/outbox/{outbox}/resend', [AdminMailboxController::class, 'resendOutbox'])->name('admin.mail.outbox.resend');
+    Route::post('/admin/mail/test-smtp', [AdminMailboxController::class, 'testSmtp'])->name('admin.mail.test-smtp');
+    Route::delete('/admin/mail/outbox/{outbox}', [AdminMailboxController::class, 'destroyOutbox'])->name('admin.mail.outbox.destroy');
+
+    // Backward compatibility aliases
+    Route::get('/admin/contacts', [AdminMailboxController::class, 'inbox'])->name('admin.contacts.index');
+    Route::get('/admin/contacts/{contact}', [AdminMailboxController::class, 'showInbox'])->name('admin.contacts.show');
+    Route::post('/admin/contacts/{contact}/respond', [AdminMailboxController::class, 'replyInbox'])->name('admin.contacts.respond');
+    Route::post('/admin/contacts/{contact}/status', [AdminMailboxController::class, 'markInboxStatus'])->name('admin.contacts.status');
+    Route::delete('/admin/contacts/{contact}', [AdminMailboxController::class, 'destroyInbox'])->name('admin.contacts.destroy');
 
     // Superadmin Master Wilayah Management
     Route::post('/superadmin/wilayah/seed-default', [MasterWilayahController::class, 'seedDefault'])->name('superadmin.wilayah.seed-default');

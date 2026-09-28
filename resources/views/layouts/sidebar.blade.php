@@ -134,19 +134,27 @@
                         Administrasi & Konten
                     </div>
 
-                    <!-- Pesan Masuk -->
-                    <a href="{{ route('admin.contacts.index') }}" 
+                    <!-- Kotak Masuk (Inbox) -->
+                    <a href="{{ route('admin.mail.inbox') }}" 
                        @click="mobileSidebarOpen = false"
-                       class="sidebar-item flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.contacts.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                       class="sidebar-item flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ (request()->routeIs('admin.mail.inbox*') || request()->routeIs('admin.contacts.*')) ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         <div class="flex items-center gap-3">
-                            <span class="text-base {{ request()->routeIs('admin.contacts.*') ? 'text-white' : 'text-slate-500' }}">✉️</span>
-                            <span>Pesan Masuk</span>
+                            <span class="text-base {{ (request()->routeIs('admin.mail.inbox*') || request()->routeIs('admin.contacts.*')) ? 'text-white' : 'text-slate-500' }}">📬</span>
+                            <span>Kotak Masuk</span>
                         </div>
                         @if($unreadContactCount > 0)
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ request()->routeIs('admin.contacts.*') ? 'bg-white text-teal-900' : 'bg-rose-600 text-white' }} shadow-2xs">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ (request()->routeIs('admin.mail.inbox*') || request()->routeIs('admin.contacts.*')) ? 'bg-white text-teal-900' : 'bg-rose-600 text-white' }} shadow-2xs">
                                 {{ $unreadContactCount }}
                             </span>
                         @endif
+                    </a>
+
+                    <!-- Kotak Keluar (Outbox) -->
+                    <a href="{{ route('admin.mail.outbox') }}" 
+                       @click="mobileSidebarOpen = false"
+                       class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.mail.outbox*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <span class="text-base {{ request()->routeIs('admin.mail.outbox*') ? 'text-white' : 'text-slate-500' }}">📤</span>
+                        <span>Kotak Keluar</span>
                     </a>
 
                     <!-- Kelola Pengguna -->
