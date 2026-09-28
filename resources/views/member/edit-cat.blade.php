@@ -82,6 +82,7 @@
                                     });
                                 @endphp
                                 @if($validWilayahs->isNotEmpty())
+                                    <option value="" {{ empty(old('wilayah_code', $cat->wilayah_code)) ? 'selected' : '' }}>-- Belum Dipilih / Pilih Wilayah Domisili (PWM) --</option>
                                     @foreach($validWilayahs as $wil)
                                         @php
                                             $wCode = is_object($wil) ? $wil->kode : $wil['kode'];
@@ -92,7 +93,8 @@
                                         </option>
                                     @endforeach
                                 @else
-                                    <option value="34" selected>34 - D.I. Yogyakarta (PWM DIY)</option>
+                                    <option value="" {{ empty(old('wilayah_code', $cat->wilayah_code)) ? 'selected' : '' }}>-- Belum Dipilih / Pilih Wilayah Domisili (PWM) --</option>
+                                    <option value="34" {{ old('wilayah_code', $cat->wilayah_code) == '34' ? 'selected' : '' }}>34 - D.I. Yogyakarta (PWM DIY)</option>
                                 @endif
                             </select>
                             <span class="text-[11px] text-slate-500 mt-1 block">

@@ -229,6 +229,19 @@
                                                         <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200">Menunggu Verifikasi Admin</span>
                                                     @endif
                                                 </div>
+                                                <div class="flex justify-between items-center text-[11px]">
+                                                    <span class="text-slate-400">Wilayah Domisili:</span>
+                                                    @if($cat->wilayah)
+                                                        <span class="font-medium text-slate-700">{{ $cat->wilayah->nama }} ({{ $cat->wilayah_code }})</span>
+                                                    @elseif($cat->wilayah_code)
+                                                        <span class="font-medium text-slate-700">Kode {{ $cat->wilayah_code }}</span>
+                                                    @else
+                                                        <a href="{{ route('cat.edit', $cat->id) }}" class="text-amber-700 hover:text-amber-900 font-semibold flex items-center gap-1 hover:underline" title="Lengkapi wilayah domisili kucing">
+                                                            <span>Belum Ditentukan</span>
+                                                            <span class="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">Pilih &rarr;</span>
+                                                        </a>
+                                                    @endif
+                                                </div>
                                                 @if($cat->photos->count() > 1)
                                                     <div class="flex justify-between items-center text-[11px]">
                                                         <span class="text-slate-400">Galeri Foto:</span>
@@ -258,6 +271,11 @@
                                                     <span class="text-xs font-mono font-bold text-slate-800">{{ $cat->unique_code }}</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
+                                                    @if($cat->medicalRecords->isNotEmpty())
+                                                        <a href="{{ route('member.medical-records.summary', $cat->medicalRecords->last()->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100">
+                                                            🩺 Ringkasan Medis
+                                                        </a>
+                                                    @endif
                                                     <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold">
                                                         ✏️ Ubah
                                                     </a>
@@ -278,6 +296,9 @@
                                                     <span class="text-[11px] text-slate-600 font-medium">Periksa Dokter Selesai &bull; Menunggu Admin</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
+                                                    <a href="{{ route('member.medical-records.summary', $cat->medicalRecords->last()->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100">
+                                                        🩺 Hasil Rekam Medis
+                                                    </a>
                                                     <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-secondary px-3 py-1.5 text-xs border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100 font-semibold">
                                                         Lihat Draft
                                                     </button>

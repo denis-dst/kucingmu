@@ -50,9 +50,29 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:member'])->group(function () {
     Route::post('/cat', [DashboardController::class, 'storeCat'])->name('cat.store');
     Route::post('/appointment', [DashboardController::class, 'storeAppointment'])->name('appointment.store');
+    Route::get('/member/medical-records/{record}/summary', [\App\Http\Controllers\VetMedicalRecordController::class, 'memberSummary'])->name('member.medical-records.summary');
 });
 
-// Dokter Routes
+use App\Http\Controllers\VetMedicalRecordController;
+
+// Dokter Routes (KucingMu Veterinary Medical Record)
+Route::middleware(['auth', 'role:dokter,admin,superadmin'])->prefix('dokter')->name('dokter.')->group(function () {
+    Route::get('/medical-records', [VetMedicalRecordController::class, 'index'])->name('medical-records.index');
+    Route::get('/medical-records/create', [VetMedicalRecordController::class, 'create'])->name('medical-records.create');
+    Route::post('/medical-records', [VetMedicalRecordController::class, 'store'])->name('medical-records.store');
+    Route::get('/medical-records/{record}', [VetMedicalRecordController::class, 'show'])->name('medical-records.show');
+    Route::get('/medical-records/{record}/examine', [VetMedicalRecordController::class, 'stepper'])->name('medical-records.examine');
+    Route::post('/medical-records/{record}/step/{step}', [VetMedicalRecordController::class, 'saveStep'])->name('medical-records.save-step');
+    Route::post('/medical-records/{record}/prescriptions', [VetMedicalRecordController::class, 'addPrescriptionItem'])->name('medical-records.prescription.add');
+    Route::delete('/prescription-items/{item}', [VetMedicalRecordController::class, 'deletePrescriptionItem'])->name('medical-records.prescription.delete');
+    Route::post('/medical-records/{record}/finalize', [VetMedicalRecordController::class, 'finalize'])->name('medical-records.finalize');
+    Route::post('/medical-records/{record}/amend', [VetMedicalRecordController::class, 'amend'])->name('medical-records.amend');
+    Route::get('/medical-records/{record}/print', [VetMedicalRecordController::class, 'printSheet'])->name('medical-records.print');
+    Route::get('/medicines/lookup', [VetMedicalRecordController::class, 'lookupMedicines'])->name('medicines.lookup');
+    Route::get('/cats/{cat}/history', [VetMedicalRecordController::class, 'catMedicalHistory'])->name('cats.history');
+});
+
+// Dokter Legacy Quick Checkup Route
 Route::middleware(['auth', 'role:dokter'])->group(function () {
     Route::post('/checkup/{appointment}', [DashboardController::class, 'storeCheckup'])->name('checkup.store');
 });

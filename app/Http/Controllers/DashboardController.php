@@ -216,13 +216,26 @@ class DashboardController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        $recentRecords = MedicalRecord::whereHas('cat')->with(['cat.owner', 'cat.photos', 'appointment'])
+        $inProgressDrafts = MedicalRecord::where('vet_id', Auth::id())
+            ->whereIn('status', ['draft', 'in_progress'])
+            ->with(['cat.owner', 'cat.photos'])
+            ->latest()
+            ->get();
+
+        $recentRecords = MedicalRecord::whereHas('cat')->with(['cat.owner', 'cat.photos', 'appointment', 'primaryDiagnosis', 'prescriptions'])
             ->where('vet_id', Auth::id())
             ->latest()
             ->take(10)
             ->get();
 
-        return view('dokter.dashboard', compact('queue', 'recentRecords'));
+        $stats = [
+            'today_queue' => $queue->count(),
+            'in_progress' => $inProgressDrafts->count(),
+            'completed' => MedicalRecord::where('vet_id', Auth::id())->where('status', 'completed')->count(),
+            'total_prescriptions' => \App\Models\Prescription::where('prescribed_by', Auth::id())->where('status', 'issued')->count(),
+        ];
+
+        return view('dokter.dashboard', compact('queue', 'inProgressDrafts', 'recentRecords', 'stats'));
     }
 
     /**
@@ -235,8 +248,9 @@ class DashboardController extends Controller
             ->orderBy('id', 'desc')
             ->get();
         $masterBreeds = MasterBreed::getAllBreedNames();
+        $masterWilayahs = MasterWilayah::getActiveList();
 
-        return view('volunteer.dashboard', compact('todayAppointments', 'masterBreeds'));
+        return view('volunteer.dashboard', compact('todayAppointments', 'masterBreeds', 'masterWilayahs'));
     }
 
     /**
@@ -527,11 +541,11 @@ class DashboardController extends Controller
             }
 
             $oldWilayah = $cat->wilayah_code;
-            $newWilayah = $request->wilayah_code ?: ($oldWilayah ?: '34');
+            $newWilayah = $request->filled('wilayah_code') ? $request->wilayah_code : $oldWilayah;
             $uniqueCode = $cat->unique_code;
 
             // Only update uniqueCode if the cat was already verified / assigned a unique_code and wilayah changed
-            if (!empty($uniqueCode) && $oldWilayah !== $newWilayah) {
+            if (!empty($uniqueCode) && !empty($newWilayah) && $oldWilayah !== $newWilayah) {
                 $parts = explode('.', $uniqueCode);
                 $existingSeq = (int) end($parts);
                 $uniqueCode = Cat::generateUniqueCode($newWilayah, $existingSeq);
@@ -966,7 +980,7 @@ class DashboardController extends Controller
             'gender' => $request->cat_gender,
             'status' => 'alive',
             'date_of_birth' => $catDob,
-            'wilayah_code' => $request->wilayah_code ?: '34',
+            'wilayah_code' => $request->filled('wilayah_code') ? $request->wilayah_code : null,
             'color' => $request->color,
             'photo_path' => $photoPath,
             'biometric_type' => $request->biometric_type ?? 'none',
@@ -1185,6 +1199,7 @@ class DashboardController extends Controller
                 'breed' => $rawBreed,
                 'gender' => $entry['cat_gender'],
                 'date_of_birth' => $dob,
+                'wilayah_code' => !empty($entry['wilayah_code']) ? $entry['wilayah_code'] : null,
             ]);
 
             Appointment::create([

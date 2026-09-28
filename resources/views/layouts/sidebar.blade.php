@@ -104,8 +104,33 @@
                 @endif
             </div>
 
-            <!-- Section 2: Relawan & Surveilans Medis -->
-            @if($activeRole === 'volunteer' || ($authUser && $authUser->hasRole('volunteer') && $activeRole !== 'member') || $activeRole === 'dokter')
+            <!-- Section 2: Dokter Hewan & Rekam Medis -->
+            @if($activeRole === 'dokter' || ($authUser && $authUser->hasRole('dokter') && $activeRole !== 'member'))
+                <div class="space-y-1">
+                    <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Klinik & Rekam Medis
+                    </div>
+
+                    <!-- Rekam Medis & Antrian -->
+                    <a href="{{ route('dokter.medical-records.index') }}" 
+                       @click="mobileSidebarOpen = false"
+                       class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ (request()->routeIs('dokter.medical-records.*') && !request()->routeIs('dokter.medical-records.create')) ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <span class="text-base {{ (request()->routeIs('dokter.medical-records.*') && !request()->routeIs('dokter.medical-records.create')) ? 'text-white' : 'text-slate-500' }}">📋</span>
+                        <span>Rekam Medis (SOAP)</span>
+                    </a>
+
+                    <!-- Mulai Periksa Pasien Baru -->
+                    <a href="{{ route('dokter.medical-records.create') }}" 
+                       @click="mobileSidebarOpen = false"
+                       class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('dokter.medical-records.create') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <span class="text-base {{ request()->routeIs('dokter.medical-records.create') ? 'text-white' : 'text-slate-500' }}">🩺</span>
+                        <span>+ Periksa Pasien Baru</span>
+                    </a>
+                </div>
+            @endif
+
+            <!-- Section 3: Relawan & Surveilans Medis -->
+            @if($activeRole === 'volunteer' || ($authUser && $authUser->hasRole('volunteer') && $activeRole !== 'member'))
                 <div class="space-y-1">
                     <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         Layanan & Surveilans

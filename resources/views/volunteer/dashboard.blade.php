@@ -274,6 +274,29 @@
                                             <label class="form-label text-xs">Tanggal Lahir / Estimasi</label>
                                             <input type="date" name="cat_dob" max="{{ date('Y-m-d') }}" value="{{ old('cat_dob') }}" class="form-input text-xs">
                                         </div>
+                                        <div>
+                                            <label class="form-label text-xs">Wilayah Muhammadiyah <span class="text-slate-500 font-normal">(Opsional - Default: Dipilih Mandiri oleh Member)</span></label>
+                                            <select name="wilayah_code" class="form-input text-xs">
+                                                <option value="" {{ old('wilayah_code') ? '' : 'selected' }}>-- Belum Dipilih (Dipilih Mandiri oleh Member) --</option>
+                                                @php
+                                                    $validWilayahs = collect($masterWilayahs ?? \App\Models\MasterWilayah::getActiveList())->filter(function ($item) {
+                                                        if (is_object($item)) return !empty($item->kode);
+                                                        if (is_array($item)) return !empty($item['kode']);
+                                                        return false;
+                                                    });
+                                                @endphp
+                                                @foreach($validWilayahs as $wil)
+                                                    @php
+                                                        $wCode = is_object($wil) ? $wil->kode : $wil['kode'];
+                                                        $wName = is_object($wil) ? $wil->nama : $wil['nama'];
+                                                    @endphp
+                                                    <option value="{{ $wCode }}" {{ old('wilayah_code') == $wCode ? 'selected' : '' }}>
+                                                        {{ $wCode }} - {{ $wName }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <p class="text-[10px] text-slate-500 mt-1">Kosongkan jika member akan memilih domisili PWM secara mandiri melalui menu ubah profil kucing.</p>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -345,6 +368,23 @@
                                             <select x-model="offlineForm.cat_gender" required class="form-input text-xs">
                                                 <option value="male">Jantan</option>
                                                 <option value="female">Betina</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="form-label text-xs">Tanggal Lahir / Estimasi</label>
+                                            <input type="date" x-model="offlineForm.cat_dob" max="{{ date('Y-m-d') }}" class="form-input text-xs">
+                                        </div>
+                                        <div>
+                                            <label class="form-label text-xs">Wilayah Muhammadiyah <span class="text-slate-500 font-normal">(Opsional - Default: Mandiri)</span></label>
+                                            <select x-model="offlineForm.wilayah_code" class="form-input text-xs">
+                                                <option value="">-- Belum Dipilih (Dipilih Mandiri oleh Member) --</option>
+                                                @foreach($validWilayahs as $wil)
+                                                    @php
+                                                        $wCode = is_object($wil) ? $wil->kode : $wil['kode'];
+                                                        $wName = is_object($wil) ? $wil->nama : $wil['nama'];
+                                                    @endphp
+                                                    <option value="{{ $wCode }}">{{ $wCode }} - {{ $wName }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                     </div>
@@ -458,7 +498,8 @@
                     cat_name: '',
                     cat_breed: 'Domestik',
                     cat_gender: 'male',
-                    cat_dob: '{{ date("Y-m-d") }}'
+                    cat_dob: '{{ date("Y-m-d") }}',
+                    wilayah_code: ''
                 },
                 init() {
                     window.addEventListener('online', () => { this.isOnline = true; });
@@ -474,7 +515,8 @@
                         cat_name: '',
                         cat_breed: 'Domestik',
                         cat_gender: 'male',
-                        cat_dob: '{{ date("Y-m-d") }}'
+                        cat_dob: '{{ date("Y-m-d") }}',
+                        wilayah_code: ''
                     };
                     alert('Data registrasi berhasil disimpan di memori offline lokal.');
                 },
