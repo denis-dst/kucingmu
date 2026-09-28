@@ -36,9 +36,14 @@
 
                 <!-- Section: Patient Selection -->
                 <div class="space-y-3">
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                        Pilih Pasien Kucing <span class="text-rose-500">*</span>
-                    </label>
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                            Pilih Pasien Kucing <span class="text-rose-500">*</span>
+                        </label>
+                        <span class="text-[11px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded font-semibold border border-teal-200">
+                            Hanya KTAKuMu Terverifikasi
+                        </span>
+                    </div>
 
                     @if($selectedCat)
                         <input type="hidden" name="cat_id" value="{{ $selectedCat->id }}">
@@ -56,6 +61,9 @@
                                         <h3 class="font-outfit font-bold text-slate-900 text-base">{{ $selectedCat->name }}</h3>
                                         @if($selectedCat->unique_code)
                                             <span class="px-2 py-0.5 rounded bg-teal-100 text-teal-800 text-[10px] font-mono font-bold">{{ $selectedCat->unique_code }}</span>
+                                            <span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-bold">✓ KTAKuMu Resmi</span>
+                                        @else
+                                            <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold">⚠️ Belum Terbit KTAKuMu</span>
                                         @endif
                                     </div>
                                     <p class="text-xs text-slate-600 mt-0.5">Ras: {{ $selectedCat->breed }} &bull; Kelamin: {{ $selectedCat->gender === 'male' ? 'Jantan' : 'Betina' }} &bull; Lahir: {{ $selectedCat->date_of_birth ? \Carbon\Carbon::parse($selectedCat->date_of_birth)->format('d M Y') : '-' }}</p>
@@ -65,17 +73,32 @@
                             <a href="{{ route('dokter.medical-records.create') }}" class="text-xs font-semibold text-teal-800 hover:underline">Ganti Kucing</a>
                         </div>
                     @else
-                        <div>
-                            <select name="cat_id" required class="w-full text-sm rounded-xl border-slate-200 py-2.5 px-3.5 text-slate-800 focus:ring-teal-600 focus:border-teal-600">
-                                <option value="">-- Pilih Kucing Terdaftar di KucingMu --</option>
-                                @foreach($availableCats as $cat)
-                                    <option value="{{ $cat->id }}" {{ old('cat_id') == $cat->id ? 'selected' : '' }}>
-                                        {{ $cat->name }} (Ras: {{ $cat->breed }} | Pemilik: {{ $cat->owner->name ?? '-' }} - NBM: {{ $cat->owner->formatted_nbm ?? '-' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            <p class="text-[11px] text-slate-400 mt-1">Kucing harus sudah terdaftar pada sistem KucingMu oleh pemilik atau relawan.</p>
-                        </div>
+                        @if($availableCats->isEmpty())
+                            <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/70 text-xs text-amber-900 space-y-1">
+                                <div class="font-bold flex items-center gap-1.5">
+                                    <span>⚠️</span>
+                                    <span>Belum ada kucing yang terverifikasi dan memiliki KTAKuMu resmi.</span>
+                                </div>
+                                <p class="text-[11px] text-amber-800">
+                                    Rekam medis dokter hanya dapat dibuat untuk kucing yang telah disetujui / diverifikasi oleh Admin dan memiliki Nomor KTAKuMu resmi. Silakan hubungi Admin untuk verifikasi kucing peserta terlebih dahulu.
+                                </p>
+                            </div>
+                        @else
+                            <div>
+                                <select name="cat_id" required class="w-full text-sm rounded-xl border-slate-200 py-2.5 px-3.5 text-slate-800 focus:ring-teal-600 focus:border-teal-600">
+                                    <option value="">-- Pilih Kucing Terverifikasi (KTAKuMu Resmi) --</option>
+                                    @foreach($availableCats as $cat)
+                                        <option value="{{ $cat->id }}" {{ old('cat_id') == $cat->id ? 'selected' : '' }}>
+                                            {{ $cat->name }} [KTAKuMu: {{ $cat->unique_code }}] &bull; Pemilik: {{ $cat->owner->name ?? '-' }} ({{ $cat->breed }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <p class="text-[11px] text-slate-500 mt-1">Hanya menampilkan kucing yang telah disetujui/diverifikasi oleh Admin dan memiliki Nomor KTAKuMu resmi.</p>
+                            </div>
+                        @endif
+                        @error('cat_id')
+                            <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                        @enderror
                     @endif
                 </div>
 

@@ -114,7 +114,11 @@ class VetMedicalRecordController extends Controller
             $selectedCat = Cat::with(['owner', 'photos', 'ktamCard'])->find($selectedCatId);
         }
 
-        $availableCats = Cat::with('owner')->orderBy('name', 'asc')->get();
+        // Only show cats that have been verified and have an official KTAKuMu
+        $availableCats = Cat::with(['owner', 'ktamCard'])
+            ->verifiedWithKtakumu()
+            ->orderBy('name', 'asc')
+            ->get();
 
         return view('dokter.medical-records.create', compact('selectedCat', 'appointment', 'availableCats'));
     }
@@ -133,6 +137,12 @@ class VetMedicalRecordController extends Controller
         ]);
 
         $cat = Cat::findOrFail($request->cat_id);
+
+        if (!$cat->hasKtakumu()) {
+            return back()->withInput()->withErrors([
+                'cat_id' => 'Kucing belum diverifikasi atau belum memiliki KTAKuMu resmi.',
+            ]);
+        }
 
         // Check if an open draft already exists for this appointment
         if ($request->appointment_id) {

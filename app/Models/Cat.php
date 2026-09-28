@@ -237,12 +237,30 @@ class Cat extends Model
 
     public function getPrimaryPhotoPathAttribute()
     {
-        $primary = $this->photos->firstWhere('is_primary', true);
+        $primary = $this->photos ? $this->photos->firstWhere('is_primary', true) : null;
         if ($primary && $primary->photo_path) {
             return $primary->photo_path;
         }
 
         return $this->photo_path;
+    }
+
+    /**
+     * Scope query to cats that are verified and have official KTAKuMu.
+     */
+    public function scopeVerifiedWithKtakumu($query)
+    {
+        return $query->whereNotNull('unique_code')
+            ->where('unique_code', '!=', '')
+            ->whereHas('ktamCard');
+    }
+
+    /**
+     * Check if cat has official verified KTAKuMu.
+     */
+    public function hasKtakumu(): bool
+    {
+        return !empty($this->unique_code) && $this->ktamCard !== null;
     }
 }
 
