@@ -152,63 +152,83 @@
             </div>
 
             <!-- Antrian Permintaan Verifikasi & Penerbitan KTAKuMu -->
-            <div id="pending-queue" class="content-card bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 scroll-mt-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                    <div>
-                        <div class="flex items-center gap-2.5 flex-wrap">
-                            <h2 class="font-outfit text-lg sm:text-xl font-bold text-slate-900 leading-tight">
-                                Antrian Verifikasi KTAKuMu
-                            </h2>
-                            @if($pendingVerificationCats->count() > 0)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                                    {{ $pendingVerificationCats->count() }} Menunggu
-                                </span>
-                            @endif
-                        </div>
-                        <p class="text-xs text-slate-500 mt-1">
-                            Tinjau hasil pemeriksaan dokter hewan dan data kucing untuk menerbitkan kartu KTAKuMu resmi.
-                        </p>
-                        
-                        <!-- Quick Filter Pills for Pending Cards -->
+            <div id="pending-queue" class="content-card bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 scroll-mt-6">
+                <!-- Header: Title, Badge, & Subtitle -->
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h2 class="font-outfit text-lg sm:text-xl font-bold text-slate-900 leading-tight">
+                            Antrian Verifikasi KTAKuMu
+                        </h2>
                         @if($pendingVerificationCats->count() > 0)
-                            <div class="flex items-center gap-1.5 flex-wrap mt-3">
-                                <button type="button" 
-                                        @click="filterPendingType = 'all'" 
-                                        :class="filterPendingType === 'all' ? 'bg-amber-800 text-white font-bold shadow-2xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
-                                        class="text-xs px-3 py-1.5 rounded-xl transition cursor-pointer">
-                                    Semua ({{ $pendingVerificationCats->count() }})
-                                </button>
-                                <button type="button" 
-                                        @click="filterPendingType = 'medical'" 
-                                        :class="filterPendingType === 'medical' ? 'bg-emerald-700 text-white font-bold shadow-2xs' : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'" 
-                                        class="text-xs px-3 py-1.5 rounded-xl transition cursor-pointer">
-                                    🩺 Ada Rekam Medis ({{ $pendingVerificationCats->filter(fn($c) => $c->medicalRecords->isNotEmpty())->count() }})
-                                </button>
-                                <button type="button" 
-                                        @click="filterPendingType = 'non_medical'" 
-                                        :class="filterPendingType === 'non_medical' ? 'bg-slate-700 text-white font-bold shadow-2xs' : 'bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200'" 
-                                        class="text-xs px-3 py-1.5 rounded-xl transition cursor-pointer">
-                                    📋 Belum Ada Medis ({{ $pendingVerificationCats->filter(fn($c) => $c->medicalRecords->isEmpty())->count() }})
-                                </button>
-                            </div>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                {{ $pendingVerificationCats->count() }} Menunggu
+                            </span>
                         @endif
                     </div>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Tinjau hasil pemeriksaan dokter hewan dan data kucing untuk menerbitkan kartu KTAKuMu resmi.
+                    </p>
+                </div>
 
-                    @if($pendingVerificationCats->count() > 0)
+                @if($pendingVerificationCats->count() > 0)
+                    <!-- Dedicated Filter & Search Toolbar -->
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                        <!-- Quick Filter Pills -->
+                        <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
+                            <button type="button" 
+                                    @click="filterPendingType = 'all'" 
+                                    :class="filterPendingType === 'all' 
+                                        ? 'bg-amber-800 text-white font-bold shadow-xs' 
+                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60'" 
+                                    class="text-xs px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 font-medium">
+                                <span>Semua</span>
+                                <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold" 
+                                      :class="filterPendingType === 'all' ? 'bg-amber-900/60 text-amber-100' : 'bg-slate-200/80 text-slate-700'">
+                                    {{ $pendingVerificationCats->count() }}
+                                </span>
+                            </button>
+                            <button type="button" 
+                                    @click="filterPendingType = 'medical'" 
+                                    :class="filterPendingType === 'medical' 
+                                        ? 'bg-emerald-700 text-white font-bold shadow-xs' 
+                                        : 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100/70'" 
+                                    class="text-xs px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 font-medium">
+                                <span>🩺 Ada Rekam Medis</span>
+                                <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold" 
+                                      :class="filterPendingType === 'medical' ? 'bg-emerald-800 text-emerald-100' : 'bg-emerald-200/60 text-emerald-900'">
+                                    {{ $pendingVerificationCats->filter(fn($c) => $c->medicalRecords->isNotEmpty())->count() }}
+                                </span>
+                            </button>
+                            <button type="button" 
+                                    @click="filterPendingType = 'non_medical'" 
+                                    :class="filterPendingType === 'non_medical' 
+                                        ? 'bg-slate-700 text-white font-bold shadow-xs' 
+                                        : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'" 
+                                    class="text-xs px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 font-medium">
+                                <span>📋 Belum Ada Medis</span>
+                                <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold" 
+                                      :class="filterPendingType === 'non_medical' ? 'bg-slate-800 text-slate-100' : 'bg-slate-200/80 text-slate-700'">
+                                    {{ $pendingVerificationCats->filter(fn($c) => $c->medicalRecords->isEmpty())->count() }}
+                                </span>
+                            </button>
+                        </div>
+
                         <!-- Search Bar for Pending Cards -->
-                        <div class="relative w-full sm:w-72 shrink-0">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">🔍</span>
+                        <div class="relative w-full md:w-72 shrink-0">
+                            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
                             <input type="text" 
                                    x-model="searchPending" 
                                    placeholder="Cari nama, NBM, pemilik..." 
-                                   class="w-full text-xs pl-9 pr-8 py-2 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition outline-none">
+                                   class="w-full text-xs pl-10 pr-8 py-2 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition outline-none">
                             <button type="button" 
                                     x-show="searchPending" 
                                     @click="searchPending = ''" 
-                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer">✕</button>
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer p-1">✕</button>
                         </div>
-                    @endif
-                </div>
+                    </div>
+                @endif
 
                 @if($pendingVerificationCats->isEmpty())
                     <div class="text-center py-10 text-slate-500 text-xs bg-slate-50/80 rounded-2xl border border-dashed border-slate-200">
