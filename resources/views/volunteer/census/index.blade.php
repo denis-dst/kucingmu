@@ -7,10 +7,10 @@
                 <div>
                     <span class="card-kicker">Modul Pengambilan Data Lapangan</span>
                     <h1 class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
-                        Sensus Stray Cat PTMA
+                        Sensus Stray Cat
                     </h1>
                     <p class="card-copy max-w-2xl">
-                        Pengambilan data sensus kucing liar berbasis klaster kampus PTMA (UMY, UAD, UMP, UMS). Mencakup identifikasi morfometri, indeks kesejahteraan (BCS & lesi klinis), hingga analisis mikro-habitat.
+                        Pengambilan data sensus kucing liar berbasis klaster kampus. Mencakup identifikasi morfometri, indeks kesejahteraan (BCS & lesi klinis), hingga analisis mikro-habitat.
                     </p>
 
                     <div class="mt-5 flex flex-wrap gap-3">
