@@ -34,6 +34,8 @@ class DashboardController extends Controller
 
         if (in_array($activeRole, ['admin', 'superadmin'])) {
             return $this->adminDashboard($request);
+        } elseif ($activeRole === 'verifikator') {
+            return $this->verifikatorDashboard($request);
         } elseif ($activeRole === 'dokter') {
             return $this->dokterDashboard();
         } elseif ($activeRole === 'volunteer') {
@@ -76,10 +78,11 @@ class DashboardController extends Controller
 
         $userStats = User::selectRaw("
             COUNT(*) as total,
-            COUNT(CASE WHEN role = 'member' THEN 1 END) as member,
-            COUNT(CASE WHEN role = 'dokter' THEN 1 END) as dokter,
-            COUNT(CASE WHEN role = 'volunteer' THEN 1 END) as volunteer,
-            COUNT(CASE WHEN role IN ('admin', 'superadmin') THEN 1 END) as admin
+            COUNT(CASE WHEN role = 'member' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"member\"') THEN 1 END) as member,
+            COUNT(CASE WHEN role = 'verifikator' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"verifikator\"') THEN 1 END) as verifikator,
+            COUNT(CASE WHEN role = 'dokter' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"dokter\"') THEN 1 END) as dokter,
+            COUNT(CASE WHEN role = 'volunteer' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"volunteer\"') THEN 1 END) as volunteer,
+            COUNT(CASE WHEN role IN ('admin', 'superadmin') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"admin\"') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"superadmin\"') THEN 1 END) as admin
         ")->first();
 
         $ktamCount = KtamCard::count();
@@ -101,12 +104,13 @@ class DashboardController extends Controller
             // User Role Statistics matching /admin/users
             'users_total' => (int) ($userStats->total ?? 0),
             'users_member' => (int) ($userStats->member ?? 0),
+            'users_verifikator' => (int) ($userStats->verifikator ?? 0),
             'users_dokter' => (int) ($userStats->dokter ?? 0),
             'users_volunteer' => (int) ($userStats->volunteer ?? 0),
             'users_admin' => (int) ($userStats->admin ?? 0),
         ];
 
-        $catQuery = Cat::with(['owner', 'ktamCard', 'photos', 'medicalRecords.vet', 'wilayah']);
+        $catQuery = Cat::with(['owner', 'ktamCard.verifier', 'verifier', 'photos', 'medicalRecords.vet', 'wilayah']);
 
         // Filter status kehidupan: all, alive, deceased
         $statusFilter = $request->filled('status') ? strtolower(trim($request->status)) : 'all';
@@ -201,6 +205,131 @@ class DashboardController extends Controller
         $appointments = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
 
         return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter'));
+    }
+
+    /**
+     * Render Verifikator Dashboard.
+     * Focused specifically on reviewing registered cats, checking medical records, and issuing KTAM cards.
+     */
+    protected function verifikatorDashboard(Request $request)
+    {
+        // Combined aggregation queries to minimize database roundtrips
+        $catStats = Cat::selectRaw("
+            COUNT(*) as total,
+            COUNT(CASE WHEN status IS NULL OR status IN ('alive', 'hidup') THEN 1 END) as alive,
+            COUNT(CASE WHEN status IN ('deceased', 'mati') THEN 1 END) as deceased
+        ")->first();
+
+        $ktamCount = KtamCard::count();
+        $needVerificationCount = Cat::whereNull('unique_code')->whereHas('medicalRecords')->count();
+        $unverifiedCount = Cat::whereNull('unique_code')->whereDoesntHave('medicalRecords')->count();
+        $pendingVerificationCount = Cat::whereNull('unique_code')->count();
+        $myVerifiedCount = KtamCard::where('verified_by', Auth::id())->count();
+
+        $stats = [
+            'cats_count' => (int) ($catStats->total ?? 0),
+            'cats_alive_count' => (int) ($catStats->alive ?? 0),
+            'cats_deceased_count' => (int) ($catStats->deceased ?? 0),
+            'ktam_count' => $ktamCount,
+            'need_verification_count' => $needVerificationCount,
+            'unverified_count' => $unverifiedCount,
+            'pending_verification_count' => $pendingVerificationCount,
+            'my_verified_count' => $myVerifiedCount,
+        ];
+
+        $catQuery = Cat::with(['owner', 'ktamCard.verifier', 'verifier', 'photos', 'medicalRecords.vet', 'wilayah']);
+
+        // Filter status kehidupan: all, alive, deceased
+        $statusFilter = $request->filled('status') ? strtolower(trim($request->status)) : 'all';
+        if ($statusFilter === 'alive') {
+            $catQuery->where(function($q) {
+                $q->whereNull('cats.status')->orWhereIn('cats.status', ['alive', 'hidup']);
+            });
+        } elseif ($statusFilter === 'deceased') {
+            $catQuery->whereIn('cats.status', ['deceased', 'mati']);
+        }
+
+        // Filter status penerbitan KTAKuMu: all, issued, need_verification, unverified, pending
+        $ktamStatusFilter = $request->filled('ktam_status') ? strtolower(trim($request->ktam_status)) : 'all';
+        if ($ktamStatusFilter === 'issued' || $ktamStatusFilter === 'terbit') {
+            $catQuery->whereNotNull('cats.unique_code')->whereHas('ktamCard');
+        } elseif ($ktamStatusFilter === 'need_verification' || $ktamStatusFilter === 'perlu_verifikasi') {
+            $catQuery->whereNull('cats.unique_code')->whereHas('medicalRecords');
+        } elseif ($ktamStatusFilter === 'unverified' || $ktamStatusFilter === 'belum_verifikasi') {
+            $catQuery->whereNull('cats.unique_code')->whereDoesntHave('medicalRecords');
+        } elseif ($ktamStatusFilter === 'pending') {
+            $catQuery->whereNull('cats.unique_code');
+        }
+
+        // Search query
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $catQuery->where(function($q) use ($search) {
+                $q->where('cats.name', 'like', "%{$search}%")
+                  ->orWhere('cats.breed', 'like', "%{$search}%")
+                  ->orWhere('cats.unique_code', 'like', "%{$search}%")
+                  ->orWhere('cats.color', 'like', "%{$search}%")
+                  ->orWhere('cats.gender', 'like', "%{$search}%")
+                  ->orWhere('cats.status', 'like', "%{$search}%")
+                  ->orWhereHas('owner', function($oq) use ($search) {
+                      $oq->where('name', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%")
+                         ->orWhere('muhammadiyah_id', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('ktamCard', function($kq) use ($search) {
+                      $kq->where('ktam_number', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Sorting
+        $sort = $request->get('sort', 'created_at');
+        $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        switch ($sort) {
+            case 'name':
+                $catQuery->orderBy('cats.name', $direction);
+                break;
+            case 'owner':
+                $catQuery->join('users', 'cats.user_id', '=', 'users.id')
+                    ->select('cats.*')
+                    ->orderBy('users.name', $direction);
+                break;
+            case 'breed':
+                $catQuery->orderBy('cats.breed', $direction);
+                break;
+            case 'gender':
+                $catQuery->orderBy('cats.gender', $direction);
+                break;
+            case 'dob':
+            case 'date_of_birth':
+                $catQuery->orderBy('cats.date_of_birth', $direction);
+                break;
+            case 'unique_code':
+            case 'ktam':
+                $catQuery->orderBy('cats.unique_code', $direction);
+                break;
+            case 'status':
+                $catQuery->orderBy('cats.status', $direction);
+                break;
+            case 'wilayah':
+                $catQuery->orderBy('cats.wilayah_code', $direction);
+                break;
+            case 'created_at':
+            default:
+                $catQuery->orderBy('cats.created_at', $direction);
+                break;
+        }
+
+        $cats = $catQuery->paginate(10)->withQueryString();
+        $pendingVerificationCats = Cat::whereNull('unique_code')
+            ->with(['owner', 'photos', 'medicalRecords.vet', 'wilayah'])
+            ->latest()
+            ->take(50)
+            ->get();
+
+        return view('verifikator.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter'));
     }
 
     /**
@@ -465,7 +594,7 @@ class DashboardController extends Controller
      */
     public function editCat(Cat $cat)
     {
-        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
+        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isVerifikator()) {
             abort(403);
         }
 
@@ -477,11 +606,11 @@ class DashboardController extends Controller
     }
 
     /**
-     * Update the cat profile (for Member/Admin).
+     * Update the cat profile (for Member/Verifikator/Admin).
      */
     public function updateCat(Request $request, Cat $cat)
     {
-        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
+        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isVerifikator()) {
             abort(403);
         }
 
@@ -837,17 +966,17 @@ class DashboardController extends Controller
     }
 
     /**
-     * Verify cat data & issue KTAM Card (for Admin).
+     * Verify cat data & issue KTAM Card (for Verifikator, Admin, & Superadmin).
      */
     public function verifyAndIssueKtam(Request $request, Cat $cat, KtamService $ktamService)
     {
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::user()->isVerifikator()) {
             abort(403);
         }
 
         $card = $ktamService->issueCard($cat, Auth::id());
 
-        return redirect()->back()->with('success', 'Kartu KTAM (' . $card->ktam_number . ') berhasil terverifikasi & diterbitkan oleh Admin.');
+        return redirect()->back()->with('success', 'Kartu KTAM (' . $card->ktam_number . ') berhasil diverifikasi & diterbitkan.');
     }
 
     /**
@@ -861,7 +990,7 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Kucing ini belum memiliki kartu KTAM.');
         }
 
-        if (Auth::user()->role === 'member' && (int) $cat->user_id !== (int) Auth::id()) {
+        if (!Auth::user()->hasRole('verifikator', 'admin', 'superadmin', 'dokter', 'volunteer') && (int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 
@@ -878,7 +1007,7 @@ class DashboardController extends Controller
     {
         $cat->load(['photos', 'owner', 'wilayah']);
 
-        if (Auth::user()->role === 'member' && (int) $cat->user_id !== (int) Auth::id()) {
+        if (!Auth::user()->hasRole('verifikator', 'admin', 'superadmin', 'dokter', 'volunteer') && (int) $cat->user_id !== (int) Auth::id()) {
             abort(403);
         }
 

@@ -47,7 +47,7 @@
                         Kelola Semua Pengguna &rarr;
                     </a>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                     <a href="{{ route('admin.users.index', ['role' => 'all']) }}" 
                        class="content-card p-4 transition hover:border-teal-400 hover:shadow-md bg-white">
                         <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -69,6 +69,18 @@
                         <div class="mt-2 flex items-baseline gap-1.5">
                             <span class="font-outfit text-2xl sm:text-3xl font-bold text-teal-900">{{ $stats['users_member'] }}</span>
                             <span class="text-xs font-semibold text-teal-700">Orang</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('admin.users.index', ['role' => 'verifikator']) }}" 
+                       class="content-card p-4 transition hover:border-sky-400 hover:shadow-md bg-white">
+                        <div class="flex items-center justify-between text-xs font-bold text-sky-700 uppercase tracking-wider">
+                            <span>Verifikator</span>
+                            <span>✅</span>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-sky-900">{{ $stats['users_verifikator'] ?? 0 }}</span>
+                            <span class="text-xs font-semibold text-sky-700">Staf</span>
                         </div>
                     </a>
 
@@ -610,11 +622,27 @@
                                         <!-- Status Penerbitan KTAKuMu (Clickable Filters) -->
                                         <td class="py-3.5 px-4 whitespace-nowrap">
                                             @if($cat->unique_code && $cat->ktamCard)
-                                                <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'issued'])) }}#cat-registry-table" 
-                                                   title="Klik untuk filter semua KTAKuMu Terbit" 
-                                                   class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 inline-flex items-center gap-1 transition cursor-pointer">
-                                                    <span>✓</span> KTAKuMu Terbit
-                                                </a>
+                                                @php
+                                                    $verifiedAt = $cat->verified_at ?? $cat->ktamCard->verified_at;
+                                                    $verifier = $cat->verifier ?? $cat->ktamCard->verifier;
+                                                @endphp
+                                                <div class="space-y-0.5">
+                                                    <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'issued'])) }}#cat-registry-table" 
+                                                       title="Klik untuk filter semua KTAKuMu Terbit" 
+                                                       class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 inline-flex items-center gap-1 transition cursor-pointer">
+                                                        <span>✓</span> KTAKuMu Terbit
+                                                    </a>
+                                                    @if($verifiedAt)
+                                                        <div class="text-[10px] text-slate-500 font-mono" title="Waktu Verifikasi">
+                                                            {{ $verifiedAt->format('d M Y, H:i') }}
+                                                        </div>
+                                                    @endif
+                                                    @if($verifier)
+                                                        <div class="text-[9px] text-slate-400 truncate max-w-[120px]" title="Diverifikasi oleh {{ $verifier->name }}">
+                                                            Oleh: {{ $verifier->name }}
+                                                        </div>
+                                                    @endif
+                                                </div>
                                             @elseif($cat->medicalRecords->isNotEmpty())
                                                 <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'need_verification'])) }}#cat-registry-table" 
                                                    title="Sudah periksa dokter - Klik untuk filter Perlu Verifikasi" 

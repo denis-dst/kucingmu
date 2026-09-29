@@ -266,9 +266,15 @@
                                         <!-- Card Footer: Status & Action Buttons -->
                                         <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
                                             @if($cat->unique_code && $cat->ktamCard)
+                                                @php
+                                                    $verifiedAt = $cat->verified_at ?? $cat->ktamCard->verified_at;
+                                                @endphp
                                                 <div class="text-left">
                                                     <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 block">KTAKuMu RESMI</span>
                                                     <span class="text-xs font-mono font-bold text-slate-800">{{ $cat->unique_code }}</span>
+                                                    @if($verifiedAt)
+                                                        <span class="text-[10px] text-slate-500 block">Terbit: {{ $verifiedAt->format('d M Y') }}</span>
+                                                    @endif
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
                                                     @if($cat->medicalRecords->isNotEmpty())

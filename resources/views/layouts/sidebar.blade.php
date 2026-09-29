@@ -152,6 +152,22 @@
                 </div>
             @endif
 
+            <!-- Section: Verifikator KTAKuMu -->
+            @if($activeRole === 'verifikator' || ($authUser && $authUser->hasRole('verifikator') && !in_array($activeRole, ['member', 'admin', 'superadmin', 'dokter', 'volunteer'])))
+                <div class="space-y-1">
+                    <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Verifikasi KTAKuMu
+                    </div>
+
+                    <a href="{{ route('dashboard') }}" 
+                       @click="mobileSidebarOpen = false"
+                       class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-sky-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <span class="text-base {{ request()->routeIs('dashboard') ? 'text-white' : 'text-slate-500' }}">✅</span>
+                        <span>Verifikasi & KTAM</span>
+                    </a>
+                </div>
+            @endif
+
             <!-- Section 3: Panel Admin & Master Data -->
             @if(in_array($activeRole, ['admin', 'superadmin']))
                 <div class="space-y-1">

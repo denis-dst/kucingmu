@@ -33,10 +33,13 @@ class Cat extends Model
         'color_fingerprint',
         'spatial_fingerprint',
         'deleted_by',
+        'verified_by',
+        'verified_at',
     ];
 
     protected $casts = [
         'date_of_birth' => 'date',
+        'verified_at' => 'datetime',
         'photo_embedding' => 'array',
         'color_fingerprint' => 'array',
         'spatial_fingerprint' => 'array',
@@ -164,7 +167,7 @@ class Cat extends Model
      */
     public function isVerified(): bool
     {
-        return !empty($this->unique_code);
+        return !empty($this->unique_code) && (!empty($this->verified_at) || ($this->ktamCard && !empty($this->ktamCard->verified_at)));
     }
 
     public function getFormattedUniqueCodeAttribute(): string
@@ -261,6 +264,14 @@ class Cat extends Model
     public function hasKtakumu(): bool
     {
         return !empty($this->unique_code) && $this->ktamCard !== null;
+    }
+
+    /**
+     * Relationship: The user (Admin/Verifikator) who verified this cat.
+     */
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 }
 

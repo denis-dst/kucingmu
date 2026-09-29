@@ -90,11 +90,11 @@
             </div>
 
             <!-- Stats Widgets -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'all', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-teal-400 {{ $roleFilter === 'all' ? 'ring-2 ring-teal-600 bg-teal-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        <span>Semua Pengguna</span>
+                        <span>Semua</span>
                         <span>👥</span>
                     </div>
                     <div class="mt-2 flex items-baseline gap-1.5">
@@ -106,7 +106,7 @@
                 <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'member', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-teal-400 {{ $roleFilter === 'member' ? 'ring-2 ring-teal-600 bg-teal-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-teal-700 uppercase tracking-wider">
-                        <span>Member Kucing</span>
+                        <span>Member</span>
                         <span>🐱</span>
                     </div>
                     <div class="mt-2 flex items-baseline gap-1.5">
@@ -115,10 +115,22 @@
                     </div>
                 </a>
 
+                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'verifikator', 'page' => 1])) }}" 
+                   class="content-card p-4 transition hover:border-sky-400 {{ $roleFilter === 'verifikator' ? 'ring-2 ring-sky-600 bg-sky-50/40' : 'bg-white' }}">
+                    <div class="flex items-center justify-between text-xs font-bold text-sky-700 uppercase tracking-wider">
+                        <span>Verifikator</span>
+                        <span>✅</span>
+                    </div>
+                    <div class="mt-2 flex items-baseline gap-1.5">
+                        <span class="font-outfit text-2xl sm:text-3xl font-bold text-sky-900">{{ $stats['verifikator'] }}</span>
+                        <span class="text-xs font-semibold text-sky-700">Staf</span>
+                    </div>
+                </a>
+
                 <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-indigo-400 {{ $roleFilter === 'volunteer' ? 'ring-2 ring-indigo-600 bg-indigo-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-indigo-700 uppercase tracking-wider">
-                        <span>Relawan (Volunteer)</span>
+                        <span>Relawan</span>
                         <span>📋</span>
                     </div>
                     <div class="mt-2 flex items-baseline gap-1.5">
@@ -130,7 +142,7 @@
                 <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'dokter', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-emerald-400 {{ $roleFilter === 'dokter' ? 'ring-2 ring-emerald-600 bg-emerald-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase tracking-wider">
-                        <span>Dokter Hewan (Vet)</span>
+                        <span>Dokter</span>
                         <span>🩺</span>
                     </div>
                     <div class="mt-2 flex items-baseline gap-1.5">
@@ -142,7 +154,7 @@
                 <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'admin', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-amber-400 {{ $roleFilter === 'admin' ? 'ring-2 ring-amber-600 bg-amber-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-amber-700 uppercase tracking-wider">
-                        <span>Administrator</span>
+                        <span>Admin</span>
                         <span>🛡️</span>
                     </div>
                     <div class="mt-2 flex items-baseline gap-1.5">
@@ -165,6 +177,10 @@
                         <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'member', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'member' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             🐱 Member ({{ $stats['member'] }})
+                        </a>
+                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'verifikator', 'page' => 1])) }}" 
+                           class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'verifikator' ? 'bg-sky-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                            ✅ Verifikator ({{ $stats['verifikator'] }})
                         </a>
                         <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'volunteer' ? 'bg-indigo-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
@@ -451,7 +467,20 @@
                                 </div>
                             </label>
 
-                            <!-- 4. Administrator -->
+                            <!-- 4. Verifikator KTAKuMu -->
+                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition select-none"
+                                   :class="hasRole('verifikator') ? 'border-sky-600 bg-sky-50/70 ring-2 ring-sky-100' : 'border-slate-200 bg-white hover:bg-slate-50'">
+                                <input type="checkbox" name="roles[]" value="verifikator" :checked="hasRole('verifikator')" @change="toggleRole('verifikator')" class="mt-1 rounded text-sky-700 focus:ring-sky-500">
+                                <div class="flex-1">
+                                    <div class="font-bold text-xs text-slate-900 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5"><span>✅</span> Verifikator KTAKuMu</span>
+                                        <span x-show="hasRole('verifikator')" class="text-[9px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.2 rounded">Aktif</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Akses ke Ruang Verifikator untuk meninjau data kucing, rekam medis dokter, dan menerbitkan kartu KTAKuMu resmi.</p>
+                                </div>
+                            </label>
+
+                            <!-- 5. Administrator -->
                             <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition select-none"
                                    :class="hasRole('admin') ? 'border-amber-600 bg-amber-50/70 ring-2 ring-amber-100' : 'border-slate-200 bg-white hover:bg-slate-50'">
                                 <input type="checkbox" name="roles[]" value="admin" :checked="hasRole('admin')" @change="toggleRole('admin')" class="mt-1 rounded text-amber-700 focus:ring-amber-500">

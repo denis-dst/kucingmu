@@ -101,7 +101,7 @@ class User extends Authenticatable
             return strtolower(trim($sessionRole));
         }
 
-        $priorities = ['superadmin', 'admin', 'dokter', 'volunteer', 'member'];
+        $priorities = ['superadmin', 'admin', 'verifikator', 'dokter', 'volunteer', 'member'];
         foreach ($priorities as $p) {
             if (in_array($p, $available)) {
                 return $p;
@@ -151,6 +151,13 @@ class User extends Authenticatable
                 'badge_class' => 'bg-amber-100 text-amber-900 border-amber-200',
                 'desc' => 'Manajemen event, pengguna, master wilayah, dan verifikasi KTAM.',
             ],
+            'verifikator' => [
+                'name' => 'Ruang Verifikator KTAKuMu',
+                'short_name' => 'Verifikator',
+                'icon' => '✅',
+                'badge_class' => 'bg-sky-100 text-sky-900 border-sky-200',
+                'desc' => 'Tinjau pendaftaran dan rekam medis kucing, serta verifikasi penerbitan KTAKuMu resmi.',
+            ],
             'dokter' => [
                 'name' => 'Ruang Dokter Hewan',
                 'short_name' => 'Dokter',
@@ -183,6 +190,11 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->hasRole('admin', 'superadmin');
+    }
+
+    public function isVerifikator(): bool
+    {
+        return $this->hasRole('verifikator', 'admin', 'superadmin');
     }
 
     public function isDokter(): bool

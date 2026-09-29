@@ -36,11 +36,16 @@ class KtamService
                 $cat->wilayah_code = '34';
             }
 
+            $verifiedAt = Carbon::now();
+
             // Generate official unique_code upon verification based on verification sequence (starts >= 61)
             if (empty($cat->unique_code)) {
                 $cat->unique_code = Cat::generateUniqueCode($cat->wilayah_code);
-                $cat->saveQuietly();
             }
+
+            $cat->verified_at = $verifiedAt;
+            $cat->verified_by = $adminId;
+            $cat->saveQuietly();
 
             $ktamNumber = $cat->unique_code;
             $verificationUrl = route('ktam.verify', ['number' => $ktamNumber]);
@@ -59,7 +64,7 @@ class KtamService
                     'issue_date' => Carbon::today(),
                     'qr_code_payload' => $qrCodeBase64,
                     'verified_by' => $adminId,
-                    'verified_at' => Carbon::now(),
+                    'verified_at' => $verifiedAt,
                 ]);
                 return $cat->ktamCard;
             }
@@ -71,7 +76,7 @@ class KtamService
                 'qr_code_payload' => $qrCodeBase64,
                 'is_printed' => false,
                 'verified_by' => $adminId,
-                'verified_at' => Carbon::now(),
+                'verified_at' => $verifiedAt,
             ]);
         });
     }

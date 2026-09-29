@@ -21,7 +21,7 @@ class AdminUserController extends Controller
 
         $query = User::withCount(['cats', 'vetRecords']);
 
-        if ($roleFilter !== 'all' && in_array($roleFilter, ['admin', 'superadmin', 'dokter', 'volunteer', 'member'])) {
+        if ($roleFilter !== 'all' && in_array($roleFilter, ['admin', 'superadmin', 'verifikator', 'dokter', 'volunteer', 'member'])) {
             $query->where(function ($q) use ($roleFilter) {
                 $q->where('role', $roleFilter)
                   ->orWhereJsonContains('roles', $roleFilter);
@@ -68,6 +68,7 @@ class AdminUserController extends Controller
         $userStats = User::selectRaw("
             COUNT(*) as total,
             COUNT(CASE WHEN role = 'member' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"member\"') THEN 1 END) as member,
+            COUNT(CASE WHEN role = 'verifikator' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"verifikator\"') THEN 1 END) as verifikator,
             COUNT(CASE WHEN role = 'dokter' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"dokter\"') THEN 1 END) as dokter,
             COUNT(CASE WHEN role = 'volunteer' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"volunteer\"') THEN 1 END) as volunteer,
             COUNT(CASE WHEN role IN ('admin', 'superadmin') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"admin\"') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"superadmin\"') THEN 1 END) as admin
@@ -76,6 +77,7 @@ class AdminUserController extends Controller
         $stats = [
             'total' => (int) ($userStats->total ?? 0),
             'member' => (int) ($userStats->member ?? 0),
+            'verifikator' => (int) ($userStats->verifikator ?? 0),
             'dokter' => (int) ($userStats->dokter ?? 0),
             'volunteer' => (int) ($userStats->volunteer ?? 0),
             'admin' => (int) ($userStats->admin ?? 0),
@@ -92,8 +94,8 @@ class AdminUserController extends Controller
     {
         $validated = $request->validate([
             'roles' => ['nullable', 'array'],
-            'roles.*' => [Rule::in(['member', 'volunteer', 'dokter', 'admin', 'superadmin'])],
-            'role' => ['nullable', Rule::in(['member', 'volunteer', 'dokter', 'admin', 'superadmin'])],
+            'roles.*' => [Rule::in(['member', 'volunteer', 'dokter', 'verifikator', 'admin', 'superadmin'])],
+            'role' => ['nullable', Rule::in(['member', 'volunteer', 'dokter', 'verifikator', 'admin', 'superadmin'])],
         ]);
 
         $currentUser = Auth::user();
@@ -129,8 +131,8 @@ class AdminUserController extends Controller
         }
 
         // Determine primary role column (for legacy backward compatibility)
-        // Order of priority for primary role: superadmin > admin > dokter > volunteer > member
-        $priorities = ['superadmin', 'admin', 'dokter', 'volunteer', 'member'];
+        // Order of priority for primary role: superadmin > admin > verifikator > dokter > volunteer > member
+        $priorities = ['superadmin', 'admin', 'verifikator', 'dokter', 'volunteer', 'member'];
         $primaryRole = 'member';
         foreach ($priorities as $p) {
             if (in_array($p, $selectedRoles)) {
@@ -147,6 +149,7 @@ class AdminUserController extends Controller
             'member' => 'Member (Pemilik Kucing)',
             'volunteer' => 'Relawan Sensus',
             'dokter' => 'Dokter Hewan',
+            'verifikator' => 'Verifikator KTAKuMu',
             'admin' => 'Administrator',
             'superadmin' => 'Super Administrator',
         ];

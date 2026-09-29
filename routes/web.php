@@ -108,10 +108,15 @@ Route::post('/kontak', [ContactController::class, 'store'])->name('contact.store
 
 use App\Http\Controllers\Admin\AdminMailboxController;
 
+// Verification Routes (Accessible by Verifikator, Admin, Superadmin)
+Route::middleware(['auth', 'role:verifikator,admin,superadmin'])->group(function () {
+    Route::post('/admin/cats/{cat}/verify-ktam', [DashboardController::class, 'verifyAndIssueKtam'])->name('admin.verify-ktam');
+    Route::post('/verifikator/cats/{cat}/verify-ktam', [DashboardController::class, 'verifyAndIssueKtam'])->name('verifikator.verify-ktam');
+});
+
 // Admin & Superadmin Routes
 Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/export-data', [DashboardController::class, 'exportData'])->name('export-data');
-    Route::post('/admin/cats/{cat}/verify-ktam', [DashboardController::class, 'verifyAndIssueKtam'])->name('admin.verify-ktam');
     Route::get('/settings', [AppSettingController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
     Route::resource('/events', EventController::class, ['names' => 'admin.events']);

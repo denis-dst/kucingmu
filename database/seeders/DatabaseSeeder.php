@@ -45,6 +45,19 @@ class DatabaseSeeder extends Seeder
             'muhammadiyah_id' => '1.000.003',
         ]);
 
+        // Verifikator
+        User::firstOrCreate(
+            ['email' => 'verifikator@kucingmu.com'],
+            [
+                'name' => 'Verifikator KucingMu',
+                'password' => bcrypt('password'),
+                'role' => 'verifikator',
+                'roles' => ['verifikator', 'member'],
+                'phone' => '081234567894',
+                'muhammadiyah_id' => '1.000.004',
+            ]
+        );
+
         // Member
         User::firstOrCreate(
             ['email' => 'member@kucingmu.com'],
