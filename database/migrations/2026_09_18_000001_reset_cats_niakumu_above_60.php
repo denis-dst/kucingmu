@@ -18,12 +18,23 @@ return new class extends Migration
             ->update(['unique_code' => null]);
 
         // 2. Also reset unique_code for cats whose unique_code suffix number is >= 61 (e.g. *.kcg.0061+)
-        DB::statement("
-            UPDATE cats 
-            SET unique_code = NULL 
-            WHERE unique_code IS NOT NULL 
-              AND CAST(SUBSTRING_INDEX(unique_code, '.', -1) AS UNSIGNED) >= 61
-        ");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("
+                UPDATE cats 
+                SET unique_code = NULL 
+                WHERE unique_code IS NOT NULL 
+                  AND CAST(SUBSTRING_INDEX(unique_code, '.', -1) AS UNSIGNED) >= 61
+            ");
+        } else {
+            $cats = DB::table('cats')->whereNotNull('unique_code')->get();
+            foreach ($cats as $cat) {
+                $parts = explode('.', $cat->unique_code);
+                $seq = (int) end($parts);
+                if ($seq >= 61) {
+                    DB::table('cats')->where('id', $cat->id)->update(['unique_code' => null]);
+                }
+            }
+        }
 
         // 3. Remove KTAM cards for unverified cats (ID >= 61 or unique_code IS NULL)
         DB::table('ktam_cards')

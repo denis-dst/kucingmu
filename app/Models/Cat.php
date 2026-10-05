@@ -273,5 +273,89 @@ class Cat extends Model
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
+
+    /**
+     * Check if a user can edit/update this cat.
+     *
+     * Rules:
+     * - Cat owner can always edit their own cat.
+     * - Verifikator, Admin, Superadmin can edit any cat ONLY when they are actively in their staff workspace.
+     * - When in 'member' role/workspace, any user is strictly restricted to their own cats only.
+     */
+    public function canBeEditedBy(User $user): bool
+    {
+        if ((int) $this->user_id === (int) $user->id) {
+            return true;
+        }
+
+        $activeRole = $user->getActiveRole();
+
+        // When actively acting in member workspace, cannot edit other people's cats
+        if ($activeRole === 'member') {
+            return false;
+        }
+
+        return in_array($activeRole, ['verifikator', 'admin', 'superadmin']);
+    }
+
+    /**
+     * Check if a user can delete this cat.
+     */
+    public function canBeDeletedBy(User $user): bool
+    {
+        if ((int) $this->user_id === (int) $user->id) {
+            return true;
+        }
+
+        $activeRole = $user->getActiveRole();
+        if ($activeRole === 'member') {
+            return false;
+        }
+
+        return in_array($activeRole, ['admin', 'superadmin']);
+    }
+
+    /**
+     * Check if a user can toggle status (alive/deceased) of this cat.
+     */
+    public function canToggleStatusBy(User $user): bool
+    {
+        if ((int) $this->user_id === (int) $user->id) {
+            return true;
+        }
+
+        $activeRole = $user->getActiveRole();
+        if ($activeRole === 'member') {
+            return false;
+        }
+
+        return in_array($activeRole, ['admin', 'superadmin']);
+    }
+
+    /**
+     * Check if a user can manage photos (upload, set primary, delete) of this cat.
+     */
+    public function canManagePhotosBy(User $user): bool
+    {
+        return $this->canBeEditedBy($user);
+    }
+
+    /**
+     * Check if a user can preview or download KTAM card of this cat.
+     */
+    public function canAccessKtamBy(User $user): bool
+    {
+        if ((int) $this->user_id === (int) $user->id) {
+            return true;
+        }
+
+        $activeRole = $user->getActiveRole();
+        if ($activeRole === 'member') {
+            return false;
+        }
+
+        return in_array($activeRole, ['verifikator', 'admin', 'superadmin', 'dokter', 'volunteer']);
+    }
 }
+
 

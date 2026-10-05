@@ -10,6 +10,7 @@ use App\Models\KtamCard;
 use App\Models\MasterWilayah;
 use App\Models\MasterBreed;
 use App\Models\User;
+use App\Models\AppSetting;
 use App\Services\KtamService;
 use App\Services\ImageCompressionService;
 use Carbon\Carbon;
@@ -594,8 +595,10 @@ class DashboardController extends Controller
      */
     public function editCat(Cat $cat)
     {
-        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isVerifikator()) {
-            abort(403);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$cat->canBeEditedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah profil kucing ini.');
         }
 
         $cat->load(['photos', 'wilayah']);
@@ -610,8 +613,10 @@ class DashboardController extends Controller
      */
     public function updateCat(Request $request, Cat $cat)
     {
-        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isVerifikator()) {
-            abort(403);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$cat->canBeEditedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah profil kucing ini.');
         }
 
         $request->validate([
@@ -765,8 +770,8 @@ class DashboardController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        if ((int) $cat->user_id !== (int) $user->id && !$user->isAdmin()) {
-            abort(403);
+        if (!$cat->canBeDeletedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus profil kucing ini.');
         }
 
         $catName = $cat->name;
@@ -782,8 +787,10 @@ class DashboardController extends Controller
      */
     public function toggleCatStatus(Cat $cat)
     {
-        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$cat->canToggleStatusBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah status kucing ini.');
         }
 
         $newStatus = $cat->isAlive() ? 'deceased' : 'alive';
@@ -798,8 +805,10 @@ class DashboardController extends Controller
      */
     public function uploadCatPhoto(Request $request, Cat $cat)
     {
-        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$cat->canManagePhotosBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menambahkan foto pada kucing ini.');
         }
 
         $request->validate([
@@ -837,9 +846,11 @@ class DashboardController extends Controller
      */
     public function setPrimaryPhoto(CatPhoto $photo)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $cat = $photo->cat;
-        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403);
+        if (!$cat || !$cat->canManagePhotosBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengatur foto utama kucing ini.');
         }
 
         CatPhoto::where('cat_id', $cat->id)->update(['is_primary' => false]);
@@ -855,9 +866,11 @@ class DashboardController extends Controller
      */
     public function deletePhoto(CatPhoto $photo)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
         $cat = $photo->cat;
-        if ((int) $cat->user_id !== (int) Auth::id() && !Auth::user()->isAdmin()) {
-            abort(403);
+        if (!$cat || !$cat->canManagePhotosBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus foto kucing ini.');
         }
 
         $wasPrimary = $photo->is_primary;
@@ -899,7 +912,7 @@ class DashboardController extends Controller
 
         $cat = Cat::findOrFail($request->cat_id);
         if ((int) $cat->user_id !== (int) Auth::id()) {
-            abort(403);
+            abort(403, 'Anda hanya dapat membuat janji temu untuk kucing milik Anda sendiri.');
         }
 
         // Anti-double submission safeguard for appointments
@@ -970,11 +983,13 @@ class DashboardController extends Controller
      */
     public function verifyAndIssueKtam(Request $request, Cat $cat, KtamService $ktamService)
     {
-        if (!Auth::user()->isVerifikator()) {
-            abort(403);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!in_array($user->getActiveRole(), ['verifikator', 'admin', 'superadmin'])) {
+            abort(403, 'Akses verifikasi hanya untuk staf Verifikator dan Administrator.');
         }
 
-        $card = $ktamService->issueCard($cat, Auth::id());
+        $card = $ktamService->issueCard($cat, $user->id);
 
         return redirect()->back()->with('success', 'Kartu KTAM (' . $card->ktam_number . ') berhasil diverifikasi & diterbitkan.');
     }
@@ -984,14 +999,16 @@ class DashboardController extends Controller
      */
     public function downloadKtam(Cat $cat)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$cat->canAccessKtamBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengunduh kartu KTAM kucing ini.');
+        }
+
         $cat->load(['photos', 'owner', 'wilayah']);
         $card = $cat->ktamCard;
         if (!$card) {
             return redirect()->route('dashboard')->with('error', 'Kucing ini belum memiliki kartu KTAM.');
-        }
-
-        if (!Auth::user()->hasRole('verifikator', 'admin', 'superadmin', 'dokter', 'volunteer') && (int) $cat->user_id !== (int) Auth::id()) {
-            abort(403);
         }
 
         $pdf = Pdf::loadView('pdf.ktam', compact('card', 'cat'));
@@ -1005,11 +1022,13 @@ class DashboardController extends Controller
      */
     public function previewKtam(Cat $cat)
     {
-        $cat->load(['photos', 'owner', 'wilayah']);
-
-        if (!Auth::user()->hasRole('verifikator', 'admin', 'superadmin', 'dokter', 'volunteer') && (int) $cat->user_id !== (int) Auth::id()) {
-            abort(403);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$cat->canAccessKtamBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk melihat pratinjau kartu KTAM kucing ini.');
         }
+
+        $cat->load(['photos', 'owner', 'wilayah']);
 
         $card = $cat->ktamCard;
         if (!$card) {

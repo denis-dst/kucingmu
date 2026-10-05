@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('phone')->nullable();
-            $table->enum('role', ['admin', 'dokter', 'volunteer', 'member'])->default('member');
+            $table->string('role', 50)->default('member');
             $table->string('muhammadiyah_id')->nullable(); // NBM (Nomor Baku Muhammadiyah)
             $table->rememberToken();
             $table->timestamps();

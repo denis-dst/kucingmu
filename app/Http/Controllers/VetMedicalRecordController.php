@@ -595,13 +595,16 @@ class VetMedicalRecordController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Security check: Only the cat owner or clinic staff can view
+        // Security check: Only the cat owner or clinic staff in staff workspace can view
         $isOwner = (int) $record->cat->user_id === (int) $user->id || (int) $record->member_id === (int) $user->id;
-        if (!$isOwner && !$user->isAdmin() && !$user->hasRole('dokter')) {
+        $activeRole = $user->getActiveRole();
+        $isStaffActive = in_array($activeRole, ['dokter', 'admin', 'superadmin']);
+
+        if (!$isOwner && !$isStaffActive) {
             abort(403, 'Anda tidak memiliki hak akses untuk ringkasan medis kucing ini.');
         }
 
-        if (!$record->isCompleted() && !$user->hasRole('dokter') && !$user->isAdmin()) {
+        if (!$record->isCompleted() && !$isStaffActive) {
             return redirect()->back()->with('error', 'Rekam medis ini masih dalam proses pemeriksaan oleh dokter.');
         }
 
