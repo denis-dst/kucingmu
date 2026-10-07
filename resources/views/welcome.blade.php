@@ -52,6 +52,9 @@
 
             <!-- Desktop Nav Links -->
             <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-700" aria-label="Navigasi Halaman">
+                <a href="{{ route('adoption.index') }}" class="text-teal-800 font-bold hover:text-teal-950 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-2 py-1 bg-teal-50 hover:bg-teal-100 border border-teal-200 inline-flex items-center gap-1.5 shadow-2xs">
+                    <span>💖</span> <span>Adopsi Aku</span>
+                </a>
                 <a href="#tentang" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
                 <a href="#fitur" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
                 @if(isset($events) && $events->isNotEmpty())
@@ -102,6 +105,9 @@
 
         <!-- Mobile Navigation Drawer -->
         <div x-show="mobileNavOpen" x-transition class="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1">
+            <a href="{{ route('adoption.index') }}" class="block min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-bold text-teal-900 bg-teal-50 border border-teal-200 flex items-center gap-2">
+                <span>💖</span> <span>Adopsi Aku</span>
+            </a>
             <a href="#tentang" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
             <a href="#fitur" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
             @if(isset($events) && $events->isNotEmpty())
@@ -392,7 +398,7 @@
                     </p>
                 </div>
 
-                <div class="grid gap-6 md:grid-cols-3">
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="content-card">
                         <div class="text-2xl" aria-hidden="true">🏥</div>
                         <h3 class="font-bold text-slate-900 mt-3 text-base">Pemeriksaan Dokter Hewan</h3>
@@ -403,7 +409,7 @@
 
                     <div class="content-card">
                         <div class="text-2xl" aria-hidden="true">🎫</div>
-                        <h3 class="font-bold text-slate-900 mt-3 text-base">Penerbitan KTAKuMu Kucing</h3>
+                        <h3 class="font-bold text-slate-900 mt-3 text-base">Penerbitan KTAKuMu</h3>
                         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
                             Penerbitan nomor identitas resmi KTAKuMu lengkap dengan QR code validasi verifikasi digital.
                         </p>
@@ -416,6 +422,17 @@
                             Relawan dapat mendata sebaran kucing liar, kondisi kesehatan, dan lokasi koordinat secara terstruktur.
                         </p>
                     </div>
+
+                    <a href="{{ route('adoption.index') }}" class="content-card group hover:border-teal-400 hover:shadow-md transition block bg-gradient-to-b from-teal-50/60 to-white border-teal-100">
+                        <div class="text-2xl group-hover:scale-110 transition-transform" aria-hidden="true">💖</div>
+                        <h3 class="font-bold text-slate-900 mt-3 text-base flex items-center justify-between">
+                            <span>Adopsi Aku</span>
+                            <span class="text-xs text-teal-700">↗</span>
+                        </h3>
+                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+                            Wadah open adopsi kucing terdaftar dan hasil rescue. Dimediasi aman lewat admin demi privasi bersama.
+                        </p>
+                    </a>
                 </div>
             </div>
         </section>

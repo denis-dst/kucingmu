@@ -492,6 +492,11 @@ class DashboardController extends Controller
             'allergies' => 'nullable|string',
             'vaccine_history' => 'nullable|string',
             'notes' => 'nullable|string',
+            'is_for_adoption' => 'nullable',
+            'adoption_status' => 'nullable|string|in:available,in_process,adopted',
+            'adoption_notes' => 'nullable|string|max:2000',
+            'adoption_location' => 'nullable|string|max:255',
+            'adoption_fee_type' => 'nullable|string|max:100',
         ]);
 
         try {
@@ -539,11 +544,20 @@ class DashboardController extends Controller
 
             $catStatus = $request->filled('status') ? (in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive') : ($cat->status ?: 'alive');
 
+            $isForAdoption = $request->has('is_for_adoption') && (bool) $request->is_for_adoption;
+            $adoptionStatus = $request->input('adoption_status', $cat->adoption_status ?: 'available');
+
             $cat->update([
                 'name' => $request->name,
                 'breed' => $finalBreed,
                 'gender' => $request->gender,
                 'status' => $catStatus,
+                'is_for_adoption' => $isForAdoption,
+                'adoption_status' => $isForAdoption ? $adoptionStatus : 'available',
+                'adoption_notes' => $isForAdoption ? $request->adoption_notes : null,
+                'adoption_location' => $isForAdoption ? $request->adoption_location : null,
+                'adoption_fee_type' => $isForAdoption ? ($request->adoption_fee_type ?: 'Gratis (Bebas Biaya)') : null,
+                'adoption_listed_at' => $isForAdoption ? ($cat->adoption_listed_at ?: now()) : null,
                 'date_of_birth' => $request->date_of_birth,
                 'wilayah_code' => $newWilayah,
                 'unique_code' => $uniqueCode,

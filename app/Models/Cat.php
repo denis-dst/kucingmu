@@ -18,6 +18,12 @@ class Cat extends Model
         'breed',
         'gender',
         'status',
+        'is_for_adoption',
+        'adoption_status',
+        'adoption_notes',
+        'adoption_location',
+        'adoption_fee_type',
+        'adoption_listed_at',
         'date_of_birth',
         'wilayah_code',
         'unique_code',
@@ -36,6 +42,8 @@ class Cat extends Model
     ];
 
     protected $casts = [
+        'is_for_adoption' => 'boolean',
+        'adoption_listed_at' => 'datetime',
         'date_of_birth' => 'date',
         'photo_embedding' => 'array',
         'color_fingerprint' => 'array',
@@ -235,9 +243,86 @@ class Cat extends Model
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=0F766E&background=E6F4F1&size=128';
     }
 
+    public function adoptionApplications()
+    {
+        return $this->hasMany(AdoptionApplication::class);
+    }
+
+    /**
+     * Scope query for open adoption.
+     */
+    public function scopeForAdoption($query)
+    {
+        return $query->where('is_for_adoption', true);
+    }
+
+    /**
+     * Check if cat is listed for adoption.
+     */
+    public function isForAdoption(): bool
+    {
+        return (bool) $this->is_for_adoption;
+    }
+
+    /**
+     * Human-readable adoption status label.
+     */
+    public function getAdoptionStatusLabelAttribute(): string
+    {
+        return match ($this->adoption_status) {
+            'in_process' => 'Sedang Proses Seleksi',
+            'adopted' => 'Sudah Resmi Diadopsi',
+            default => 'Siap Diadopsi',
+        };
+    }
+
+    /**
+     * Badge class for adoption status.
+     */
+    public function getAdoptionBadgeClassAttribute(): string
+    {
+        return match ($this->adoption_status) {
+            'in_process' => 'bg-amber-50 text-amber-800 border-amber-300',
+            'adopted' => 'bg-purple-50 text-purple-800 border-purple-300',
+            default => 'bg-emerald-50 text-emerald-800 border-emerald-300',
+        };
+    }
+
+    /**
+     * Privacy-protected masked owner name (safe for public/member view).
+     */
+    public function getMaskedOwnerNameAttribute(): string
+    {
+        if (!$this->owner) {
+            return 'Member Terdaftar KucingMu';
+        }
+
+        $name = trim($this->owner->name);
+        $parts = preg_split('/\s+/', $name);
+        if (count($parts) === 1) {
+            return substr($parts[0], 0, 1) . '*** (Member)';
+        }
+
+        $first = substr($parts[0], 0, 1) . '***';
+        $second = substr($parts[1], 0, 1) . '.';
+        return "{$first} {$second} (Member Terverifikasi ✅)";
+    }
+
+    /**
+     * Privacy-safe owner location (Wilayah/Kota).
+     */
+    public function getMaskedOwnerLocationAttribute(): string
+    {
+        if (!empty($this->adoption_location)) {
+            return $this->adoption_location;
+        }
+
+        return $this->wilayah ? $this->wilayah->nama : 'D.I. Yogyakarta';
+    }
+
     public function getPrimaryPhotoPathAttribute()
     {
-        $primary = $this->photos->firstWhere('is_primary', true);
+        $primary = $this->photos ? $this->photos->firstWhere('is_primary', true) : null;
         if ($primary && $primary->photo_path) {
             return $primary->photo_path;
         }

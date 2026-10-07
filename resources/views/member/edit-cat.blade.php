@@ -423,6 +423,61 @@
                         </div>
                     </div>
 
+                    <!-- Pengaturan Open Adopsi (Adopsi Aku) -->
+                    <div class="border-t border-slate-100 pt-6" x-data="{ openAdoption: {{ old('is_for_adoption', $cat->is_for_adoption ? 1 : 0) ? 'true' : 'false' }} }">
+                        <div class="bg-gradient-to-r from-teal-50/70 to-emerald-50/70 p-5 rounded-2xl border border-teal-200/80 space-y-4 shadow-2xs">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-2xl">💖</span>
+                                    <div>
+                                        <h3 class="font-outfit text-base font-bold text-slate-900">Program "Adopsi Aku" (Open Adopsi)</h3>
+                                        <p class="text-xs text-slate-500 mt-0.5">Buka kesempatan bagi pecinta kucing yang amanah untuk mengadopsi anabul Anda.</p>
+                                    </div>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                    <input type="checkbox" name="is_for_adoption" value="1" x-model="openAdoption" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-teal-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                                </label>
+                            </div>
+
+                            <!-- Adoption Details Section (Shown when toggled ON) -->
+                            <div x-show="openAdoption" x-transition class="space-y-4 pt-3 border-t border-teal-200/60">
+                                <div class="p-3 bg-white/90 rounded-xl border border-teal-100 text-xs text-teal-900 flex items-start gap-2 shadow-2xs">
+                                    <span class="text-base">🛡️</span>
+                                    <div>
+                                        <strong>Jaminan Privasi Kontak Member:</strong> Nomor HP & WhatsApp Anda tidak akan ditampilkan ke publik. Semua permohonan calon pengadopsi akan dimediasi oleh Tim Admin KucingMu.
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-4 sm:grid-cols-3">
+                                    <div>
+                                        <label for="adoption_status" class="form-label font-semibold text-slate-700 text-xs">Status Adopsi</label>
+                                        <select id="adoption_status" name="adoption_status" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs">
+                                            <option value="available" {{ old('adoption_status', $cat->adoption_status) === 'available' ? 'selected' : '' }}>🟢 Siap Diadopsi</option>
+                                            <option value="in_process" {{ old('adoption_status', $cat->adoption_status) === 'in_process' ? 'selected' : '' }}>🟡 Sedang Proses Seleksi</option>
+                                            <option value="adopted" {{ old('adoption_status', $cat->adoption_status) === 'adopted' ? 'selected' : '' }}>🟣 Sudah Resmi Diadopsi</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label for="adoption_location" class="form-label font-semibold text-slate-700 text-xs">Lokasi / Kota Anabul</label>
+                                        <input type="text" id="adoption_location" name="adoption_location" value="{{ old('adoption_location', $cat->adoption_location ?: ($cat->wilayah ? $cat->wilayah->nama : 'Sleman, DIY')) }}" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs" placeholder="e.g. Sleman, D.I. Yogyakarta">
+                                    </div>
+
+                                    <div>
+                                        <label for="adoption_fee_type" class="form-label font-semibold text-slate-700 text-xs">Biaya Adopsi</label>
+                                        <input type="text" id="adoption_fee_type" name="adoption_fee_type" value="{{ old('adoption_fee_type', $cat->adoption_fee_type ?: 'Gratis (Bebas Biaya)') }}" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs" placeholder="e.g. Gratis (Bebas Biaya)">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="adoption_notes" class="form-label font-semibold text-slate-700 text-xs">Catatan Adopsi, Kebiasaan, & Syarat Calon Adopter</label>
+                                    <textarea id="adoption_notes" name="adoption_notes" rows="3" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs leading-relaxed" placeholder="Ceritakan kebiasaan makan, kepribadian, alasan dilepas adopsi, dan syarat khusus bagi calon pengadopsi (misal: komitmen indoor, bersedia sterilisasi)...">{{ old('adoption_notes', $cat->adoption_notes) }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Tombol Aksi -->
                     <div class="flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-slate-100">
                         <button type="submit" form="delete-cat-form-{{ $cat->id }}" class="button-danger px-4 py-2.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl">

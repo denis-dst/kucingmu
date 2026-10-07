@@ -12,6 +12,10 @@ class StrayCatSurvey extends Model
     protected $fillable = [
         // Core (step 0)
         'volunteer_id',
+        'is_for_adoption',
+        'adoption_status',
+        'adoption_notes',
+        'adoption_listed_at',
         'surveyed_at',
         'campus_location',
         'zone',
@@ -125,6 +129,8 @@ class StrayCatSurvey extends Model
     ];
 
     protected $casts = [
+        'is_for_adoption'         => 'boolean',
+        'adoption_listed_at'      => 'datetime',
         'surveyed_at'             => 'datetime',
         'physical_exam_date'      => 'date',
         'photo_embedding'         => 'array',
@@ -155,5 +161,67 @@ class StrayCatSurvey extends Model
     public function volunteer()
     {
         return $this->belongsTo(User::class, 'volunteer_id');
+    }
+
+    public function adoptionApplications()
+    {
+        return $this->hasMany(AdoptionApplication::class, 'stray_cat_survey_id');
+    }
+
+    public function scopeForAdoption($query)
+    {
+        return $query->where('is_for_adoption', true);
+    }
+
+    public function isForAdoption(): bool
+    {
+        return (bool) $this->is_for_adoption;
+    }
+
+    public function getAdoptionStatusLabelAttribute(): string
+    {
+        return match ($this->adoption_status) {
+            'in_process' => 'Sedang Proses Seleksi',
+            'adopted' => 'Sudah Resmi Diadopsi',
+            default => 'Siap Diadopsi',
+        };
+    }
+
+    public function getAdoptionBadgeClassAttribute(): string
+    {
+        return match ($this->adoption_status) {
+            'in_process' => 'bg-amber-50 text-amber-800 border-amber-300',
+            'adopted' => 'bg-purple-50 text-purple-800 border-purple-300',
+            default => 'bg-emerald-50 text-emerald-800 border-emerald-300',
+        };
+    }
+
+    public function getMaskedVolunteerNameAttribute(): string
+    {
+        if (!empty($this->surveyor_name)) {
+            $name = trim($this->surveyor_name);
+            $parts = preg_split('/\s+/', $name);
+            return substr($parts[0], 0, 1) . '*** (Relawan Sensus PTMA)';
+        }
+
+        if ($this->volunteer) {
+            $name = trim($this->volunteer->name);
+            $parts = preg_split('/\s+/', $name);
+            return substr($parts[0], 0, 1) . '*** (Relawan KucingMu)';
+        }
+
+        return 'Relawan Sensus PTMA';
+    }
+
+    public function getPhotoUrlAttribute(): string
+    {
+        if ($this->photo_path) {
+            $fullPath = storage_path('app/public/' . $this->photo_path);
+            if (file_exists($fullPath)) {
+                return asset('storage/' . $this->photo_path);
+            }
+        }
+        $name = $this->physical_cat_name ?: ($this->campus_location ? 'Kucing ' . $this->campus_location : 'Kucing Rescue');
+        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&color=0F766E&background=E6F4F1&size=128';
     }
 }

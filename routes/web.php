@@ -86,6 +86,14 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
 Route::get('/kontak', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/kontak', [ContactController::class, 'store'])->name('contact.store');
 
+// Public & Community Adoption Hub ("Adopsi Aku")
+use App\Http\Controllers\AdoptionController;
+use App\Http\Controllers\Admin\AdminAdoptionController;
+
+Route::get('/adopsi', [AdoptionController::class, 'index'])->name('adoption.index');
+Route::get('/adopsi/{source}/{id}', [AdoptionController::class, 'show'])->name('adoption.show');
+Route::post('/adopsi/{source}/{id}/apply', [AdoptionController::class, 'apply'])->name('adoption.apply');
+
 use App\Http\Controllers\Admin\AdminMailboxController;
 
 // Admin & Superadmin Routes
@@ -95,6 +103,14 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/settings', [AppSettingController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
     Route::resource('/events', EventController::class, ['names' => 'admin.events']);
+
+    // Admin Adoption Hub Management & Mediation
+    Route::get('/admin/adoptions', [AdminAdoptionController::class, 'index'])->name('admin.adoptions.index');
+    Route::get('/admin/adoptions/applications', [AdminAdoptionController::class, 'applications'])->name('admin.adoptions.applications');
+    Route::get('/admin/adoptions/applications/{application}', [AdminAdoptionController::class, 'showApplication'])->name('admin.adoptions.show-application');
+    Route::post('/admin/adoptions/applications/{application}/status', [AdminAdoptionController::class, 'updateApplicationStatus'])->name('admin.adoptions.update-status');
+    Route::post('/admin/adoptions/cats/{cat}/toggle', [AdminAdoptionController::class, 'toggleCatAdoption'])->name('admin.adoptions.toggle-cat');
+    Route::delete('/admin/adoptions/applications/{application}', [AdminAdoptionController::class, 'destroyApplication'])->name('admin.adoptions.destroy-application');
 
     // Admin Mailbox (Inbox & Outbox) Management
     Route::get('/admin/mail/inbox', [AdminMailboxController::class, 'inbox'])->name('admin.mail.inbox');

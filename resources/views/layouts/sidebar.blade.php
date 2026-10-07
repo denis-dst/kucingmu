@@ -6,6 +6,9 @@
     $unreadContactCount = in_array($activeRole, ['admin', 'superadmin']) 
         ? \App\Models\ContactMessage::where('status', 'unread')->count() 
         : 0;
+    $pendingAdoptionCount = in_array($activeRole, ['admin', 'superadmin']) 
+        ? \App\Models\AdoptionApplication::where('status', 'pending')->count() 
+        : 0;
 @endphp
 
 <!-- Mobile Backdrop Overlay -->
@@ -93,6 +96,14 @@
                     <span>{{ $activeRole === 'member' ? 'Kucing Saya' : 'Dashboard' }}</span>
                 </a>
 
+                <!-- Adopsi Aku (Etalase Terbuka) -->
+                <a href="{{ route('adoption.index') }}" 
+                   @click="mobileSidebarOpen = false"
+                   class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ (request()->routeIs('adoption.*') && !request()->routeIs('admin.adoptions.*')) ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                    <span class="text-base {{ (request()->routeIs('adoption.*') && !request()->routeIs('admin.adoptions.*')) ? 'text-white' : 'text-rose-500' }}">💖</span>
+                    <span>Adopsi Aku</span>
+                </a>
+
                 <!-- Hubungi Kami (for Member) -->
                 @if($activeRole === 'member')
                     <a href="{{ route('contact.index') }}" 
@@ -133,6 +144,21 @@
                     <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         Administrasi & Konten
                     </div>
+
+                    <!-- Kelola Adopsi & Permohonan -->
+                    <a href="{{ route('admin.adoptions.applications') }}" 
+                       @click="mobileSidebarOpen = false"
+                       class="sidebar-item flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('admin.adoptions.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-base {{ request()->routeIs('admin.adoptions.*') ? 'text-white' : 'text-slate-500' }}">💖</span>
+                            <span>Kelola Adopsi</span>
+                        </div>
+                        @if($pendingAdoptionCount > 0)
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ request()->routeIs('admin.adoptions.*') ? 'bg-white text-teal-900' : 'bg-rose-600 text-white' }} shadow-2xs">
+                                {{ $pendingAdoptionCount }}
+                            </span>
+                        @endif
+                    </a>
 
                     <!-- Kotak Masuk (Inbox) -->
                     <a href="{{ route('admin.mail.inbox') }}" 
