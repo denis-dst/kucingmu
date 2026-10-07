@@ -1,7 +1,5 @@
 <x-app-layout>
     <div class="py-8" x-data="{ 
-        searchPending: '', 
-        filterPendingType: 'all', 
         showDetailModal: false, 
         selectedCat: null,
         openCatDetail(cat) {
@@ -48,10 +46,10 @@
                     </p>
                     
                     <div class="mt-4 flex flex-wrap gap-3">
-                        <a href="#pending-queue" class="button-primary text-xs font-bold px-4 py-2.5 shadow-sm bg-sky-700 hover:bg-sky-800">
+                        <a href="{{ route('dashboard', ['ktam_status' => 'pending']) }}#cat-registry-table" class="button-primary text-xs font-bold px-4 py-2.5 shadow-sm bg-sky-700 hover:bg-sky-800">
                             <span>⏳</span> Antrian Verifikasi ({{ $stats['pending_verification_count'] }})
                         </a>
-                        <a href="#cat-registry-table" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
+                        <a href="{{ route('dashboard') }}#cat-registry-table" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
                             <span>📋</span> Database Seluruh Kucing
                         </a>
                     </div>
@@ -151,188 +149,6 @@
                 </div>
             </div>
 
-            <!-- Antrian Permintaan Verifikasi & Penerbitan KTAKuMu -->
-            <div id="pending-queue" class="content-card bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 scroll-mt-6">
-                <!-- Header: Title, Badge, & Subtitle -->
-                <div class="space-y-1">
-                    <div class="flex items-center gap-2.5 flex-wrap">
-                        <h2 class="font-outfit text-lg sm:text-xl font-bold text-slate-900 leading-tight">
-                            Antrian Verifikasi KTAKuMu
-                        </h2>
-                        @if($pendingVerificationCats->count() > 0)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                                {{ $pendingVerificationCats->count() }} Menunggu
-                            </span>
-                        @endif
-                    </div>
-                    <p class="text-xs text-slate-500 leading-relaxed">
-                        Tinjau hasil pemeriksaan dokter hewan dan data kucing untuk menerbitkan kartu KTAKuMu resmi.
-                    </p>
-                </div>
-
-                @if($pendingVerificationCats->count() > 0)
-                    <!-- Dedicated Filter & Search Toolbar -->
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                        <!-- Quick Filter Pills -->
-                        <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
-                            <button type="button" 
-                                    @click="filterPendingType = 'all'" 
-                                    :class="filterPendingType === 'all' 
-                                        ? 'bg-amber-800 text-white font-bold shadow-xs' 
-                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60'" 
-                                    class="text-xs px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 font-medium">
-                                <span>Semua</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold" 
-                                      :class="filterPendingType === 'all' ? 'bg-amber-900/60 text-amber-100' : 'bg-slate-200/80 text-slate-700'">
-                                    {{ $pendingVerificationCats->count() }}
-                                </span>
-                            </button>
-                            <button type="button" 
-                                    @click="filterPendingType = 'medical'" 
-                                    :class="filterPendingType === 'medical' 
-                                        ? 'bg-emerald-700 text-white font-bold shadow-xs' 
-                                        : 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100/70'" 
-                                    class="text-xs px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 font-medium">
-                                <span>🩺 Ada Rekam Medis</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold" 
-                                      :class="filterPendingType === 'medical' ? 'bg-emerald-800 text-emerald-100' : 'bg-emerald-200/60 text-emerald-900'">
-                                    {{ $pendingVerificationCats->filter(fn($c) => $c->medicalRecords->isNotEmpty())->count() }}
-                                </span>
-                            </button>
-                            <button type="button" 
-                                    @click="filterPendingType = 'non_medical'" 
-                                    :class="filterPendingType === 'non_medical' 
-                                        ? 'bg-slate-700 text-white font-bold shadow-xs' 
-                                        : 'bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200'" 
-                                    class="text-xs px-3.5 py-2 rounded-xl transition cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 font-medium">
-                                <span>📋 Belum Ada Medis</span>
-                                <span class="px-1.5 py-0.5 rounded-md text-[11px] font-bold" 
-                                      :class="filterPendingType === 'non_medical' ? 'bg-slate-800 text-slate-100' : 'bg-slate-200/80 text-slate-700'">
-                                    {{ $pendingVerificationCats->filter(fn($c) => $c->medicalRecords->isEmpty())->count() }}
-                                </span>
-                            </button>
-                        </div>
-
-                        <!-- Search Bar for Pending Cards -->
-                        <div class="relative w-full md:w-72 shrink-0">
-                            <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                            <input type="text" 
-                                   x-model="searchPending" 
-                                   placeholder="Cari nama, NBM, pemilik..." 
-                                   class="w-full text-xs pl-10 pr-8 py-2 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition outline-none">
-                            <button type="button" 
-                                    x-show="searchPending" 
-                                    @click="searchPending = ''" 
-                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs font-bold cursor-pointer p-1">✕</button>
-                        </div>
-                    </div>
-                @endif
-
-                @if($pendingVerificationCats->isEmpty())
-                    <div class="text-center py-10 text-slate-500 text-xs bg-slate-50/80 rounded-2xl border border-dashed border-slate-200">
-                        <span class="text-3xl block mb-2">🎉</span>
-                        <p class="font-bold text-slate-800 text-sm">Tidak ada antrian verifikasi yang pending</p>
-                        <p class="text-xs text-slate-400 mt-1">Semua pemeriksaan dokter telah diverifikasi dan kartu KTAKuMu telah resmi diterbitkan.</p>
-                    </div>
-                @else
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach($pendingVerificationCats as $cat)
-                            <div x-show="(!searchPending || '{{ strtolower(addslashes($cat->name . ' ' . $cat->breed . ' ' . $cat->owner->name . ' ' . ($cat->owner->muhammadiyah_id ?? '') . ' ' . ($cat->owner->phone ?? ''))) }}'.includes(searchPending.toLowerCase().trim())) && (filterPendingType === 'all' || (filterPendingType === 'medical' && {{ $cat->medicalRecords->isNotEmpty() ? 'true' : 'false' }}) || (filterPendingType === 'non_medical' && {{ $cat->medicalRecords->isEmpty() ? 'true' : 'false' }}))"
-                                 x-transition
-                                 class="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs space-y-3.5 flex flex-col justify-between hover:shadow-md hover:border-sky-300 transition">
-                                
-                                <div class="space-y-3">
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-14 h-14 min-w-[56px] min-h-[56px] rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-100">
-                                            <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-full h-full object-cover">
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <h3 class="font-bold text-slate-900 text-sm truncate leading-tight">{{ $cat->name }}</h3>
-                                            <p class="text-xs text-slate-500 mt-0.5 truncate">{{ $cat->breed }} &bull; {{ $cat->gender == 'male' ? 'Jantan' : 'Betina' }}</p>
-                                            <p class="text-[11px] text-slate-500 mt-0.5 truncate">Pemilik: <strong class="text-slate-700">{{ $cat->owner->name }}</strong></p>
-                                            <p class="text-[10px] font-mono text-slate-400 mt-0.5">NBM: <span class="font-semibold text-slate-600">{{ $cat->owner->formatted_nbm ?? ($cat->owner->muhammadiyah_id ?? 'Bukan Anggota NBM') }}</span></p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Badges: Biometrik & Foto -->
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        @if($cat->biometric_type && $cat->biometric_type !== 'none')
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200 uppercase">
-                                                Biometrik {{ strtoupper($cat->biometric_type) }}
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600">
-                                                Biometrik Standar
-                                            </span>
-                                        @endif
-
-                                        @if($cat->photos->count() > 1)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-50 text-purple-800 border border-purple-200">
-                                                {{ $cat->photos->count() }} Foto
-                                            </span>
-                                        @endif
-
-                                        @if($cat->wilayah)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-600">
-                                                🗺️ {{ $cat->wilayah->wilayah_name }}
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    <!-- Doctor Record Snippet (if available) -->
-                                    @if($cat->medicalRecords->isNotEmpty())
-                                        @php $lastRecord = $cat->medicalRecords->first(); @endphp
-                                        <div class="bg-emerald-50/60 p-2.5 rounded-xl text-xs space-y-1 text-slate-700 border border-emerald-100">
-                                            <div class="font-semibold text-emerald-950 flex justify-between items-center">
-                                                <span class="truncate max-w-[150px]">🩺 {{ $lastRecord->vet->name ?? 'Dokter Hewan' }}</span>
-                                                <span class="text-[10px] text-emerald-700 font-mono">{{ $lastRecord->created_at->format('d M Y') }}</span>
-                                            </div>
-                                            <p class="text-[11px] text-slate-600">
-                                                Kondisi: <strong class="text-slate-800">{{ $lastRecord->general_condition }}</strong>
-                                                @if($lastRecord->weight) &bull; {{ $lastRecord->weight }}kg @endif
-                                                @if($lastRecord->temperature) &bull; {{ $lastRecord->temperature }}°C @endif
-                                            </p>
-                                        </div>
-                                    @else
-                                        <div class="bg-slate-50 p-2.5 rounded-xl text-xs text-slate-500 border border-slate-100 flex items-center gap-1.5">
-                                            <span class="text-slate-400">ℹ️</span>
-                                            <span class="text-[11px] text-slate-500">Pendaftaran mandiri (siap verifikasi langsung)</span>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <!-- Action Buttons -->
-                                <div class="pt-3 border-t border-slate-100 flex items-center gap-2">
-                                    <a href="{{ route('ktam.preview', $cat->id) }}" 
-                                       target="_blank"
-                                       class="btn-action-secondary py-2 px-2.5 text-center text-xs font-semibold"
-                                       title="Lihat Pratinjau Draf Kartu KTAM">
-                                        <span>👁️</span> Pratinjau
-                                    </a>
-
-                                    <a href="{{ route('cat.edit', $cat->id) }}" 
-                                       class="btn-action-secondary py-2 px-2.5 text-center text-xs font-semibold"
-                                       title="Ubah Data Kucing">
-                                        <span>✏️</span> Ubah
-                                    </a>
-
-                                    <form action="{{ route('admin.verify-ktam', $cat->id) }}" method="POST" class="flex-1">
-                                        @csrf
-                                        <button type="submit" 
-                                                onclick="return confirm('Apakah Anda yakin ingin memverifikasi dan menerbitkan kartu KTAKuMu resmi untuk {{ $cat->name }}?')" 
-                                                class="button-primary w-full py-2 text-center text-xs font-bold bg-sky-700 hover:bg-sky-800 flex items-center justify-center gap-1 shadow-2xs">
-                                            <span>✓</span> Terbitkan KTAKuMu
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-
             <!-- Database Anggota KucingMu Table -->
             <div id="cat-registry-table" class="content-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-6">
                 @php
@@ -407,9 +223,10 @@
                         <div class="lg:col-span-4">
                             <select name="ktam_status" onchange="this.form.submit()" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition font-medium text-slate-700">
                                 <option value="all" {{ ($currentKtamStatus ?? 'all') === 'all' ? 'selected' : '' }}>Semua Status KTAKuMu</option>
+                                <option value="pending" {{ ($currentKtamStatus ?? '') === 'pending' ? 'selected' : '' }}>⏳ Antrian Verifikasi ({{ $stats['pending_verification_count'] }})</option>
+                                <option value="need_verification" {{ ($currentKtamStatus ?? '') === 'need_verification' ? 'selected' : '' }}>🩺 Ada Rekam Medis ({{ $stats['need_verification_count'] }})</option>
+                                <option value="unverified" {{ ($currentKtamStatus ?? '') === 'unverified' ? 'selected' : '' }}>📋 Belum Ada Medis ({{ $stats['unverified_count'] }})</option>
                                 <option value="issued" {{ ($currentKtamStatus ?? '') === 'issued' ? 'selected' : '' }}>✓ KTAKuMu Terbit ({{ $stats['ktam_count'] }})</option>
-                                <option value="need_verification" {{ ($currentKtamStatus ?? '') === 'need_verification' ? 'selected' : '' }}>⏳ Perlu Verifikasi ({{ $stats['need_verification_count'] }})</option>
-                                <option value="unverified" {{ ($currentKtamStatus ?? '') === 'unverified' ? 'selected' : '' }}>• Belum Verifikasi ({{ $stats['unverified_count'] }})</option>
                             </select>
                         </div>
                     </form>

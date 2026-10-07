@@ -86,10 +86,16 @@ class DashboardController extends Controller
             COUNT(CASE WHEN role IN ('admin', 'superadmin') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"admin\"') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"superadmin\"') THEN 1 END) as admin
         ")->first();
 
-        $ktamCount = KtamCard::count();
-        $needVerificationCount = Cat::whereNull('unique_code')->whereHas('medicalRecords')->count();
-        $unverifiedCount = Cat::whereNull('unique_code')->whereDoesntHave('medicalRecords')->count();
-        $pendingVerificationCount = Cat::whereNull('unique_code')->count();
+        $ktamCount = KtamCard::whereNotNull('ktam_number')->where('ktam_number', '!=', '')->count();
+        $needVerificationCount = Cat::where(function($q) {
+            $q->whereNull('unique_code')->orWhere('unique_code', '');
+        })->whereHas('medicalRecords')->count();
+        $unverifiedCount = Cat::where(function($q) {
+            $q->whereNull('unique_code')->orWhere('unique_code', '');
+        })->whereDoesntHave('medicalRecords')->count();
+        $pendingVerificationCount = Cat::where(function($q) {
+            $q->whereNull('unique_code')->orWhere('unique_code', '');
+        })->count();
 
         $stats = [
             'cats_count' => (int) ($catStats->total ?? 0),
@@ -126,13 +132,19 @@ class DashboardController extends Controller
         // Filter status penerbitan KTAKuMu: all, issued, need_verification, unverified, pending
         $ktamStatusFilter = $request->filled('ktam_status') ? strtolower(trim($request->ktam_status)) : 'all';
         if ($ktamStatusFilter === 'issued' || $ktamStatusFilter === 'terbit') {
-            $catQuery->whereNotNull('cats.unique_code')->whereHas('ktamCard');
+            $catQuery->whereNotNull('cats.unique_code')->where('cats.unique_code', '!=', '')->whereHas('ktamCard');
         } elseif ($ktamStatusFilter === 'need_verification' || $ktamStatusFilter === 'perlu_verifikasi') {
-            $catQuery->whereNull('cats.unique_code')->whereHas('medicalRecords');
+            $catQuery->where(function($q) {
+                $q->whereNull('cats.unique_code')->orWhere('cats.unique_code', '');
+            })->whereHas('medicalRecords');
         } elseif ($ktamStatusFilter === 'unverified' || $ktamStatusFilter === 'belum_verifikasi') {
-            $catQuery->whereNull('cats.unique_code')->whereDoesntHave('medicalRecords');
+            $catQuery->where(function($q) {
+                $q->whereNull('cats.unique_code')->orWhere('cats.unique_code', '');
+            })->whereDoesntHave('medicalRecords');
         } elseif ($ktamStatusFilter === 'pending') {
-            $catQuery->whereNull('cats.unique_code');
+            $catQuery->where(function($q) {
+                $q->whereNull('cats.unique_code')->orWhere('cats.unique_code', '');
+            });
         }
 
         // Search query
@@ -197,15 +209,9 @@ class DashboardController extends Controller
         }
 
         $cats = $catQuery->paginate(10)->withQueryString();
-        $pendingVerificationCats = Cat::whereNull('unique_code')
-            ->with(['owner', 'photos', 'medicalRecords.vet', 'wilayah'])
-            ->latest()
-            ->take(50)
-            ->get();
-            
         $appointments = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
 
-        return view('admin.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'appointments', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter'));
+        return view('admin.dashboard', compact('stats', 'cats', 'appointments', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter'));
     }
 
     /**
@@ -221,10 +227,16 @@ class DashboardController extends Controller
             COUNT(CASE WHEN status IN ('deceased', 'mati') THEN 1 END) as deceased
         ")->first();
 
-        $ktamCount = KtamCard::count();
-        $needVerificationCount = Cat::whereNull('unique_code')->whereHas('medicalRecords')->count();
-        $unverifiedCount = Cat::whereNull('unique_code')->whereDoesntHave('medicalRecords')->count();
-        $pendingVerificationCount = Cat::whereNull('unique_code')->count();
+        $ktamCount = KtamCard::whereNotNull('ktam_number')->where('ktam_number', '!=', '')->count();
+        $needVerificationCount = Cat::where(function($q) {
+            $q->whereNull('unique_code')->orWhere('unique_code', '');
+        })->whereHas('medicalRecords')->count();
+        $unverifiedCount = Cat::where(function($q) {
+            $q->whereNull('unique_code')->orWhere('unique_code', '');
+        })->whereDoesntHave('medicalRecords')->count();
+        $pendingVerificationCount = Cat::where(function($q) {
+            $q->whereNull('unique_code')->orWhere('unique_code', '');
+        })->count();
         $myVerifiedCount = KtamCard::where('verified_by', Auth::id())->count();
 
         $stats = [
@@ -253,13 +265,19 @@ class DashboardController extends Controller
         // Filter status penerbitan KTAKuMu: all, issued, need_verification, unverified, pending
         $ktamStatusFilter = $request->filled('ktam_status') ? strtolower(trim($request->ktam_status)) : 'all';
         if ($ktamStatusFilter === 'issued' || $ktamStatusFilter === 'terbit') {
-            $catQuery->whereNotNull('cats.unique_code')->whereHas('ktamCard');
+            $catQuery->whereNotNull('cats.unique_code')->where('cats.unique_code', '!=', '')->whereHas('ktamCard');
         } elseif ($ktamStatusFilter === 'need_verification' || $ktamStatusFilter === 'perlu_verifikasi') {
-            $catQuery->whereNull('cats.unique_code')->whereHas('medicalRecords');
+            $catQuery->where(function($q) {
+                $q->whereNull('cats.unique_code')->orWhere('cats.unique_code', '');
+            })->whereHas('medicalRecords');
         } elseif ($ktamStatusFilter === 'unverified' || $ktamStatusFilter === 'belum_verifikasi') {
-            $catQuery->whereNull('cats.unique_code')->whereDoesntHave('medicalRecords');
+            $catQuery->where(function($q) {
+                $q->whereNull('cats.unique_code')->orWhere('cats.unique_code', '');
+            })->whereDoesntHave('medicalRecords');
         } elseif ($ktamStatusFilter === 'pending') {
-            $catQuery->whereNull('cats.unique_code');
+            $catQuery->where(function($q) {
+                $q->whereNull('cats.unique_code')->orWhere('cats.unique_code', '');
+            });
         }
 
         // Search query
@@ -324,13 +342,8 @@ class DashboardController extends Controller
         }
 
         $cats = $catQuery->paginate(10)->withQueryString();
-        $pendingVerificationCats = Cat::whereNull('unique_code')
-            ->with(['owner', 'photos', 'medicalRecords.vet', 'wilayah'])
-            ->latest()
-            ->take(50)
-            ->get();
 
-        return view('verifikator.dashboard', compact('stats', 'cats', 'pendingVerificationCats', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter'));
+        return view('verifikator.dashboard', compact('stats', 'cats', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter'));
     }
 
     /**
