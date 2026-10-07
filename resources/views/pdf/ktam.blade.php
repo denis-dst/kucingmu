@@ -73,6 +73,46 @@
         $ownerNameFontSize = '7.5pt';
         $ownerNameLineHeight = '2.3';
     }
+
+    // Auto font sizing for BREED (Left capsule, max 25 chars)
+    $catBreed = trim($cat->breed ?: 'Domestik');
+    $catBreed = mb_substr($catBreed, 0, 25);
+    $catBreedLen = strlen($catBreed);
+    $catBreedWordCount = count(preg_split('/\s+/', $catBreed));
+
+    if ($catBreedLen > 18 || $catBreedWordCount > 2) {
+        $catBreedFontSize = '4.8pt';
+        $catBreedLineHeight = '1.1';
+    } elseif ($catBreedLen > 11 || $catBreedWordCount > 1) {
+        $catBreedFontSize = '5.6pt';
+        $catBreedLineHeight = '1.15';
+    } else {
+        $catBreedFontSize = '7.0pt';
+        $catBreedLineHeight = '1.25';
+    }
+
+    // Auto font sizing for COLOR (Left capsule, max 25 chars, default '-' if empty)
+    $catColor = trim($cat->color ?? '');
+    if (empty($catColor)) {
+        $catColor = '-';
+        $catColorFontSize = '7.0pt';
+        $catColorLineHeight = '1.25';
+    } else {
+        $catColor = mb_substr($catColor, 0, 25);
+        $catColorLen = strlen($catColor);
+        $catColorWordCount = count(preg_split('/\s+/', $catColor));
+
+        if ($catColorLen > 18 || $catColorWordCount > 2) {
+            $catColorFontSize = '4.8pt';
+            $catColorLineHeight = '1.1';
+        } elseif ($catColorLen > 11 || $catColorWordCount > 1) {
+            $catColorFontSize = '5.6pt';
+            $catColorLineHeight = '1.15';
+        } else {
+            $catColorFontSize = '7.0pt';
+            $catColorLineHeight = '1.25';
+        }
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -430,17 +470,19 @@
             </div>
         </div>
 
-        <!-- 3. BREED -->
+        <!-- 3. BREED (Auto-scaled, max 25 chars) -->
         <div class="back-val box-breed">
-            <div class="back-val-inner">
-                {{ $cat->breed ?: 'Domestik' }}
+            <div class="back-val-inner"
+                style="font-size: {{ $catBreedFontSize }}; line-height: {{ $catBreedLineHeight }};">
+                {{ $catBreed }}
             </div>
         </div>
 
-        <!-- 4. COLOR -->
+        <!-- 4. COLOR (Auto-scaled, max 25 chars, '-' if empty) -->
         <div class="back-val box-color">
-            <div class="back-val-inner">
-                {{ $cat->color ?: 'Campuran / Ras' }}
+            <div class="back-val-inner"
+                style="font-size: {{ $catColorFontSize }}; line-height: {{ $catColorLineHeight }};">
+                {{ $catColor }}
             </div>
         </div>
 

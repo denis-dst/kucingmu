@@ -134,7 +134,7 @@
                             </div>
                             <div>
                                 <span class="text-slate-500 block font-medium">Warna / Pola</span>
-                                <span class="font-bold text-slate-900">{{ $cat->color ?: 'Campuran / Ras' }}</span>
+                                <span class="font-bold text-slate-900">{{ $cat->color ?: '-' }}</span>
                             </div>
                             <div>
                                 <span class="text-slate-500 block font-medium">Jenis Kelamin</span>

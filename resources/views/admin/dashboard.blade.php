@@ -128,14 +128,14 @@
                     <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Statistik Data Kucing & Status Penerbitan KTAKuMu</h2>
                     <span class="text-[11px] text-slate-400">💡 Klik kartu statistik untuk memfilter data di tabel</span>
                 </div>
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     
                     <!-- Total Kucing -->
                     <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'all'])) }}#cat-registry-table" 
                        class="content-card bg-white border border-slate-200 p-4 transition hover:border-teal-400 hover:shadow-md block {{ ($ktamStatusFilter ?? 'all') === 'all' && !request('status') ? 'ring-2 ring-teal-500/30' : '' }}"
                        title="Lihat semua data kucing">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Kucing</span>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Kucing</span>
                             <div class="flex items-center gap-1.5 text-[10px] font-bold">
                                 <span class="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">🟢 {{ $stats['cats_alive_count'] }}</span>
                                 <span class="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">⚪ {{ $stats['cats_deceased_count'] }}</span>
@@ -146,6 +146,21 @@
                             <span class="text-xs font-semibold text-teal-700">Ekor</span>
                         </div>
                         <p class="text-[10px] text-slate-400 mt-1">Semua data terdaftar &rarr;</p>
+                    </a>
+
+                    <!-- Antrian Verifikasi (Belum Terbit KTAM) -->
+                    <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'pending'])) }}#cat-registry-table" 
+                       class="content-card bg-amber-50/70 border border-amber-300 p-4 transition hover:border-amber-500 hover:shadow-md block {{ ($ktamStatusFilter ?? '') === 'pending' ? 'ring-2 ring-amber-500 bg-amber-100/70' : '' }}"
+                       title="Filter Kucing Menunggu Verifikasi KTAKuMu">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">Antrian Verifikasi</span>
+                            <span class="text-xs font-bold text-amber-800">⏳ Belum Verif</span>
+                        </div>
+                        <div class="mt-1.5 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-amber-900">{{ $stats['pending_verification_count'] }}</span>
+                            <span class="text-xs font-semibold text-amber-700">Kucing</span>
+                        </div>
+                        <p class="text-[10px] text-amber-800 font-medium mt-1">Belum diterbitkan KTAM &rarr;</p>
                     </a>
 
                     <!-- KTAKuMu Terbit -->
@@ -162,46 +177,6 @@
                         </div>
                         <p class="text-[10px] text-teal-700 font-medium mt-1">Sudah terverifikasi & terbit &rarr;</p>
                     </a>
-
-                    <!-- Perlu Verifikasi (Sudah Diperiksa Dokter) -->
-                    <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'need_verification'])) }}#cat-registry-table" 
-                       class="content-card bg-amber-50/70 border border-amber-300 p-4 transition hover:border-amber-500 hover:shadow-md block {{ ($ktamStatusFilter ?? '') === 'need_verification' ? 'ring-2 ring-amber-500 bg-amber-100/70' : '' }}"
-                       title="Filter Kucing Siap Terbit (Sudah Diperiksa Dokter)">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">Perlu Verifikasi</span>
-                            <span class="text-xs font-bold text-amber-800">⏳ Siap</span>
-                        </div>
-                        <div class="mt-1.5 flex items-baseline gap-1.5">
-                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-amber-900">{{ $stats['need_verification_count'] }}</span>
-                            <span class="text-xs font-semibold text-amber-700">Siap Terbit</span>
-                        </div>
-                        <p class="text-[10px] text-amber-800 font-medium mt-1">Sudah periksa dokter &rarr;</p>
-                    </a>
-
-                    <!-- Belum Verifikasi / Belum Periksa Medis -->
-                    <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'unverified'])) }}#cat-registry-table" 
-                       class="content-card bg-slate-50 border border-slate-200 p-4 transition hover:border-slate-400 hover:shadow-md block {{ ($ktamStatusFilter ?? '') === 'unverified' ? 'ring-2 ring-slate-500 bg-slate-100' : '' }}"
-                       title="Filter Kucing Belum Ada Rekam Medis">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Belum Verifikasi</span>
-                            <span class="text-xs font-semibold text-slate-400">• Antri</span>
-                        </div>
-                        <div class="mt-1.5 flex items-baseline gap-1.5">
-                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-800">{{ $stats['unverified_count'] }}</span>
-                            <span class="text-xs font-semibold text-slate-500">Ekor</span>
-                        </div>
-                        <p class="text-[10px] text-slate-500 mt-1">Belum periksa medis &rarr;</p>
-                    </a>
-
-                    <!-- Total Rekam Medis Selesai -->
-                    <div class="content-card bg-white border border-slate-200 p-4">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pemeriksaan Dokter</span>
-                        <div class="mt-1.5 flex items-baseline gap-1.5">
-                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['records_count'] }}</span>
-                            <span class="text-xs font-semibold text-teal-700">Selesai</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Rekam medis masuk</p>
-                    </div>
 
                 </div>
             </div>
@@ -260,6 +235,7 @@
                             <input type="text" 
                                    name="search" 
                                    value="{{ request('search') }}" 
+                                   @input.debounce.500ms="$el.form.submit()"
                                    placeholder="Cari nama kucing, pemilik, NIAKuMu, ras, NBM..." 
                                    class="w-full text-xs pl-10 pr-8 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-100 transition placeholder:text-slate-400">
                             @if(request('search'))
@@ -282,8 +258,6 @@
                                 <option value="all" {{ ($currentKtamStatus ?? 'all') === 'all' ? 'selected' : '' }}>Semua Status KTAKuMu</option>
                                 <option value="pending" {{ ($currentKtamStatus ?? '') === 'pending' ? 'selected' : '' }}>⏳ Antrian Verifikasi ({{ $stats['pending_verification_count'] }})</option>
                                 <option value="issued" {{ ($currentKtamStatus ?? '') === 'issued' ? 'selected' : '' }}>✓ KTAKuMu Terbit ({{ $stats['ktam_count'] }})</option>
-                                <option value="need_verification" {{ ($currentKtamStatus ?? '') === 'need_verification' ? 'selected' : '' }}>⏳ Perlu Verifikasi ({{ $stats['need_verification_count'] }})</option>
-                                <option value="unverified" {{ ($currentKtamStatus ?? '') === 'unverified' ? 'selected' : '' }}>• Belum Verifikasi ({{ $stats['unverified_count'] }})</option>
                             </select>
                         </div>
 
@@ -317,8 +291,11 @@
 
                         <!-- Apply Button (Span 1 on LG) -->
                         <div class="lg:col-span-1">
-                            <button type="submit" class="w-full button-primary text-xs font-bold py-2.5 px-3 rounded-xl shadow-xs">
-                                Cari
+                            <button type="submit" class="w-full text-xs font-bold py-2.5 px-3 rounded-xl shadow-xs inline-flex items-center justify-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <span>Cari</span>
                             </button>
                         </div>
                     </form>
@@ -498,17 +475,11 @@
                                                         </div>
                                                     @endif
                                                 </div>
-                                            @elseif($cat->medicalRecords->isNotEmpty())
-                                                <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'need_verification'])) }}#cat-registry-table" 
-                                                   title="Sudah periksa dokter - Klik untuk filter Perlu Verifikasi" 
-                                                   class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1 transition cursor-pointer">
-                                                    <span>⏳</span> Perlu Verifikasi
-                                                </a>
                                             @else
-                                                <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'unverified'])) }}#cat-registry-table" 
-                                                   title="Belum ada rekam medis dokter - Klik untuk filter Belum Verifikasi" 
-                                                   class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 inline-flex items-center gap-1 transition cursor-pointer">
-                                                    <span>•</span> Belum Verif
+                                                <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'pending'])) }}#cat-registry-table" 
+                                                   title="Klik untuk filter Antrian Verifikasi" 
+                                                   class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1 transition cursor-pointer">
+                                                    <span>⏳</span> Antrian Verifikasi
                                                 </a>
                                             @endif
                                         </td>
@@ -577,13 +548,9 @@
                                             <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'issued'])) }}#cat-registry-table" class="text-[10px] font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 px-2 py-0.5 rounded border border-teal-200 transition">
                                                 KTAKuMu Terbit
                                             </a>
-                                        @elseif($cat->medicalRecords->isNotEmpty())
-                                            <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'need_verification'])) }}#cat-registry-table" class="text-[10px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded border border-amber-200 transition">
-                                                Perlu Verifikasi
-                                            </a>
                                         @else
-                                            <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'unverified'])) }}#cat-registry-table" class="text-[10px] font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded border border-slate-200 transition">
-                                                Belum Verif
+                                            <a href="{{ route('dashboard', array_merge(request()->except(['page']), ['ktam_status' => 'pending'])) }}#cat-registry-table" class="text-[10px] font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded border border-amber-200 transition">
+                                                Antrian Verifikasi
                                             </a>
                                         @endif
                                     </div>
@@ -741,12 +708,18 @@
         </div>
     </div>
 
-    @if(request()->has('search') || request()->has('page'))
+    @if(request()->has('search') || request()->has('page') || request()->has('status') || request()->has('ktam_status') || request()->has('sort'))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const tableEl = document.getElementById('cat-registry-table');
-                if (tableEl) {
+                if (tableEl && window.location.hash === '#cat-registry-table') {
                     tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                const searchInput = document.querySelector('input[name="search"]');
+                if (searchInput && "{{ request('search') }}") {
+                    searchInput.focus();
+                    const val = searchInput.value;
+                    searchInput.setSelectionRange(val.length, val.length);
                 }
             });
         </script>

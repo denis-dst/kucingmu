@@ -65,11 +65,30 @@
                     <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">Statistik Verifikasi & Penerbitan KTAKuMu</h2>
                     <span class="text-[11px] text-slate-400">Pembaruan data otomatis</span>
                 </div>
-                <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+                <div class="grid gap-4 grid-cols-2 lg:grid-cols-4">
                     
-                    <!-- 1. Menunggu Verifikasi Total -->
+                    <!-- 1. Total Kucing -->
+                    <a href="{{ route('dashboard', ['status' => 'all']) }}#cat-registry-table" 
+                       class="content-card p-4 transition hover:border-sky-400 hover:shadow-md bg-white">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            <span>Total Kucing</span>
+                            <div class="flex items-center gap-1 text-[10px] font-bold">
+                                <span class="text-emerald-700">🟢 {{ $stats['cats_alive_count'] }}</span>
+                                <span class="text-slate-500">⚪ {{ $stats['cats_deceased_count'] }}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-1.5">
+                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900">{{ $stats['cats_count'] }}</span>
+                            <span class="text-xs font-semibold text-sky-700">Kucing</span>
+                        </div>
+                        <div class="mt-1 text-[11px] text-slate-500">
+                            Semua data terdaftar
+                        </div>
+                    </a>
+
+                    <!-- 2. Menunggu Verifikasi Total -->
                     <a href="{{ route('dashboard', ['ktam_status' => 'pending']) }}#cat-registry-table" 
-                       class="content-card p-4 transition hover:border-amber-400 hover:shadow-md bg-white">
+                       class="content-card p-4 transition hover:border-amber-400 hover:shadow-md bg-white {{ ($currentKtamStatus ?? '') === 'pending' ? 'ring-2 ring-amber-500 bg-amber-50/50' : '' }}">
                         <div class="flex items-center justify-between text-xs font-bold text-amber-700 uppercase tracking-wider">
                             <span>Antrian Verifikasi</span>
                             <span>⏳</span>
@@ -83,41 +102,9 @@
                         </div>
                     </a>
 
-                    <!-- 2. Ada Rekam Medis (Prioritas) -->
-                    <a href="{{ route('dashboard', ['ktam_status' => 'need_verification']) }}#cat-registry-table" 
-                       class="content-card p-4 transition hover:border-emerald-400 hover:shadow-md bg-white">
-                        <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase tracking-wider">
-                            <span>Ada Rekam Medis</span>
-                            <span>🩺</span>
-                        </div>
-                        <div class="mt-2 flex items-baseline gap-1.5">
-                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-emerald-900">{{ $stats['need_verification_count'] }}</span>
-                            <span class="text-xs font-semibold text-emerald-700">Kucing</span>
-                        </div>
-                        <div class="mt-1 text-[11px] text-slate-500">
-                            Sudah diperiksa dokter
-                        </div>
-                    </a>
-
-                    <!-- 3. Belum Ada Rekam Medis -->
-                    <a href="{{ route('dashboard', ['ktam_status' => 'unverified']) }}#cat-registry-table" 
-                       class="content-card p-4 transition hover:border-slate-400 hover:shadow-md bg-white">
-                        <div class="flex items-center justify-between text-xs font-bold text-slate-600 uppercase tracking-wider">
-                            <span>Belum Ada Medis</span>
-                            <span>📋</span>
-                        </div>
-                        <div class="mt-2 flex items-baseline gap-1.5">
-                            <span class="font-outfit text-2xl sm:text-3xl font-bold text-slate-800">{{ $stats['unverified_count'] }}</span>
-                            <span class="text-xs font-semibold text-slate-600">Kucing</span>
-                        </div>
-                        <div class="mt-1 text-[11px] text-slate-500">
-                            Pendaftaran mandiri
-                        </div>
-                    </a>
-
-                    <!-- 4. KTAKuMu Diterbitkan Resmi -->
+                    <!-- 3. KTAKuMu Diterbitkan Resmi -->
                     <a href="{{ route('dashboard', ['ktam_status' => 'issued']) }}#cat-registry-table" 
-                       class="content-card p-4 transition hover:border-sky-400 hover:shadow-md bg-white">
+                       class="content-card p-4 transition hover:border-sky-400 hover:shadow-md bg-white {{ ($currentKtamStatus ?? '') === 'issued' ? 'ring-2 ring-sky-500 bg-sky-50/50' : '' }}">
                         <div class="flex items-center justify-between text-xs font-bold text-sky-700 uppercase tracking-wider">
                             <span>KTAKuMu Terbit</span>
                             <span>🪪</span>
@@ -131,7 +118,7 @@
                         </div>
                     </a>
 
-                    <!-- 5. Diverifikasi Oleh Saya -->
+                    <!-- 4. Diverifikasi Oleh Saya -->
                     <div class="content-card p-4 bg-white border-slate-200">
                         <div class="flex items-center justify-between text-xs font-bold text-indigo-700 uppercase tracking-wider">
                             <span>Oleh Akun Saya</span>
@@ -195,14 +182,15 @@
 
                     <!-- Filter, Search, & Sort Bar -->
                     <form method="GET" action="{{ route('dashboard') }}#cat-registry-table" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-2">
-                        <!-- Search Input -->
-                        <div class="sm:col-span-2 lg:col-span-5 relative">
+                        <!-- Search Input (Span 4 on LG) -->
+                        <div class="sm:col-span-2 lg:col-span-4 relative">
                             <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                             <input type="text" 
                                    name="search" 
                                    value="{{ request('search') }}" 
+                                   @input.debounce.500ms="$el.form.submit()"
                                    placeholder="Cari nama kucing, pemilik, NIAKuMu, ras, NBM..." 
                                    class="w-full text-xs pl-10 pr-8 py-2.5 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition placeholder:text-slate-400">
                             @if(request('search'))
@@ -210,24 +198,60 @@
                             @endif
                         </div>
 
-                        <!-- Filter Status Kehidupan -->
-                        <div class="lg:col-span-3">
-                            <select name="status" onchange="this.form.submit()" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition font-medium text-slate-700">
+                        <!-- Filter Status Kehidupan (Span 2 on LG) -->
+                        <div class="lg:col-span-2">
+                            <select id="verifikator_filter_status" name="status" onchange="this.form.submit()" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition font-medium text-slate-700">
                                 <option value="all" {{ $currentStatus === 'all' ? 'selected' : '' }}>Semua Status Hidup</option>
                                 <option value="alive" {{ $currentStatus === 'alive' ? 'selected' : '' }}>🟢 Hidup (Aktif)</option>
                                 <option value="deceased" {{ $currentStatus === 'deceased' ? 'selected' : '' }}>⚪ Mati (Meninggal)</option>
                             </select>
                         </div>
 
-                        <!-- Filter Status KTAKuMu -->
-                        <div class="lg:col-span-4">
-                            <select name="ktam_status" onchange="this.form.submit()" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition font-medium text-slate-700">
+                        <!-- Filter Status KTAKuMu (Span 3 on LG) -->
+                        <div class="lg:col-span-3">
+                            <select id="verifikator_filter_ktam_status" name="ktam_status" onchange="this.form.submit()" class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition font-medium text-slate-700">
                                 <option value="all" {{ ($currentKtamStatus ?? 'all') === 'all' ? 'selected' : '' }}>Semua Status KTAKuMu</option>
                                 <option value="pending" {{ ($currentKtamStatus ?? '') === 'pending' ? 'selected' : '' }}>⏳ Antrian Verifikasi ({{ $stats['pending_verification_count'] }})</option>
-                                <option value="need_verification" {{ ($currentKtamStatus ?? '') === 'need_verification' ? 'selected' : '' }}>🩺 Ada Rekam Medis ({{ $stats['need_verification_count'] }})</option>
-                                <option value="unverified" {{ ($currentKtamStatus ?? '') === 'unverified' ? 'selected' : '' }}>📋 Belum Ada Medis ({{ $stats['unverified_count'] }})</option>
                                 <option value="issued" {{ ($currentKtamStatus ?? '') === 'issued' ? 'selected' : '' }}>✓ KTAKuMu Terbit ({{ $stats['ktam_count'] }})</option>
                             </select>
+                        </div>
+
+                        <!-- Quick Sort Dropdown (Span 2 on LG) -->
+                        <div class="lg:col-span-2">
+                            <select id="verifikator_sort_select" name="sort_direction" onchange="
+                                const val = this.value.split(':');
+                                const sortInput = this.form.querySelector('input[name=sort]');
+                                const dirInput = this.form.querySelector('input[name=direction]');
+                                if (sortInput && dirInput) {
+                                    sortInput.value = val[0];
+                                    dirInput.value = val[1];
+                                    this.form.submit();
+                                }
+                            " class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition font-medium text-slate-700">
+                                <option value="created_at:desc" {{ ($currentSort == 'created_at' && $currentDir == 'desc') ? 'selected' : '' }}>Urutan: Terbaru</option>
+                                <option value="created_at:asc" {{ ($currentSort == 'created_at' && $currentDir == 'asc') ? 'selected' : '' }}>Urutan: Terlama</option>
+                                <option value="name:asc" {{ ($currentSort == 'name' && $currentDir == 'asc') ? 'selected' : '' }}>Nama Kucing (A - Z)</option>
+                                <option value="name:desc" {{ ($currentSort == 'name' && $currentDir == 'desc') ? 'selected' : '' }}>Nama Kucing (Z - A)</option>
+                                <option value="owner:asc" {{ ($currentSort == 'owner' && $currentDir == 'asc') ? 'selected' : '' }}>Pemilik (A - Z)</option>
+                                <option value="owner:desc" {{ ($currentSort == 'owner' && $currentDir == 'desc') ? 'selected' : '' }}>Pemilik (Z - A)</option>
+                                <option value="breed:asc" {{ ($currentSort == 'breed' && $currentDir == 'asc') ? 'selected' : '' }}>Ras Kucing (A - Z)</option>
+                                <option value="date_of_birth:asc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'asc') ? 'selected' : '' }}>Umur (Paling Tua)</option>
+                                <option value="date_of_birth:desc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'desc') ? 'selected' : '' }}>Umur (Paling Muda)</option>
+                                <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor NIAKuMu</option>
+                                <option value="status:asc" {{ ($currentSort == 'status' && $currentDir == 'asc') ? 'selected' : '' }}>Status Hidup/Mati</option>
+                            </select>
+                            <input type="hidden" name="sort" value="{{ $currentSort }}">
+                            <input type="hidden" name="direction" value="{{ $currentDir }}">
+                        </div>
+
+                        <!-- Cari Button (Span 1 on LG) -->
+                        <div class="lg:col-span-1">
+                            <button type="submit" class="w-full text-xs font-bold py-2.5 px-3 rounded-xl shadow-xs inline-flex items-center justify-center gap-1.5 bg-sky-700 hover:bg-sky-800 text-white transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                                <span>Cari</span>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -346,7 +370,7 @@
                                             </div>
                                         @else
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                                                <span>⏳</span> Perlu Verifikasi
+                                                <span>⏳</span> Antrian Verifikasi
                                             </span>
                                         @endif
                                     </td>
@@ -420,4 +444,21 @@
 
         </div>
     </div>
+
+    @if(request()->has('search') || request()->has('page') || request()->has('status') || request()->has('ktam_status') || request()->has('sort'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const tableEl = document.getElementById('cat-registry-table');
+                if (tableEl && window.location.hash === '#cat-registry-table') {
+                    tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                const searchInput = document.querySelector('input[name="search"]');
+                if (searchInput && "{{ request('search') }}") {
+                    searchInput.focus();
+                    const val = searchInput.value;
+                    searchInput.setSelectionRange(val.length, val.length);
+                }
+            });
+        </script>
+    @endif
 </x-app-layout>
