@@ -280,7 +280,7 @@
 
                 <!-- Section 2: Wilayah Domisili & Auto Tagging Lokasi (Cascading Selects) -->
                 <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 flex-wrap gap-3">
                         <div class="flex items-center gap-3">
                             <span class="w-8 h-8 rounded-xl bg-teal-50 text-teal-800 border border-teal-200/80 flex items-center justify-center font-bold text-sm">
                                 2
@@ -293,8 +293,30 @@
 
                         <button type="button" 
                                 @click="locateUser()" 
-                                class="button-secondary text-xs px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 text-teal-800 border-teal-200 bg-teal-50/50 hover:bg-teal-100/70 font-semibold">
-                            <span>📍</span> <span class="hidden sm:inline">Gunakan</span> GPS Saya
+                                :disabled="isLocating || isGeocoding"
+                                class="button-secondary text-xs px-3.5 py-2 rounded-xl inline-flex items-center gap-2 text-teal-800 border-teal-200 bg-teal-50/70 hover:bg-teal-100 font-semibold shadow-2xs transition disabled:opacity-60 disabled:cursor-not-allowed">
+                            <span x-show="!isLocating">📍</span>
+                            <span x-show="isLocating" x-cloak class="w-3.5 h-3.5 border-2 border-teal-700 border-t-transparent rounded-full animate-spin"></span>
+                            <span x-text="isLocating ? 'Mencari Lokasi...' : 'Gunakan GPS Saya'"></span>
+                        </button>
+                    </div>
+
+                    <!-- Auto-Fill Status Notification -->
+                    <div x-show="autoFillStatus" 
+                         x-cloak 
+                         x-transition
+                         class="p-3.5 bg-teal-50 border border-teal-200 text-teal-950 rounded-2xl text-xs flex items-center justify-between gap-3 shadow-2xs">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-base shrink-0">✨</span>
+                            <span class="font-medium leading-relaxed" x-text="autoFillStatus"></span>
+                        </div>
+                        <button type="button" 
+                                @click="autoFillStatus = ''" 
+                                class="text-teal-700 hover:text-teal-950 p-1 rounded-lg hover:bg-teal-100 transition shrink-0" 
+                                title="Tutup notifikasi">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
 
@@ -687,6 +709,8 @@
                 longitude: '{{ old('longitude', '110.364444') }}',
                 formattedAddress: '{{ old('formatted_address', '') }}',
                 isGeocoding: false,
+                isLocating: false,
+                autoFillStatus: '',
 
                 skFileName: '',
                 ktamFileName: '',
@@ -698,6 +722,162 @@
                 initComponent() {
                     this.loadProvinces();
                     this.initMap();
+                },
+
+                // String cleaner for accurate regional name matching
+                cleanName(name) {
+                    if (!name || typeof name !== 'string') return '';
+                    return name
+                        .toLowerCase()
+                        .replace(/\b(provinsi|prov\.|daerah istimewa|daerah khusus ibukota|d\.i\.|di|dki|special region of|kabupaten|kab\.|kota|regency|city|kecamatan|kec\.|district|subdistrict|kelurahan|kel\.|desa|village)\b/gi, '')
+                        .replace(/[^a-z0-9]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                },
+
+                // Match finder among options
+                findBestMatch(list, candidates) {
+                    if (!list || !list.length || !candidates || !candidates.length) return null;
+
+                    const validCandidates = candidates.filter(c => typeof c === 'string' && c.trim().length > 0);
+                    if (validCandidates.length === 0) return null;
+
+                    // 1. Exact cleaned name match
+                    for (const cand of validCandidates) {
+                        const cleanedCand = this.cleanName(cand);
+                        if (!cleanedCand) continue;
+                        const match = list.find(item => this.cleanName(item.name) === cleanedCand);
+                        if (match) return match;
+                    }
+
+                    // 2. Substring inclusion on cleaned name
+                    for (const cand of validCandidates) {
+                        const cleanedCand = this.cleanName(cand);
+                        if (!cleanedCand || cleanedCand.length < 3) continue;
+                        const match = list.find(item => {
+                            const cleanedItem = this.cleanName(item.name);
+                            return cleanedItem.length >= 3 && (cleanedItem.includes(cleanedCand) || cleanedCand.includes(cleanedItem));
+                        });
+                        if (match) return match;
+                    }
+
+                    // 3. Fallback raw case-insensitive search
+                    for (const cand of validCandidates) {
+                        const lowerCand = cand.toLowerCase().trim();
+                        const match = list.find(item => item.name.toLowerCase().includes(lowerCand) || lowerCand.includes(item.name.toLowerCase()));
+                        if (match) return match;
+                    }
+
+                    return null;
+                },
+
+                // Auto-fill all 4 regional select dropdowns from GPS coordinates
+                async autoFillFromCoordinates(lat, lng) {
+                    this.isGeocoding = true;
+                    this.autoFillStatus = '';
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                        const data = await response.json();
+                        
+                        if (!data || !data.address) {
+                            return;
+                        }
+
+                        const addr = data.address;
+                        if (data.display_name) {
+                            this.formattedAddress = data.display_name;
+                        }
+
+                        // Pastikan daftar provinsi sudah termuat
+                        if (!this.provincesList || this.provincesList.length === 0) {
+                            await this.loadProvinces();
+                        }
+
+                        // 1. Cocokkan Provinsi
+                        const provCandidates = [
+                            addr.state,
+                            addr.province,
+                            addr.region,
+                            addr.state_district
+                        ].filter(Boolean);
+
+                        const matchedProvince = this.findBestMatch(this.provincesList, provCandidates);
+                        if (matchedProvince) {
+                            this.selectedProvinceId = matchedProvince.id;
+                            this.selectedProvinceName = matchedProvince.name;
+
+                            // Muat data Kota/Kabupaten
+                            await this.loadRegencies(matchedProvince.id);
+
+                            // 2. Cocokkan Kota/Kabupaten
+                            const regCandidates = [
+                                addr.city,
+                                addr.county,
+                                addr.city_district,
+                                addr.town,
+                                addr.municipality
+                            ].filter(Boolean);
+
+                            const matchedRegency = this.findBestMatch(this.regenciesList, regCandidates);
+                            if (matchedRegency) {
+                                this.selectedRegencyId = matchedRegency.id;
+                                this.selectedRegencyName = matchedRegency.name;
+
+                                // Muat data Kecamatan
+                                await this.loadDistricts(matchedRegency.id);
+
+                                // 3. Cocokkan Kecamatan
+                                const distCandidates = [
+                                    addr.municipality,
+                                    addr.city_district,
+                                    addr.district,
+                                    addr.suburb,
+                                    addr.town
+                                ].filter(Boolean);
+
+                                const matchedDistrict = this.findBestMatch(this.districtsList, distCandidates);
+                                if (matchedDistrict) {
+                                    this.selectedDistrictId = matchedDistrict.id;
+                                    this.selectedDistrictName = matchedDistrict.name;
+
+                                    // Muat data Desa/Kelurahan
+                                    await this.loadVillages(matchedDistrict.id);
+
+                                    // 4. Cocokkan Desa/Kelurahan
+                                    const vilCandidates = [
+                                        addr.village,
+                                        addr.quarter,
+                                        addr.suburb,
+                                        addr.neighbourhood,
+                                        addr.hamlet,
+                                        addr.residential
+                                    ].filter(Boolean);
+
+                                    const matchedVillage = this.findBestMatch(this.villagesList, vilCandidates);
+                                    if (matchedVillage) {
+                                        this.selectedVillageId = matchedVillage.id;
+                                        this.selectedVillageName = matchedVillage.name;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Ringkasan hasil deteksi wilayah
+                        const matchedHierarchy = [
+                            this.selectedVillageName ? 'Desa/Kel. ' + this.selectedVillageName : null,
+                            this.selectedDistrictName ? 'Kec. ' + this.selectedDistrictName : null,
+                            this.selectedRegencyName,
+                            this.selectedProvinceName
+                        ].filter(Boolean);
+
+                        if (matchedHierarchy.length > 0) {
+                            this.autoFillStatus = 'Wilayah berhasil terisi otomatis: ' + matchedHierarchy.join(', ');
+                        }
+                    } catch (err) {
+                        console.error('Gagal memproses auto-fill wilayah dari koordinat GPS:', err);
+                    } finally {
+                        this.isGeocoding = false;
+                    }
                 },
 
                 // 1. Fetch Provinces
@@ -887,26 +1067,22 @@
                         draggable: true
                     }).addTo(this.map);
 
-                    this.marker.on('dragend', (e) => {
+                    this.marker.on('dragend', async (e) => {
                         const position = this.marker.getLatLng();
-                        this.updateCoordinates(position.lat, position.lng, true);
+                        this.latitude = position.lat.toFixed(7);
+                        this.longitude = position.lng.toFixed(7);
+                        await this.autoFillFromCoordinates(position.lat, position.lng);
                     });
 
-                    this.map.on('click', (e) => {
+                    this.map.on('click', async (e) => {
                         this.marker.setLatLng(e.latlng);
-                        this.updateCoordinates(e.latlng.lat, e.latlng.lng, true);
+                        this.latitude = e.latlng.lat.toFixed(7);
+                        this.longitude = e.latlng.lng.toFixed(7);
+                        await this.autoFillFromCoordinates(e.latlng.lat, e.latlng.lng);
                     });
 
                     if (!this.formattedAddress && this.latitude && this.longitude) {
                         this.reverseGeocode(defaultLat, defaultLng);
-                    }
-                },
-
-                updateCoordinates(lat, lng, shouldReverseGeocode = false) {
-                    this.latitude = lat.toFixed(7);
-                    this.longitude = lng.toFixed(7);
-                    if (shouldReverseGeocode) {
-                        this.reverseGeocode(lat, lng);
                     }
                 },
 
@@ -963,20 +1139,35 @@
                         return;
                     }
 
-                    this.isGeocoding = true;
+                    this.isLocating = true;
+                    this.autoFillStatus = '';
+
                     navigator.geolocation.getCurrentPosition(
-                        (position) => {
+                        async (position) => {
                             const lat = position.coords.latitude;
                             const lng = position.coords.longitude;
+                            
                             this.map.setView([lat, lng], 16);
                             this.marker.setLatLng([lat, lng]);
-                            this.updateCoordinates(lat, lng, true);
+                            this.latitude = lat.toFixed(7);
+                            this.longitude = lng.toFixed(7);
+
+                            await this.autoFillFromCoordinates(lat, lng);
+                            this.isLocating = false;
                         },
                         (error) => {
-                            this.isGeocoding = false;
-                            alert('Gagal mendeteksi lokasi: ' + error.message);
+                            this.isLocating = false;
+                            let msg = 'Gagal mendeteksi lokasi GPS.';
+                            if (error.code === 1) {
+                                msg = 'Izin akses lokasi GPS ditolak oleh peramban Anda. Silakan izinkan akses lokasi (GPS) di pengaturan browser Anda.';
+                            } else if (error.code === 2) {
+                                msg = 'Sinyal atau posisi GPS tidak tersedia pada perangkat Anda saat ini.';
+                            } else if (error.code === 3) {
+                                msg = 'Waktu permintaan deteksi GPS habis (timeout). Silakan coba kembali.';
+                            }
+                            alert(msg);
                         },
-                        { enableHighAccuracy: true, timeout: 10000 }
+                        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
                     );
                 }
             };
