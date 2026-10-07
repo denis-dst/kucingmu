@@ -6,6 +6,8 @@ use App\Models\RepresentativeRegistration;
 use App\Services\IndonesiaWilayahService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -17,10 +19,9 @@ class RepresentativeRegistrationController extends Controller
     public function create()
     {
         $provinces = IndonesiaWilayahService::getProvinces();
-        $regenciesMap = IndonesiaWilayahService::getRegenciesMap();
         $user = Auth::user();
 
-        return view('representative.register', compact('provinces', 'regenciesMap', 'user'));
+        return view('representative.register', compact('provinces', 'user'));
     }
 
     /**
@@ -65,8 +66,8 @@ class RepresentativeRegistrationController extends Controller
             'whatsapp_number.required' => 'Nomor WhatsApp aktif wajib diisi.',
             'province_name.required' => 'Pilih asal provinsi Anda.',
             'city_name.required' => 'Pilih asal kota/kabupaten Anda.',
-            'district_name.required' => 'Kecamatan wajib diisi.',
-            'village_name.required' => 'Desa/Kelurahan wajib diisi.',
+            'district_name.required' => 'Pilih kecamatan Anda.',
+            'village_name.required' => 'Pilih desa/kelurahan Anda.',
             'muhammadiyah_active_leadership.required' => 'Sebutkan pimpinan Muhammadiyah/Ortom yang sedang aktif Anda ikuti.',
             'sk_pimpinan_document.required' => 'Dokumen SK Pimpinan aktif wajib diunggah dalam format PDF.',
             'sk_pimpinan_document.mimes' => 'File SK Pimpinan harus berformat PDF.',
@@ -144,16 +145,89 @@ class RepresentativeRegistrationController extends Controller
     }
 
     /**
-     * API endpoint to get regencies by province.
+     * API endpoint to get provinces.
      */
-    public function getRegencies(Request $request)
+    public function getProvincesApi()
     {
-        $province = $request->query('province');
-        if (!$province) {
+        $data = Cache::remember('wilayah_provinces_list', now()->addDays(30), function () {
+            try {
+                $res = Http::timeout(5)->get('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+                if ($res->successful()) {
+                    return $res->json();
+                }
+            } catch (\Exception $e) {}
+            return [];
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * API endpoint to get regencies by province id.
+     */
+    public function getRegenciesApi(Request $request)
+    {
+        $provinceId = $request->query('province_id');
+        if (!$provinceId) {
             return response()->json([]);
         }
 
-        $regencies = IndonesiaWilayahService::getRegencies($province);
-        return response()->json($regencies);
+        $data = Cache::remember("wilayah_regencies_{$provinceId}", now()->addDays(30), function () use ($provinceId) {
+            try {
+                $res = Http::timeout(5)->get("https://www.emsifa.com/api-wilayah-indonesia/api/regencies/{$provinceId}.json");
+                if ($res->successful()) {
+                    return $res->json();
+                }
+            } catch (\Exception $e) {}
+            return [];
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * API endpoint to get districts by regency id.
+     */
+    public function getDistrictsApi(Request $request)
+    {
+        $regencyId = $request->query('regency_id');
+        if (!$regencyId) {
+            return response()->json([]);
+        }
+
+        $data = Cache::remember("wilayah_districts_{$regencyId}", now()->addDays(30), function () use ($regencyId) {
+            try {
+                $res = Http::timeout(5)->get("https://www.emsifa.com/api-wilayah-indonesia/api/districts/{$regencyId}.json");
+                if ($res->successful()) {
+                    return $res->json();
+                }
+            } catch (\Exception $e) {}
+            return [];
+        });
+
+        return response()->json($data);
+    }
+
+    /**
+     * API endpoint to get villages by district id.
+     */
+    public function getVillagesApi(Request $request)
+    {
+        $districtId = $request->query('district_id');
+        if (!$districtId) {
+            return response()->json([]);
+        }
+
+        $data = Cache::remember("wilayah_villages_{$districtId}", now()->addDays(30), function () use ($districtId) {
+            try {
+                $res = Http::timeout(5)->get("https://www.emsifa.com/api-wilayah-indonesia/api/villages/{$districtId}.json");
+                if ($res->successful()) {
+                    return $res->json();
+                }
+            } catch (\Exception $e) {}
+            return [];
+        });
+
+        return response()->json($data);
     }
 }

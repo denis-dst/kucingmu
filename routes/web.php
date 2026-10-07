@@ -194,7 +194,10 @@ Route::get('/verify/{number}', [DashboardController::class, 'verifyKtam'])->name
 Route::get('/penjaringan-representatif', [RepresentativeRegistrationController::class, 'create'])->name('representative.register');
 Route::post('/penjaringan-representatif', [RepresentativeRegistrationController::class, 'store'])->name('representative.store');
 Route::get('/penjaringan-representatif/sukses/{number}', [RepresentativeRegistrationController::class, 'success'])->name('representative.success');
-Route::get('/api/representatives/regencies', [RepresentativeRegistrationController::class, 'getRegencies'])->name('api.representatives.regencies');
+Route::get('/api/representatives/provinces', [RepresentativeRegistrationController::class, 'getProvincesApi'])->name('api.representatives.provinces');
+Route::get('/api/representatives/regencies', [RepresentativeRegistrationController::class, 'getRegenciesApi'])->name('api.representatives.regencies');
+Route::get('/api/representatives/districts', [RepresentativeRegistrationController::class, 'getDistrictsApi'])->name('api.representatives.districts');
+Route::get('/api/representatives/villages', [RepresentativeRegistrationController::class, 'getVillagesApi'])->name('api.representatives.villages');
 Route::redirect('/representatif', '/penjaringan-representatif');
 Route::redirect('/daftar-representatif', '/penjaringan-representatif');
 

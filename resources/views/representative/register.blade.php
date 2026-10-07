@@ -89,8 +89,8 @@
         </div>
     </header>
 
-    <!-- Header Hero Banner -->
-    <section class="bg-gradient-to-br from-teal-900 via-teal-800 to-sky-800 text-white py-12 sm:py-16 border-b border-teal-950 relative overflow-hidden">
+    <!-- Header Hero Banner (Balanced & Centered on Desktop) -->
+    <section class="bg-gradient-to-br from-teal-900 via-teal-800 to-sky-800 text-white py-12 sm:py-16 lg:py-20 border-b border-teal-950 relative overflow-hidden">
         <!-- Subtle ambient backdrop accents -->
         <div class="absolute inset-0 pointer-events-none opacity-20">
             <div class="absolute -top-24 -right-24 w-96 h-96 bg-teal-400 rounded-full blur-3xl"></div>
@@ -98,22 +98,23 @@
         </div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="max-w-3xl space-y-4">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-teal-100 border border-white/20 text-xs font-semibold backdrop-blur">
+            <div class="max-w-4xl mx-auto text-center flex flex-col items-center space-y-5">
+                
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-teal-100 border border-white/20 text-xs font-semibold backdrop-blur">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Program Inisiasi Nasional
+                    Program Inisiasi Nasional &bull; Majelis Lingkungan Hidup PP Muhammadiyah
                 </div>
 
-                <h1 class="font-outfit text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                <h1 class="font-outfit text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight max-w-3xl">
                     Penjaringan Representatif KucingMu di Seluruh Wilayah Indonesia
                 </h1>
 
-                <p class="text-sm sm:text-base text-teal-100/90 leading-relaxed font-normal">
+                <p class="text-sm sm:text-base text-teal-100/90 leading-relaxed font-normal max-w-2xl">
                     Panggilan pengabdian bagi kader dan warga persyarikatan untuk menjadi simpul penggerak, edukator kesrawan (kesejahteraan hewan), serta duta relawan KucingMu di tingkat Pimpinan Wilayah (PWM), Daerah (PDM), dan Cabang (PCM).
                 </p>
 
-                <!-- Syarat Utama Cards -->
-                <div class="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- Syarat Utama Cards (Centered & Balanced) -->
+                <div class="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl w-full text-left">
                     <div class="p-4 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-sm space-y-1">
                         <div class="flex items-center gap-2 text-emerald-300 font-bold text-xs uppercase tracking-wider">
                             <span>✅</span> Syarat 1
@@ -130,6 +131,7 @@
                         <p class="text-[11px] text-teal-100/80">Minimal tingkat Pimpinan Ranting / Komisariat (Muhammadiyah atau Organisasi Otonom).</p>
                     </div>
                 </div>
+
             </div>
         </div>
     </section>
@@ -155,7 +157,7 @@
                   method="POST" 
                   enctype="multipart/form-data" 
                   x-data="representativeForm()"
-                  x-init="initMap()"
+                  x-init="initComponent()"
                   class="space-y-8">
                 @csrf
 
@@ -233,11 +235,11 @@
                             @enderror
                         </div>
 
-                        <!-- Nomor WhatsApp Aktif -->
+                        <!-- Nomor WhatsApp Aktif (Clean Input Group Container) -->
                         <div>
                             <label for="whatsapp_number" class="form-label">Nomor WhatsApp Aktif <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-xs text-slate-400 font-semibold select-none">
+                            <div class="flex rounded-xl border border-slate-300 focus-within:border-teal-600 focus-within:ring-4 focus-within:ring-teal-100 overflow-hidden bg-white shadow-xs transition">
+                                <span class="inline-flex items-center px-3.5 bg-slate-100 border-r border-slate-200 text-xs font-bold text-slate-700 select-none shrink-0">
                                     🇮🇩 +62
                                 </span>
                                 <input type="tel" 
@@ -246,19 +248,19 @@
                                        value="{{ old('whatsapp_number', $user->phone ?? '') }}" 
                                        required 
                                        placeholder="81234567890"
-                                       class="form-input pl-16">
+                                       class="w-full border-0 px-3.5 py-2.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:ring-0">
                             </div>
-                            <p class="text-[11px] text-slate-400 mt-1">Untuk verifikasi cepat dan grup koordinasi relawan.</p>
+                            <p class="text-[11px] text-slate-400 mt-1">Contoh: 81234567890 (tanpa angka 0 di depan).</p>
                             @error('whatsapp_number')
                                 <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Username Instagram -->
+                        <!-- Username Instagram (Clean Input Group Container) -->
                         <div class="sm:col-span-2">
                             <label for="instagram_username" class="form-label">Username Instagram <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-xs text-slate-400 font-semibold select-none">
+                            <div class="flex rounded-xl border border-slate-300 focus-within:border-teal-600 focus-within:ring-4 focus-within:ring-teal-100 overflow-hidden bg-white shadow-xs transition">
+                                <span class="inline-flex items-center px-3.5 bg-slate-100 border-r border-slate-200 text-xs font-bold text-slate-500 select-none shrink-0">
                                     @
                                 </span>
                                 <input type="text" 
@@ -266,7 +268,7 @@
                                        name="instagram_username" 
                                        value="{{ old('instagram_username') }}" 
                                        placeholder="akun_instagram_anda"
-                                       class="form-input pl-8">
+                                       class="w-full border-0 px-3.5 py-2.5 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:ring-0">
                             </div>
                             <p class="text-[11px] text-slate-400 mt-1">Dapat digunakan untuk kolaborasi konten edukasi Kesrawan di wilayah Anda.</p>
                             @error('instagram_username')
@@ -276,7 +278,7 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Wilayah Domisili & Auto Tagging Lokasi -->
+                <!-- Section 2: Wilayah Domisili & Auto Tagging Lokasi (Cascading Selects) -->
                 <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
                     <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                         <div class="flex items-center gap-3">
@@ -285,7 +287,7 @@
                             </span>
                             <div>
                                 <h2 class="font-outfit font-bold text-lg text-slate-900">Wilayah Domisili &amp; Tagging Lokasi</h2>
-                                <p class="text-xs text-slate-500">Pilih wilayah administrasi dan tentukan titik koordinat penugasan</p>
+                                <p class="text-xs text-slate-500">Pilih wilayah administrasi (Provinsi, Kota, Kecamatan, Desa) secara bertingkat</p>
                             </div>
                         </div>
 
@@ -297,86 +299,111 @@
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                        <!-- Asal Provinsi -->
+                        
+                        <!-- 1. Asal Provinsi (Dropdown) -->
                         <div>
-                            <label for="province_name" class="form-label">Asal Provinsi <span class="text-rose-500">*</span></label>
-                            <select id="province_name" 
-                                    name="province_name" 
-                                    x-model="selectedProvince" 
+                            <label for="province_select" class="form-label">1. Asal Provinsi <span class="text-rose-500">*</span></label>
+                            <select id="province_select" 
+                                    x-model="selectedProvinceId" 
                                     @change="onProvinceChange()" 
                                     required 
                                     class="form-input">
-                                <option value="">Pilih Provinsi</option>
-                                @foreach($provinces as $prov)
-                                    <option value="{{ $prov }}">{{ $prov }}</option>
-                                @endforeach
+                                <option value="">-- Pilih Provinsi --</option>
+                                <template x-for="p in provincesList" :key="p.id">
+                                    <option :value="p.id" x-text="p.name"></option>
+                                </template>
                             </select>
+                            <input type="hidden" name="province_name" :value="selectedProvinceName">
                             @error('province_name')
                                 <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Asal Kota/Kabupaten -->
+                        <!-- 2. Asal Kota/Kabupaten (Dropdown) -->
                         <div>
-                            <label for="city_name" class="form-label">Asal Kota / Kabupaten <span class="text-rose-500">*</span></label>
-                            <select id="city_name" 
-                                    name="city_name" 
-                                    x-model="selectedCity" 
-                                    @change="onCityChange()" 
-                                    :disabled="!selectedProvince || availableCities.length === 0"
+                            <label for="regency_select" class="form-label flex items-center justify-between">
+                                <span>2. Asal Kota / Kabupaten <span class="text-rose-500">*</span></span>
+                                <span x-show="isLoadingRegencies" x-cloak class="text-[10px] text-teal-700 font-semibold animate-pulse">
+                                    Memuat kota...
+                                </span>
+                            </label>
+                            <select id="regency_select" 
+                                    x-model="selectedRegencyId" 
+                                    @change="onRegencyChange()" 
+                                    :disabled="!selectedProvinceId || isLoadingRegencies || regenciesList.length === 0"
                                     required 
                                     class="form-input disabled:bg-slate-100 disabled:cursor-not-allowed">
-                                <option value="">Pilih Kota / Kabupaten</option>
-                                <template x-for="city in availableCities" :key="city">
-                                    <option :value="city" x-text="city"></option>
+                                <option value="">-- Pilih Kota / Kabupaten --</option>
+                                <template x-for="r in regenciesList" :key="r.id">
+                                    <option :value="r.id" x-text="r.name"></option>
                                 </template>
                             </select>
+                            <input type="hidden" name="city_name" :value="selectedRegencyName">
                             @error('city_name')
                                 <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Asal Kecamatan -->
+                        <!-- 3. Asal Kecamatan (Dropdown) -->
                         <div>
-                            <label for="district_name" class="form-label">Asal Kecamatan <span class="text-rose-500">*</span></label>
-                            <input type="text" 
-                                   id="district_name" 
-                                   name="district_name" 
-                                   x-model="district"
-                                   @input.debounce.800ms="searchLocationByAddress()"
-                                   required 
-                                   placeholder="Contoh: Kotagede"
-                                   class="form-input">
+                            <label for="district_select" class="form-label flex items-center justify-between">
+                                <span>3. Asal Kecamatan <span class="text-rose-500">*</span></span>
+                                <span x-show="isLoadingDistricts" x-cloak class="text-[10px] text-teal-700 font-semibold animate-pulse">
+                                    Memuat kecamatan...
+                                </span>
+                            </label>
+                            <select id="district_select" 
+                                    x-model="selectedDistrictId" 
+                                    @change="onDistrictChange()" 
+                                    :disabled="!selectedRegencyId || isLoadingDistricts || districtsList.length === 0"
+                                    required 
+                                    class="form-input disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                <option value="">-- Pilih Kecamatan --</option>
+                                <template x-for="d in districtsList" :key="d.id">
+                                    <option :value="d.id" x-text="d.name"></option>
+                                </template>
+                            </select>
+                            <input type="hidden" name="district_name" :value="selectedDistrictName">
                             @error('district_name')
                                 <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Asal Desa/Kalurahan -->
+                        <!-- 4. Asal Desa/Kalurahan (Dropdown) -->
                         <div>
-                            <label for="village_name" class="form-label">Asal Desa / Kelurahan / Kalurahan <span class="text-rose-500">*</span></label>
-                            <input type="text" 
-                                   id="village_name" 
-                                   name="village_name" 
-                                   x-model="village"
-                                   @input.debounce.800ms="searchLocationByAddress()"
-                                   required 
-                                   placeholder="Contoh: Rejowinangun"
-                                   class="form-input">
+                            <label for="village_select" class="form-label flex items-center justify-between">
+                                <span>4. Asal Desa / Kelurahan / Kalurahan <span class="text-rose-500">*</span></span>
+                                <span x-show="isLoadingVillages" x-cloak class="text-[10px] text-teal-700 font-semibold animate-pulse">
+                                    Memuat desa/kelurahan...
+                                </span>
+                            </label>
+                            <select id="village_select" 
+                                    x-model="selectedVillageId" 
+                                    @change="onVillageChange()" 
+                                    :disabled="!selectedDistrictId || isLoadingVillages || villagesList.length === 0"
+                                    required 
+                                    class="form-input disabled:bg-slate-100 disabled:cursor-not-allowed">
+                                <option value="">-- Pilih Desa / Kelurahan --</option>
+                                <template x-for="v in villagesList" :key="v.id">
+                                    <option :value="v.id" x-text="v.name"></option>
+                                </template>
+                            </select>
+                            <input type="hidden" name="village_name" :value="selectedVillageName">
                             @error('village_name')
                                 <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
+
                     </div>
 
                     <!-- Auto Tagging Lokasi Peta Interaktif (Leaflet) -->
                     <div class="space-y-3 pt-2">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                             <label class="form-label mb-0">
-                                Titik Koordinat Lokasi (Auto Tagging)
+                                Titik Koordinat Lokasi (Auto Tagging Peta)
                             </label>
                             <span class="text-[11px] text-slate-500">
-                                Geser atau klik peta untuk memperbarui titik koordinat secara presisi
+                                Titik otomatis berpindah saat Anda memilih wilayah di atas, atau geser pin manual
                             </span>
                         </div>
 
@@ -387,9 +414,9 @@
                             <!-- Geocoding Status Badge -->
                             <div x-show="isGeocoding" 
                                  x-cloak
-                                 class="absolute top-3 right-3 z-[1000] bg-white/90 backdrop-blur px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-800 shadow-md flex items-center gap-2 border border-teal-200">
+                                 class="absolute top-3 right-3 z-[1000] bg-white/95 backdrop-blur px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-800 shadow-md flex items-center gap-2 border border-teal-200">
                                 <span class="w-2 h-2 rounded-full bg-teal-600 animate-ping"></span>
-                                Memperbarui lokasi...
+                                Memperbarui koordinat...
                             </div>
                         </div>
 
@@ -404,7 +431,7 @@
                                     <span class="font-mono text-teal-800 font-semibold" x-text="longitude || '-'"></span>
                                 </div>
                                 <span class="text-[11px] text-slate-500" x-show="formattedAddress">
-                                    📍 Terdeteksi otomatis
+                                    📍 Alamat Terdeteksi
                                 </span>
                             </div>
                             <div x-show="formattedAddress" class="text-slate-600 border-t border-slate-200/60 pt-1.5 leading-relaxed">
@@ -634,18 +661,28 @@
 
     @include('partials.accessibility-widget')
 
-    <!-- Alpine.js & Map Controller -->
+    <!-- Alpine.js & Cascading Wilayah + Map Controller -->
     <script>
-        const regenciesMapData = @json($regenciesMap);
-
         function representativeForm() {
             return {
-                selectedProvince: '{{ old('province_name', '') }}',
-                selectedCity: '{{ old('city_name', '') }}',
-                district: '{{ old('district_name', '') }}',
-                village: '{{ old('village_name', '') }}',
-                availableCities: [],
-                
+                provincesList: [],
+                regenciesList: [],
+                districtsList: [],
+                villagesList: [],
+
+                selectedProvinceId: '',
+                selectedProvinceName: '{{ old('province_name', '') }}',
+                selectedRegencyId: '',
+                selectedRegencyName: '{{ old('city_name', '') }}',
+                selectedDistrictId: '',
+                selectedDistrictName: '{{ old('district_name', '') }}',
+                selectedVillageId: '',
+                selectedVillageName: '{{ old('village_name', '') }}',
+
+                isLoadingRegencies: false,
+                isLoadingDistricts: false,
+                isLoadingVillages: false,
+
                 latitude: '{{ old('latitude', '-7.801389') }}',
                 longitude: '{{ old('longitude', '110.364444') }}',
                 formattedAddress: '{{ old('formatted_address', '') }}',
@@ -658,29 +695,172 @@
                 map: null,
                 marker: null,
 
-                init() {
-                    if (this.selectedProvince && regenciesMapData[this.selectedProvince]) {
-                        this.availableCities = regenciesMapData[this.selectedProvince];
+                initComponent() {
+                    this.loadProvinces();
+                    this.initMap();
+                },
+
+                // 1. Fetch Provinces
+                async loadProvinces() {
+                    try {
+                        let res = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+                        if (!res.ok) {
+                            res = await fetch('{{ route('api.representatives.provinces') }}');
+                        }
+                        this.provincesList = await res.json();
+
+                        // If old province exists, preselect
+                        if (this.selectedProvinceName) {
+                            const found = this.provincesList.find(p => p.name.toLowerCase() === this.selectedProvinceName.toLowerCase());
+                            if (found) {
+                                this.selectedProvinceId = found.id;
+                                this.selectedProvinceName = found.name;
+                                await this.loadRegencies(found.id, true);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Gagal memuat provinsi:', e);
                     }
                 },
 
-                onProvinceChange() {
-                    if (this.selectedProvince && regenciesMapData[this.selectedProvince]) {
-                        this.availableCities = regenciesMapData[this.selectedProvince];
-                        this.selectedCity = '';
+                // 2. Province change handler
+                async onProvinceChange() {
+                    const p = this.provincesList.find(item => String(item.id) === String(this.selectedProvinceId));
+                    this.selectedProvinceName = p ? p.name : '';
+                    
+                    this.regenciesList = [];
+                    this.districtsList = [];
+                    this.villagesList = [];
+                    this.selectedRegencyId = '';
+                    this.selectedRegencyName = '';
+                    this.selectedDistrictId = '';
+                    this.selectedDistrictName = '';
+                    this.selectedVillageId = '';
+                    this.selectedVillageName = '';
+
+                    if (this.selectedProvinceId) {
+                        await this.loadRegencies(this.selectedProvinceId);
                         this.searchLocationByAddress();
-                    } else {
-                        this.availableCities = [];
-                        this.selectedCity = '';
                     }
                 },
 
-                onCityChange() {
-                    if (this.selectedCity) {
+                // 3. Fetch Regencies
+                async loadRegencies(provinceId, isPreload = false) {
+                    this.isLoadingRegencies = true;
+                    try {
+                        let res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${provinceId}.json`);
+                        if (!res.ok) {
+                            res = await fetch(`{{ route('api.representatives.regencies') }}?province_id=${provinceId}`);
+                        }
+                        this.regenciesList = await res.json();
+
+                        if (isPreload && this.selectedRegencyName) {
+                            const found = this.regenciesList.find(r => r.name.toLowerCase() === this.selectedRegencyName.toLowerCase());
+                            if (found) {
+                                this.selectedRegencyId = found.id;
+                                this.selectedRegencyName = found.name;
+                                await this.loadDistricts(found.id, true);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Gagal memuat kota/kabupaten:', e);
+                    } finally {
+                        this.isLoadingRegencies = false;
+                    }
+                },
+
+                // 4. Regency change handler
+                async onRegencyChange() {
+                    const r = this.regenciesList.find(item => String(item.id) === String(this.selectedRegencyId));
+                    this.selectedRegencyName = r ? r.name : '';
+                    
+                    this.districtsList = [];
+                    this.villagesList = [];
+                    this.selectedDistrictId = '';
+                    this.selectedDistrictName = '';
+                    this.selectedVillageId = '';
+                    this.selectedVillageName = '';
+
+                    if (this.selectedRegencyId) {
+                        await this.loadDistricts(this.selectedRegencyId);
                         this.searchLocationByAddress();
                     }
                 },
 
+                // 5. Fetch Districts
+                async loadDistricts(regencyId, isPreload = false) {
+                    this.isLoadingDistricts = true;
+                    try {
+                        let res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${regencyId}.json`);
+                        if (!res.ok) {
+                            res = await fetch(`{{ route('api.representatives.districts') }}?regency_id=${regencyId}`);
+                        }
+                        this.districtsList = await res.json();
+
+                        if (isPreload && this.selectedDistrictName) {
+                            const found = this.districtsList.find(d => d.name.toLowerCase() === this.selectedDistrictName.toLowerCase());
+                            if (found) {
+                                this.selectedDistrictId = found.id;
+                                this.selectedDistrictName = found.name;
+                                await this.loadVillages(found.id, true);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Gagal memuat kecamatan:', e);
+                    } finally {
+                        this.isLoadingDistricts = false;
+                    }
+                },
+
+                // 6. District change handler
+                async onDistrictChange() {
+                    const d = this.districtsList.find(item => String(item.id) === String(this.selectedDistrictId));
+                    this.selectedDistrictName = d ? d.name : '';
+                    
+                    this.villagesList = [];
+                    this.selectedVillageId = '';
+                    this.selectedVillageName = '';
+
+                    if (this.selectedDistrictId) {
+                        await this.loadVillages(this.selectedDistrictId);
+                        this.searchLocationByAddress();
+                    }
+                },
+
+                // 7. Fetch Villages
+                async loadVillages(districtId, isPreload = false) {
+                    this.isLoadingVillages = true;
+                    try {
+                        let res = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${districtId}.json`);
+                        if (!res.ok) {
+                            res = await fetch(`{{ route('api.representatives.villages') }}?district_id=${districtId}`);
+                        }
+                        this.villagesList = await res.json();
+
+                        if (isPreload && this.selectedVillageName) {
+                            const found = this.villagesList.find(v => v.name.toLowerCase() === this.selectedVillageName.toLowerCase());
+                            if (found) {
+                                this.selectedVillageId = found.id;
+                                this.selectedVillageName = found.name;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Gagal memuat desa/kelurahan:', e);
+                    } finally {
+                        this.isLoadingVillages = false;
+                    }
+                },
+
+                // 8. Village change handler
+                onVillageChange() {
+                    const v = this.villagesList.find(item => String(item.id) === String(this.selectedVillageId));
+                    this.selectedVillageName = v ? v.name : '';
+                    if (this.selectedVillageName) {
+                        this.searchLocationByAddress();
+                    }
+                },
+
+                // 9. File upload indicators
                 onFileSelected(event, type) {
                     const file = event.target.files[0];
                     if (!file) return;
@@ -691,8 +871,8 @@
                     }
                 },
 
+                // 10. Map initialization & Geocoding
                 initMap() {
-                    this.init();
                     const defaultLat = parseFloat(this.latitude) || -7.801389;
                     const defaultLng = parseFloat(this.longitude) || 110.364444;
 
@@ -717,7 +897,6 @@
                         this.updateCoordinates(e.latlng.lat, e.latlng.lng, true);
                     });
 
-                    // Initial address reverse geocode if empty
                     if (!this.formattedAddress && this.latitude && this.longitude) {
                         this.reverseGeocode(defaultLat, defaultLng);
                     }
@@ -748,10 +927,10 @@
 
                 searchLocationByAddress() {
                     const parts = [];
-                    if (this.village) parts.push(this.village);
-                    if (this.district) parts.push(this.district);
-                    if (this.selectedCity) parts.push(this.selectedCity);
-                    if (this.selectedProvince) parts.push(this.selectedProvince);
+                    if (this.selectedVillageName) parts.push(this.selectedVillageName);
+                    if (this.selectedDistrictName) parts.push(this.selectedDistrictName);
+                    if (this.selectedRegencyName) parts.push(this.selectedRegencyName);
+                    if (this.selectedProvinceName) parts.push(this.selectedProvinceName);
                     parts.push('Indonesia');
 
                     if (parts.length <= 1) return;
