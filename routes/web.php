@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\AdminContactController;
 use App\Http\Controllers\MasterWilayahController;
 use App\Http\Controllers\ActivityAlbumController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\RepresentativeRegistrationController;
+use App\Http\Controllers\Admin\AdminRepresentativeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -157,6 +159,13 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
     Route::put('/admin/users/{user}/role', [AdminUserController::class, 'updateRole'])->name('admin.users.update-role');
     Route::post('/admin/users/{user}/impersonate', [AdminUserController::class, 'impersonate'])->name('admin.users.impersonate');
+
+    // Admin & Superadmin Penjaringan Representatif Management
+    Route::get('/admin/representatives/export', [AdminRepresentativeController::class, 'export'])->name('admin.representatives.export');
+    Route::get('/admin/representatives', [AdminRepresentativeController::class, 'index'])->name('admin.representatives.index');
+    Route::get('/admin/representatives/{representative}', [AdminRepresentativeController::class, 'show'])->name('admin.representatives.show');
+    Route::put('/admin/representatives/{representative}/status', [AdminRepresentativeController::class, 'updateStatus'])->name('admin.representatives.update-status');
+    Route::delete('/admin/representatives/{representative}', [AdminRepresentativeController::class, 'destroy'])->name('admin.representatives.destroy');
 });
 
 // Impersonation Exit Route (Accessible by any authenticated user who has an active impersonation session)
@@ -180,6 +189,14 @@ Route::middleware(['auth'])->group(function () {
 
 // Public Verification Page (No Auth)
 Route::get('/verify/{number}', [DashboardController::class, 'verifyKtam'])->name('ktam.verify');
+
+// Public Penjaringan Representatif KucingMu Routes
+Route::get('/penjaringan-representatif', [RepresentativeRegistrationController::class, 'create'])->name('representative.register');
+Route::post('/penjaringan-representatif', [RepresentativeRegistrationController::class, 'store'])->name('representative.store');
+Route::get('/penjaringan-representatif/sukses/{number}', [RepresentativeRegistrationController::class, 'success'])->name('representative.success');
+Route::get('/api/representatives/regencies', [RepresentativeRegistrationController::class, 'getRegencies'])->name('api.representatives.regencies');
+Route::redirect('/representatif', '/penjaringan-representatif');
+Route::redirect('/daftar-representatif', '/penjaringan-representatif');
 
 // Public Privacy Policy Page (Standar Nasional UU PDP No. 27/2022)
 Route::get('/kebijakan-privasi', function () {

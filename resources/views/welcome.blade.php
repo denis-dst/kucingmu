@@ -59,6 +59,9 @@
                 @endif
                 <a href="#faq" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">FAQ</a>
                 <a href="#verifikasi" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'KTAKuMu Verification' : 'Verifikasi KTAKuMu' }}</a>
+                <a href="{{ route('representative.register') }}" class="text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2.5 py-1 rounded-lg text-xs font-bold transition">
+                    🎖️ Representatif
+                </a>
                 <a href="#kontak" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</a>
             </nav>
 
@@ -109,6 +112,7 @@
             @endif
             <a href="#faq" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">FAQ</a>
             <a href="#verifikasi" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'KTAKuMu Verification' : 'Verifikasi KTAKuMu' }}</a>
+            <a href="{{ route('representative.register') }}" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200">🎖️ Jadi Representatif di Daerahmu</a>
             <a href="#kontak" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</a>
             
             @if (Route::has('login'))
@@ -149,6 +153,9 @@
                     <div class="pt-2 flex flex-wrap gap-3.5">
                         <a href="{{ route('register') }}" class="min-h-[44px] inline-flex items-center justify-center rounded-xl bg-white text-teal-950 px-6 py-3 text-sm font-bold shadow-md hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-white">
                             Daftarkan Kucing Peliharaan
+                        </a>
+                        <a href="{{ route('representative.register') }}" class="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-amber-300/50 bg-amber-400/25 text-amber-100 hover:bg-amber-400/35 hover:text-white px-5 py-3 text-sm font-bold backdrop-blur focus-visible:ring-2 focus-visible:ring-amber-300 transition shadow-sm">
+                            🎖️ Jadi Representatif di Daerahmu
                         </a>
                         <a href="#verifikasi" class="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white px-5 py-3 text-sm font-semibold hover:bg-white/20 backdrop-blur focus-visible:ring-2 focus-visible:ring-white">
                             Periksa Nomor NIAKuMu
@@ -553,6 +560,36 @@
             </section>
         @endif
 
+        <!-- CTA Banner: Jadi Representatif di Daerahmu -->
+        <section class="py-12 sm:py-16 bg-gradient-to-r from-teal-900 via-teal-800 to-sky-900 text-white relative overflow-hidden border-y border-teal-950">
+            <div class="absolute inset-0 pointer-events-none opacity-20">
+                <div class="absolute -top-20 -right-20 w-80 h-80 bg-amber-400 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-teal-400 rounded-full blur-3xl"></div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="bg-white/10 border border-white/20 rounded-3xl p-6 sm:p-10 backdrop-blur-md flex flex-col lg:flex-row items-center justify-between gap-8">
+                    <div class="space-y-3 text-center lg:text-left max-w-2xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-xs font-bold">
+                            <span>🎖️</span> Penjaringan Nasional 38 Provinsi
+                        </div>
+                        <h2 class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                            Berminat Menggerakkan Kepedulian Hewan di Wilayah Anda?
+                        </h2>
+                        <p class="text-xs sm:text-sm text-teal-100/90 leading-relaxed font-normal">
+                            Bergabunglah sebagai kader penggerak, edukator kesrawan (kesejahteraan hewan), serta relawan KucingMu di tingkat Pimpinan Wilayah (PWM), Daerah (PDM), atau Cabang (PCM).
+                        </p>
+                    </div>
+
+                    <div class="shrink-0 w-full lg:w-auto text-center">
+                        <a href="{{ route('representative.register') }}" class="w-full sm:w-auto min-h-[50px] px-8 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition transform hover:scale-[1.02] active:scale-[0.98]">
+                            <span>🎖️</span> Jadi Representatif di Daerahmu &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- FAQ Section -->
         <section id="faq" class="py-16 bg-white border-t border-slate-200">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
@@ -802,6 +839,10 @@
             </div>
 
             <div class="flex items-center gap-4 text-xs">
+                <a href="{{ route('representative.register') }}" class="text-slate-400 hover:text-amber-300 transition font-semibold">
+                    Penjaringan Representatif
+                </a>
+                <span class="text-slate-700">&bull;</span>
                 <a href="{{ route('privacy.policy') }}" class="text-slate-400 hover:text-teal-300 transition">
                     Kebijakan Privasi
                 </a>
