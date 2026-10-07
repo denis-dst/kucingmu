@@ -800,6 +800,16 @@
                 @endif
                 <span class="font-outfit font-extrabold text-white text-base tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
             </div>
+
+            <div class="flex items-center gap-4 text-xs">
+                <a href="{{ route('privacy.policy') }}" class="text-slate-400 hover:text-teal-300 transition">
+                    Kebijakan Privasi
+                </a>
+                <span class="text-slate-700">&bull;</span>
+                <a href="{{ route('contact.index') }}" class="text-slate-400 hover:text-teal-300 transition">
+                    Pusat Bantuan
+                </a>
+            </div>
             
             <p class="text-xs text-slate-400 footer-text">
                 {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}

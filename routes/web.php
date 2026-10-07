@@ -181,6 +181,13 @@ Route::middleware(['auth'])->group(function () {
 // Public Verification Page (No Auth)
 Route::get('/verify/{number}', [DashboardController::class, 'verifyKtam'])->name('ktam.verify');
 
+// Public Privacy Policy Page (Standar Nasional UU PDP No. 27/2022)
+Route::get('/kebijakan-privasi', function () {
+    return view('privacy-policy');
+})->name('privacy.policy');
+Route::redirect('/privacy-policy', '/kebijakan-privasi');
+Route::redirect('/privacy', '/kebijakan-privasi');
+
 // Language Switcher Route
 Route::get('/lang/{locale}', function ($locale) {
     if (in_array($locale, ['id', 'en'])) {

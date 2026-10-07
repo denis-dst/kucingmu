@@ -48,8 +48,13 @@
                     </p>
                 </div>
                 
-                <div class="text-xs text-teal-200/60 font-semibold tracking-wide footer-text">
-                    {!! $app_settings['app_footer'] ?? '&copy; 2026 KucingMu. Warga Muhammadiyah Peduli Hewan.' !!}
+                <div class="text-xs text-teal-200/60 font-semibold tracking-wide footer-text flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        {!! $app_settings['app_footer'] ?? '&copy; 2026 KucingMu. Warga Muhammadiyah Peduli Hewan.' !!}
+                    </div>
+                    <a href="{{ route('privacy.policy') }}" class="text-teal-200/80 hover:text-white underline underline-offset-2">
+                        Kebijakan Privasi
+                    </a>
                 </div>
             </div>
 

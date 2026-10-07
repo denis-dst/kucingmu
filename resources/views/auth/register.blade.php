@@ -65,6 +65,9 @@
         </div>
 
         <div class="pt-2">
+            <p class="text-xs text-slate-500 text-center leading-relaxed mb-3">
+                Dengan mendaftar, Anda menyetujui pemrosesan data sesuai <a href="{{ route('privacy.policy') }}" target="_blank" class="text-teal-700 font-semibold underline hover:text-teal-800">Kebijakan Privasi</a> KucingMu.
+            </p>
             <button type="submit" class="w-full button-primary flex justify-center items-center py-2.5 text-sm font-semibold">
                 Daftar Akun KucingMu
             </button>

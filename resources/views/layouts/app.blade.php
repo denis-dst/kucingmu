@@ -74,9 +74,20 @@
                 </main>
 
                 <!-- Footer -->
-                <footer class="mt-auto py-5 border-t border-slate-200 bg-white/60 text-center text-xs text-slate-500">
-                    <div class="max-w-7xl mx-auto px-4 footer-text">
-                        {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
+                <footer class="mt-auto py-5 border-t border-slate-200 bg-white/60 text-xs text-slate-500">
+                    <div class="max-w-7xl mx-auto px-4 footer-text flex flex-col sm:flex-row items-center justify-between gap-2">
+                        <div>
+                            {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
+                        </div>
+                        <div class="flex items-center gap-4 text-xs">
+                            <a href="{{ route('privacy.policy') }}" class="text-slate-500 hover:text-teal-700 font-medium transition underline underline-offset-2">
+                                Kebijakan Privasi
+                            </a>
+                            <span class="text-slate-300">&bull;</span>
+                            <a href="{{ route('contact.index') }}" class="text-slate-500 hover:text-teal-700 font-medium transition underline underline-offset-2">
+                                Hubungi Kami
+                            </a>
+                        </div>
                     </div>
                 </footer>
             </div>
