@@ -107,11 +107,17 @@
     </header>
 
     <!-- Header Hero Banner -->
-    <section class="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white py-12 sm:py-16 border-b border-slate-800 no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="bg-gradient-to-br from-teal-900 via-teal-800 to-sky-800 text-white py-12 sm:py-16 border-b border-teal-950 no-print relative overflow-hidden">
+        <!-- Subtle ambient backdrop accents -->
+        <div class="absolute inset-0 pointer-events-none opacity-20">
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-teal-400 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-sky-400 rounded-full blur-3xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="max-w-3xl space-y-4">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-950/80 text-teal-300 border border-teal-500/30 text-xs font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-teal-100 border border-white/20 text-xs font-semibold backdrop-blur">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     Standar Kepatuhan UU PDP No. 27 Tahun 2022
                 </div>
 
@@ -119,24 +125,24 @@
                     Kebijakan Privasi & Pelindungan Data Pribadi
                 </h1>
 
-                <p class="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
+                <p class="text-sm sm:text-base text-teal-100/90 leading-relaxed font-normal">
                     Komitmen resmi platform KucingMu dalam menjaga privasi, keamanan data identitas pemilik, catatan biometrik hewan, serta rekam medis hewan peliharaan Anda sesuai regulasi nasional.
                 </p>
 
-                <div class="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-2 border-t border-slate-800">
+                <div class="flex flex-wrap items-center gap-4 text-xs text-teal-200/80 pt-2 border-t border-teal-700/50">
                     <div>
-                        <span class="text-slate-500">Pembaruan Terakhir:</span>
-                        <strong class="text-slate-200 ml-1">07 Oktober 2026</strong>
+                        <span class="text-teal-200/70">Pembaruan Terakhir:</span>
+                        <strong class="text-white ml-1">07 Oktober 2026</strong>
                     </div>
-                    <div class="hidden sm:inline text-slate-600">&bull;</div>
+                    <div class="hidden sm:inline text-teal-500">&bull;</div>
                     <div>
-                        <span class="text-slate-500">Status Dokumen:</span>
-                        <strong class="text-emerald-400 ml-1">Resmi & Berlaku</strong>
+                        <span class="text-teal-200/70">Status Dokumen:</span>
+                        <strong class="text-emerald-300 ml-1">Resmi & Berlaku</strong>
                     </div>
-                    <div class="hidden sm:inline text-slate-600">&bull;</div>
+                    <div class="hidden sm:inline text-teal-500">&bull;</div>
                     <div>
-                        <span class="text-slate-500">Pengendali:</span>
-                        <strong class="text-slate-200 ml-1">Majelis Lingkungan Hidup PP Muhammadiyah</strong>
+                        <span class="text-teal-200/70">Pengendali:</span>
+                        <strong class="text-white ml-1">Majelis Lingkungan Hidup PP Muhammadiyah</strong>
                     </div>
                 </div>
             </div>
@@ -226,7 +232,7 @@
                     <!-- Pasal 1 -->
                     <section id="pasal-1" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 1</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 1</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Ketentuan Umum & Identitas Pengendali Data
                             </h2>
@@ -245,7 +251,7 @@
                     <!-- Pasal 2 -->
                     <section id="pasal-2" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 2</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 2</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Kategori Data Pribadi yang Dikumpulkan
                             </h2>
@@ -305,7 +311,7 @@
                     <!-- Pasal 3 -->
                     <section id="pasal-3" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 3</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 3</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Dasar Hukum & Tujuan Pemrosesan Data Pribadi
                             </h2>
@@ -328,7 +334,7 @@
                     <!-- Pasal 4 -->
                     <section id="pasal-4" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 4</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 4</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Hak-Hak Anda sebagai Subjek Data Pribadi
                             </h2>
@@ -370,7 +376,7 @@
                     <!-- Pasal 5 -->
                     <section id="pasal-5" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 5</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 5</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Pengamanan & Kerahasiaan Data Pribadi
                             </h2>
@@ -390,7 +396,7 @@
                     <!-- Pasal 6 -->
                     <section id="pasal-6" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 6</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 6</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Pembagian Data & Larangan Penjualan Data
                             </h2>
@@ -411,7 +417,7 @@
                     <!-- Pasal 7 -->
                     <section id="pasal-7" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 7</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 7</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Masa Retensi & Pemusnahan Data
                             </h2>
@@ -432,7 +438,7 @@
                     <!-- Pasal 8 -->
                     <section id="pasal-8" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 8</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 8</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Penggunaan Cookie & Data Sesi
                             </h2>
@@ -453,7 +459,7 @@
                     <!-- Pasal 9 -->
                     <section id="pasal-9" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 9</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 9</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Pelindungan Data Anak di Bawah Umur
                             </h2>
@@ -469,7 +475,7 @@
                     <!-- Pasal 10 -->
                     <section id="pasal-10" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 10</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 10</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Perubahan & Pembaruan Kebijakan Privasi
                             </h2>
@@ -485,7 +491,7 @@
                     <!-- Pasal 11 -->
                     <section id="pasal-11" class="space-y-3.5 scroll-mt-24">
                         <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-                            <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">Pasal 11</span>
+                            <span class="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-teal-50 text-teal-800 border border-teal-200/80">Pasal 11</span>
                             <h2 class="font-outfit text-xl sm:text-2xl font-bold text-slate-900">
                                 Kontak Petugas Pelindungan Data Pribadi
                             </h2>
@@ -547,7 +553,7 @@
     <div class="fixed bottom-6 right-6 z-30 no-print" x-show="showBackToTop" x-cloak x-transition>
         <button type="button" 
                 @click="window.scrollTo({ top: 0, behavior: 'smooth' })"
-                class="w-11 h-11 rounded-full bg-slate-900 text-white shadow-lg hover:bg-teal-700 flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                class="w-11 h-11 rounded-full bg-teal-700 text-white shadow-lg hover:bg-teal-800 flex items-center justify-center transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
                 title="Kembali ke atas">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
