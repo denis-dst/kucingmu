@@ -141,13 +141,26 @@
                                     <label for="setting_google_tag_manager_head" class="block font-outfit text-xs font-bold text-slate-800">
                                         Skrip Tag GTM untuk Header (&lt;head&gt;)
                                     </label>
-                                    <span class="text-[10px] font-mono text-slate-400">Ditempatkan di bagian atas &lt;head&gt;</span>
+                                    <span class="text-[10px] font-mono text-slate-500">Ditempatkan di bagian atas &lt;head&gt;</span>
                                 </div>
-                                <textarea id="setting_google_tag_manager_head" 
-                                          name="settings[google_tag_manager_head]" 
-                                          rows="4" 
-                                          placeholder="<!-- Google Tag Manager -->&#10;<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':&#10;new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],&#10;j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=&#10;'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);&#10;})(window,document,'script','dataLayer','GTM-XXXXXXX');</script>&#10;<!-- End Google Tag Manager -->"
-                                          class="w-full font-mono text-xs p-3.5 bg-slate-900 text-emerald-400 border border-slate-700 rounded-xl focus:ring-teal-500 focus:border-teal-500 shadow-inner leading-relaxed">{{ old('settings.google_tag_manager_head', $settings['google_tag_manager_head']->value ?? '') }}</textarea>
+                                <div class="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-teal-400 focus-within:border-teal-400">
+                                    <div class="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800 text-[11px] font-mono">
+                                        <span class="flex items-center gap-1.5 font-bold text-teal-300">
+                                            <span>&lt;/&gt;</span> GTM Header Script Tag
+                                        </span>
+                                        <span class="text-[10px] text-slate-400">Paste cuplikan &lt;script&gt; GTM</span>
+                                    </div>
+                                    <textarea id="setting_google_tag_manager_head" 
+                                              name="settings[google_tag_manager_head]" 
+                                              rows="5" 
+                                              spellcheck="false"
+                                              autocomplete="off"
+                                              autocorrect="off"
+                                              autocapitalize="off"
+                                              placeholder="<!-- Google Tag Manager -->&#10;<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':&#10;new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],&#10;j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=&#10;'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);&#10;})(window,document,'script','dataLayer','GTM-XXXXXXX');</script>&#10;<!-- End Google Tag Manager -->"
+                                              style="background-color: #020617 !important; color: #38bdf8 !important; caret-color: #38bdf8 !important; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important; line-height: 1.6 !important;"
+                                              class="w-full p-4 font-mono text-xs border-0 outline-none focus:outline-none focus:ring-0 placeholder:text-slate-600 block">{{ old('settings.google_tag_manager_head', $settings['google_tag_manager_head']->value ?? '') }}</textarea>
+                                </div>
                             </div>
 
                             <!-- GTM Body Script -->
@@ -156,13 +169,26 @@
                                     <label for="setting_google_tag_manager_body" class="block font-outfit text-xs font-bold text-slate-800">
                                         Skrip Tag GTM untuk Body (&lt;noscript&gt;)
                                     </label>
-                                    <span class="text-[10px] font-mono text-slate-400">Ditempatkan tepat setelah pembuka &lt;body&gt;</span>
+                                    <span class="text-[10px] font-mono text-slate-500">Ditempatkan tepat setelah pembuka &lt;body&gt;</span>
                                 </div>
-                                <textarea id="setting_google_tag_manager_body" 
-                                          name="settings[google_tag_manager_body]" 
-                                          rows="3" 
-                                          placeholder="<!-- Google Tag Manager (noscript) -->&#10;<noscript><iframe src=&quot;https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX&quot;&#10;height=&quot;0&quot; width=&quot;0&quot; style=&quot;display:none;visibility:hidden&quot;></iframe></noscript>&#10;<!-- End Google Tag Manager (noscript) -->"
-                                          class="w-full font-mono text-xs p-3.5 bg-slate-900 text-emerald-400 border border-slate-700 rounded-xl focus:ring-teal-500 focus:border-teal-500 shadow-inner leading-relaxed">{{ old('settings.google_tag_manager_body', $settings['google_tag_manager_body']->value ?? '') }}</textarea>
+                                <div class="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-teal-400 focus-within:border-teal-400">
+                                    <div class="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800 text-[11px] font-mono">
+                                        <span class="flex items-center gap-1.5 font-bold text-teal-300">
+                                            <span>&lt;/&gt;</span> GTM Body NoScript Tag
+                                        </span>
+                                        <span class="text-[10px] text-slate-400">Paste cuplikan &lt;noscript&gt; GTM</span>
+                                    </div>
+                                    <textarea id="setting_google_tag_manager_body" 
+                                              name="settings[google_tag_manager_body]" 
+                                              rows="4" 
+                                              spellcheck="false"
+                                              autocomplete="off"
+                                              autocorrect="off"
+                                              autocapitalize="off"
+                                              placeholder="<!-- Google Tag Manager (noscript) -->&#10;<noscript><iframe src=&quot;https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX&quot;&#10;height=&quot;0&quot; width=&quot;0&quot; style=&quot;display:none;visibility:hidden&quot;></iframe></noscript>&#10;<!-- End Google Tag Manager (noscript) -->"
+                                              style="background-color: #020617 !important; color: #38bdf8 !important; caret-color: #38bdf8 !important; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important; line-height: 1.6 !important;"
+                                              class="w-full p-4 font-mono text-xs border-0 outline-none focus:outline-none focus:ring-0 placeholder:text-slate-600 block">{{ old('settings.google_tag_manager_body', $settings['google_tag_manager_body']->value ?? '') }}</textarea>
+                                </div>
                             </div>
                         </div>
 
@@ -211,13 +237,26 @@
                                     <label for="setting_google_analytics_script" class="block font-outfit text-xs font-bold text-slate-800">
                                         Atau Tempelkan Skrip Google Tag (gtag.js) Lengkap
                                     </label>
-                                    <span class="text-[10px] font-mono text-slate-400">Opsional jika sudah mengisi ID di atas</span>
+                                    <span class="text-[10px] font-mono text-slate-500">Opsional jika sudah mengisi ID di atas</span>
                                 </div>
-                                <textarea id="setting_google_analytics_script" 
-                                          name="settings[google_analytics_script]" 
-                                          rows="4" 
-                                          placeholder="<!-- Google tag (gtag.js) -->&#10;<script async src=&quot;https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX&quot;></script>&#10;<script>&#10;  window.dataLayer = window.dataLayer || [];&#10;  function gtag(){dataLayer.push(arguments);}&#10;  gtag('js', new Date());&#10;  gtag('config', 'G-XXXXXXXXXX');&#10;</script>"
-                                          class="w-full font-mono text-xs p-3.5 bg-slate-900 text-emerald-400 border border-slate-700 rounded-xl focus:ring-teal-500 focus:border-teal-500 shadow-inner leading-relaxed">{{ old('settings.google_analytics_script', $settings['google_analytics_script']->value ?? '') }}</textarea>
+                                <div class="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-teal-400 focus-within:border-teal-400">
+                                    <div class="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800 text-[11px] font-mono">
+                                        <span class="flex items-center gap-1.5 font-bold text-emerald-300">
+                                            <span>&lt;/&gt;</span> GA4 gtag.js Script Tag
+                                        </span>
+                                        <span class="text-[10px] text-slate-400">Paste cuplikan &lt;script&gt; gtag.js</span>
+                                    </div>
+                                    <textarea id="setting_google_analytics_script" 
+                                              name="settings[google_analytics_script]" 
+                                              rows="5" 
+                                              spellcheck="false"
+                                              autocomplete="off"
+                                              autocorrect="off"
+                                              autocapitalize="off"
+                                              placeholder="<!-- Google tag (gtag.js) -->&#10;<script async src=&quot;https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX&quot;></script>&#10;<script>&#10;  window.dataLayer = window.dataLayer || [];&#10;  function gtag(){dataLayer.push(arguments);}&#10;  gtag('js', new Date());&#10;  gtag('config', 'G-XXXXXXXXXX');&#10;</script>"
+                                              style="background-color: #020617 !important; color: #34d399 !important; caret-color: #34d399 !important; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace !important; line-height: 1.6 !important;"
+                                              class="w-full p-4 font-mono text-xs border-0 outline-none focus:outline-none focus:ring-0 placeholder:text-slate-600 block">{{ old('settings.google_analytics_script', $settings['google_analytics_script']->value ?? '') }}</textarea>
+                                </div>
                             </div>
                         </div>
 
@@ -236,22 +275,42 @@
                                     <label for="setting_custom_head_scripts" class="block font-outfit text-xs font-bold text-slate-800">
                                         Skrip Tambahan Header (&lt;head&gt;)
                                     </label>
-                                    <textarea id="setting_custom_head_scripts" 
-                                              name="settings[custom_head_scripts]" 
-                                              rows="4" 
-                                              placeholder="<!-- Meta Pixel Code, Verification Tag, etc. -->"
-                                              class="w-full font-mono text-xs p-3 bg-slate-900 text-emerald-400 border border-slate-700 rounded-xl focus:ring-teal-500 shadow-inner">{{ old('settings.custom_head_scripts', $settings['custom_head_scripts']->value ?? '') }}</textarea>
+                                    <div class="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-teal-400 focus-within:border-teal-400">
+                                        <div class="flex items-center justify-between px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono text-slate-300">
+                                            <span class="text-teal-300 font-bold">&lt;head&gt; Custom</span>
+                                        </div>
+                                        <textarea id="setting_custom_head_scripts" 
+                                                  name="settings[custom_head_scripts]" 
+                                                  rows="4" 
+                                                  spellcheck="false"
+                                                  autocomplete="off"
+                                                  autocorrect="off"
+                                                  autocapitalize="off"
+                                                  placeholder="<!-- Meta Pixel Code, Verification Tag, etc. -->"
+                                                  style="background-color: #020617 !important; color: #38bdf8 !important; caret-color: #38bdf8 !important; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; line-height: 1.6 !important;"
+                                                  class="w-full p-3 font-mono text-xs border-0 outline-none focus:outline-none focus:ring-0 placeholder:text-slate-600 block">{{ old('settings.custom_head_scripts', $settings['custom_head_scripts']->value ?? '') }}</textarea>
+                                    </div>
                                 </div>
 
                                 <div class="space-y-1.5">
                                     <label for="setting_custom_body_scripts" class="block font-outfit text-xs font-bold text-slate-800">
                                         Skrip Tambahan Body (sebelum &lt;/body&gt;)
                                     </label>
-                                    <textarea id="setting_custom_body_scripts" 
-                                              name="settings[custom_body_scripts]" 
-                                              rows="4" 
-                                              placeholder="<!-- Chat Widget, Bottom tracking scripts, etc. -->"
-                                              class="w-full font-mono text-xs p-3 bg-slate-900 text-emerald-400 border border-slate-700 rounded-xl focus:ring-teal-500 shadow-inner">{{ old('settings.custom_body_scripts', $settings['custom_body_scripts']->value ?? '') }}</textarea>
+                                    <div class="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden shadow-sm focus-within:ring-2 focus-within:ring-teal-400 focus-within:border-teal-400">
+                                        <div class="flex items-center justify-between px-3.5 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono text-slate-300">
+                                            <span class="text-teal-300 font-bold">&lt;/body&gt; Custom</span>
+                                        </div>
+                                        <textarea id="setting_custom_body_scripts" 
+                                                  name="settings[custom_body_scripts]" 
+                                                  rows="4" 
+                                                  spellcheck="false"
+                                                  autocomplete="off"
+                                                  autocorrect="off"
+                                                  autocapitalize="off"
+                                                  placeholder="<!-- Chat Widget, Bottom tracking scripts, etc. -->"
+                                                  style="background-color: #020617 !important; color: #38bdf8 !important; caret-color: #38bdf8 !important; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; line-height: 1.6 !important;"
+                                                  class="w-full p-3 font-mono text-xs border-0 outline-none focus:outline-none focus:ring-0 placeholder:text-slate-600 block">{{ old('settings.custom_body_scripts', $settings['custom_body_scripts']->value ?? '') }}</textarea>
+                                    </div>
                                 </div>
                             </div>
                         </div>
