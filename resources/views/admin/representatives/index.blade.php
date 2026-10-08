@@ -54,6 +54,25 @@
             margin: 10px 12px;
             line-height: 1.4;
         }
+        .leaflet-popup-content a.btn-popup-primary {
+            color: #ffffff !important;
+            background-color: #0f766e !important;
+            text-decoration: none !important;
+        }
+        .leaflet-popup-content a.btn-popup-primary:hover {
+            background-color: #115e59 !important;
+            color: #ffffff !important;
+        }
+        .leaflet-popup-content a.btn-popup-wa {
+            color: #065f46 !important;
+            background-color: #ecfdf5 !important;
+            border: 1px solid #a7f3d0 !important;
+            text-decoration: none !important;
+        }
+        .leaflet-popup-content a.btn-popup-wa:hover {
+            background-color: #d1fae5 !important;
+            color: #064e3b !important;
+        }
     </style>
 
     <div class="py-6 sm:py-8" x-data="{
@@ -506,7 +525,9 @@
 
                                         <!-- Aksi -->
                                         <td class="py-3.5 px-4 align-top text-right space-y-1 whitespace-nowrap">
-                                            <a href="{{ route('admin.representatives.show', $rep) }}" class="btn-action-primary block text-center">
+                                            <a href="{{ route('admin.representatives.show', $rep) }}" 
+                                               class="inline-flex items-center justify-center w-full gap-1 px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 active:bg-teal-900 text-white font-bold text-xs shadow-xs hover:shadow transition text-center"
+                                               style="color: #ffffff !important; text-decoration: none !important;">
                                                 Detail &amp; Proses
                                             </a>
                                         </td>
@@ -620,12 +641,14 @@
 
                             <div class="flex items-center gap-1.5 pt-1">
                                 <a href="${rep.show_url}" 
-                                   class="flex-1 bg-teal-700 hover:bg-teal-800 text-white font-bold py-1.5 px-2 rounded-lg text-center text-[10px] transition">
+                                   class="btn-popup-primary flex-1 text-white font-bold py-1.5 px-2 rounded-lg text-center text-[10px] transition"
+                                   style="color: #ffffff !important; background-color: #0f766e !important; text-decoration: none !important;">
                                     Detail &amp; Proses ↗
                                 </a>
                                 <a href="${rep.whatsapp_link}" 
                                    target="_blank"
-                                   class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-1.5 px-2 rounded-lg text-[10px] transition inline-flex items-center justify-center">
+                                   class="btn-popup-wa font-bold py-1.5 px-2 rounded-lg text-[10px] transition inline-flex items-center justify-center"
+                                   style="color: #065f46 !important; background-color: #ecfdf5 !important; border: 1px solid #a7f3d0 !important; text-decoration: none !important;">
                                     💬 WA
                                 </a>
                             </div>
