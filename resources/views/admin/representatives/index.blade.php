@@ -7,7 +7,7 @@
                     Penjaringan Representatif Wilayah
                 </h1>
             </div>
-            <div class="flex items-center gap-2.5">
+            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
                 <a href="{{ route('admin.representatives.export', request()->query()) }}" 
                    class="button-secondary text-xs px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 font-semibold text-slate-700">
                     <span>📊</span> Unduh Data (CSV)
@@ -21,7 +21,24 @@
         </div>
     </x-slot>
 
-    <div class="py-6 sm:py-8">
+    <!-- Leaflet CSS & JS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <div class="py-6 sm:py-8" x-data="{
+        mapHeightClass: 'h-[360px] sm:h-[460px]',
+        isExpanded: false,
+        activeMapFilter: 'all',
+        toggleMapHeight() {
+            this.isExpanded = !this.isExpanded;
+            this.mapHeightClass = this.isExpanded ? 'h-[580px] sm:h-[680px]' : 'h-[360px] sm:h-[460px]';
+            $nextTick(() => {
+                if (window.representativesMap) {
+                    window.representativesMap.invalidateSize();
+                }
+            });
+        }
+    }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             <!-- Success Flash Message -->
@@ -34,37 +51,254 @@
                 </div>
             @endif
 
-            <!-- Summary Statistics Cards -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-1">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Total Pendaftar</span>
-                    <div class="font-outfit text-2xl font-extrabold text-slate-900">{{ number_format($stats['total']) }}</div>
-                    <span class="text-[10px] text-slate-500">Semua pendaftaran</span>
+            <!-- Summary Statistics Cards (6 Balanced Responsive Cards) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
+                
+                <!-- 1. Semua Pendaftar (Total) -->
+                <a href="{{ route('admin.representatives.index', array_merge(request()->except('page', 'status'), ['status' => 'all'])) }}"
+                   class="group p-4 rounded-2xl transition-all duration-200 border shadow-xs space-y-1 block relative {{ ($statusFilter === 'all' || !$statusFilter) ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-slate-900' : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300 hover:bg-slate-50/80' }}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block {{ ($statusFilter === 'all' || !$statusFilter) ? 'text-slate-300' : 'text-slate-500' }}">
+                            Total Pendaftar
+                        </span>
+                        @if($statusFilter === 'all' || !$statusFilter)
+                            <span class="text-[9px] font-bold bg-white/20 text-white px-1.5 py-0.5 rounded">Aktif</span>
+                        @endif
+                    </div>
+                    <div class="font-outfit text-2xl font-extrabold {{ ($statusFilter === 'all' || !$statusFilter) ? 'text-white' : 'text-slate-900' }}">
+                        {{ number_format($stats['total']) }}
+                    </div>
+                    <span class="text-[10px] block {{ ($statusFilter === 'all' || !$statusFilter) ? 'text-slate-300' : 'text-slate-500' }}">
+                        Semua pendaftaran
+                    </span>
+                </a>
+
+                <!-- 2. Menunggu Review (Pending) -->
+                <a href="{{ route('admin.representatives.index', array_merge(request()->except('page', 'status'), ['status' => 'pending'])) }}"
+                   class="group p-4 rounded-2xl transition-all duration-200 border shadow-xs space-y-1 block relative {{ $statusFilter === 'pending' ? 'bg-amber-500 text-white border-amber-500 ring-2 ring-amber-500' : 'bg-amber-50/80 text-amber-900 border-amber-200/90 hover:bg-amber-100/80 hover:border-amber-300' }}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block {{ $statusFilter === 'pending' ? 'text-amber-100' : 'text-amber-800' }}">
+                            Menunggu Review
+                        </span>
+                        @if($statusFilter === 'pending')
+                            <span class="text-[9px] font-bold bg-white/20 text-white px-1.5 py-0.5 rounded">Aktif</span>
+                        @endif
+                    </div>
+                    <div class="font-outfit text-2xl font-extrabold {{ $statusFilter === 'pending' ? 'text-white' : 'text-amber-950' }}">
+                        {{ number_format($stats['pending']) }}
+                    </div>
+                    <span class="text-[10px] block {{ $statusFilter === 'pending' ? 'text-amber-100' : 'text-amber-700 font-semibold' }}">
+                        Perlu diproses
+                    </span>
+                </a>
+
+                <!-- 3. Sedang Direview (Reviewed) -->
+                <a href="{{ route('admin.representatives.index', array_merge(request()->except('page', 'status'), ['status' => 'reviewed'])) }}"
+                   class="group p-4 rounded-2xl transition-all duration-200 border shadow-xs space-y-1 block relative {{ $statusFilter === 'reviewed' ? 'bg-blue-600 text-white border-blue-600 ring-2 ring-blue-600' : 'bg-blue-50/80 text-blue-900 border-blue-200/90 hover:bg-blue-100/80 hover:border-blue-300' }}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block {{ $statusFilter === 'reviewed' ? 'text-blue-100' : 'text-blue-800' }}">
+                            Sedang Direview
+                        </span>
+                        @if($statusFilter === 'reviewed')
+                            <span class="text-[9px] font-bold bg-white/20 text-white px-1.5 py-0.5 rounded">Aktif</span>
+                        @endif
+                    </div>
+                    <div class="font-outfit text-2xl font-extrabold {{ $statusFilter === 'reviewed' ? 'text-white' : 'text-blue-950' }}">
+                        {{ number_format($stats['reviewed']) }}
+                    </div>
+                    <span class="text-[10px] block {{ $statusFilter === 'reviewed' ? 'text-blue-100' : 'text-blue-700 font-semibold' }}">
+                        Tahap validasi
+                    </span>
+                </a>
+
+                <!-- 4. Diterima / Sah (Approved) -->
+                <a href="{{ route('admin.representatives.index', array_merge(request()->except('page', 'status'), ['status' => 'approved'])) }}"
+                   class="group p-4 rounded-2xl transition-all duration-200 border shadow-xs space-y-1 block relative {{ $statusFilter === 'approved' ? 'bg-teal-700 text-white border-teal-700 ring-2 ring-teal-700' : 'bg-teal-50/80 text-teal-900 border-teal-200/90 hover:bg-teal-100/80 hover:border-teal-300' }}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block {{ $statusFilter === 'approved' ? 'text-teal-100' : 'text-teal-800' }}">
+                            Diterima / Sah
+                        </span>
+                        @if($statusFilter === 'approved')
+                            <span class="text-[9px] font-bold bg-white/20 text-white px-1.5 py-0.5 rounded">Aktif</span>
+                        @endif
+                    </div>
+                    <div class="font-outfit text-2xl font-extrabold {{ $statusFilter === 'approved' ? 'text-white' : 'text-teal-950' }}">
+                        {{ number_format($stats['approved']) }}
+                    </div>
+                    <span class="text-[10px] block {{ $statusFilter === 'approved' ? 'text-teal-100' : 'text-teal-700 font-semibold' }}">
+                        Representatif resmi
+                    </span>
+                </a>
+
+                <!-- 5. Ditolak (Rejected) -->
+                <a href="{{ route('admin.representatives.index', array_merge(request()->except('page', 'status'), ['status' => 'rejected'])) }}"
+                   class="group p-4 rounded-2xl transition-all duration-200 border shadow-xs space-y-1 block relative {{ $statusFilter === 'rejected' ? 'bg-rose-600 text-white border-rose-600 ring-2 ring-rose-600' : 'bg-rose-50/80 text-rose-900 border-rose-200/90 hover:bg-rose-100/80 hover:border-rose-300' }}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider block {{ $statusFilter === 'rejected' ? 'text-rose-100' : 'text-rose-800' }}">
+                            Ditolak
+                        </span>
+                        @if($statusFilter === 'rejected')
+                            <span class="text-[9px] font-bold bg-white/20 text-white px-1.5 py-0.5 rounded">Aktif</span>
+                        @endif
+                    </div>
+                    <div class="font-outfit text-2xl font-extrabold {{ $statusFilter === 'rejected' ? 'text-white' : 'text-rose-950' }}">
+                        {{ number_format($stats['rejected']) }}
+                    </div>
+                    <span class="text-[10px] block {{ $statusFilter === 'rejected' ? 'text-rose-100' : 'text-rose-700 font-semibold' }}">
+                        Belum sesuai
+                    </span>
+                </a>
+
+                <!-- 6. Sebaran Provinsi & Terpetakan -->
+                <a href="#map-section"
+                   class="group p-4 rounded-2xl transition-all duration-200 border shadow-xs space-y-1 block bg-slate-50 text-slate-800 border-slate-200 hover:border-slate-300 hover:bg-slate-100/80">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                            Provinsi Terwakili
+                        </span>
+                        <span class="text-xs">🗺️</span>
+                    </div>
+                    <div class="font-outfit text-2xl font-extrabold text-slate-900">
+                        {{ $stats['total_provinces'] }} <span class="text-xs font-normal text-slate-500">/ 38</span>
+                    </div>
+                    <span class="text-[10px] text-slate-600 block">
+                        {{ $totalOverallMapped }} titik GPS terpetakan
+                    </span>
+                </a>
+
+            </div>
+
+            <!-- Visualisasi Peta Sebaran Representatif Wilayah -->
+            <div id="map-section" class="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+                
+                <!-- Map Header & Controls -->
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-xl bg-teal-50 text-teal-800 border border-teal-200 flex items-center justify-center text-sm font-bold">
+                                📍
+                            </span>
+                            <h2 class="font-outfit font-bold text-base sm:text-lg text-slate-900">
+                                Peta Sebaran Representatif Wilayah
+                            </h2>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Titik koordinat lokasi geografis pendaftar berdasarkan inputan peta saat pengisian formulir.
+                            <strong class="text-slate-700 font-semibold">({{ $totalMapped }} titik terpetakan</strong> dari {{ $representatives->total() }} data pada filter saat ini)
+                        </p>
+                    </div>
+
+                    <!-- Map Action Toolbar -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Quick Status Filter Toggle for Map -->
+                        <div class="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200 text-xs">
+                            <button type="button" 
+                                    @click="activeMapFilter = 'all'; filterMapMarkers('all')" 
+                                    :class="activeMapFilter === 'all' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                                    class="px-2.5 py-1 rounded-lg transition text-[11px]">
+                                Semua (<span id="count-all">{{ $totalMapped }}</span>)
+                            </button>
+                            <button type="button" 
+                                    @click="activeMapFilter = 'approved'; filterMapMarkers('approved')" 
+                                    :class="activeMapFilter === 'approved' ? 'bg-teal-700 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-teal-800'"
+                                    class="px-2.5 py-1 rounded-lg transition text-[11px] flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Diterima
+                            </button>
+                            <button type="button" 
+                                    @click="activeMapFilter = 'pending'; filterMapMarkers('pending')" 
+                                    :class="activeMapFilter === 'pending' ? 'bg-amber-600 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-amber-800'"
+                                    class="px-2.5 py-1 rounded-lg transition text-[11px] flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Menunggu
+                            </button>
+                            <button type="button" 
+                                    @click="activeMapFilter = 'reviewed'; filterMapMarkers('reviewed')" 
+                                    :class="activeMapFilter === 'reviewed' ? 'bg-blue-600 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-blue-800'"
+                                    class="px-2.5 py-1 rounded-lg transition text-[11px] flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Review
+                            </button>
+                            <button type="button" 
+                                    @click="activeMapFilter = 'rejected'; filterMapMarkers('rejected')" 
+                                    :class="activeMapFilter === 'rejected' ? 'bg-rose-600 text-white shadow-xs font-bold' : 'text-slate-600 hover:text-rose-800'"
+                                    class="px-2.5 py-1 rounded-lg transition text-[11px] flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Ditolak
+                            </button>
+                        </div>
+
+                        <!-- Zoom Controls -->
+                        <button type="button" 
+                                onclick="fitMapToAllMarkers()" 
+                                title="Fokuskan ke seluruh titik lokasi"
+                                class="button-secondary text-xs px-2.5 py-1.5 rounded-xl inline-flex items-center gap-1 font-semibold text-slate-700">
+                            <span>🎯</span> Pas kan Titik
+                        </button>
+                        <button type="button" 
+                                onclick="resetMapToIndonesia()" 
+                                title="Kembalikan tampilan peta ke wilayah Nusantara Indonesia"
+                                class="button-secondary text-xs px-2.5 py-1.5 rounded-xl inline-flex items-center gap-1 font-semibold text-slate-700">
+                            <span>🇮🇩</span> Indonesia
+                        </button>
+                        <button type="button" 
+                                @click="toggleMapHeight()" 
+                                :title="isExpanded ? 'Kecilkan Tampilan Peta' : 'Perluas Tampilan Peta'"
+                                class="button-secondary text-xs px-2.5 py-1.5 rounded-xl inline-flex items-center gap-1 font-semibold text-slate-700">
+                            <span x-text="isExpanded ? '⏬' : '⏫'"></span>
+                            <span x-text="isExpanded ? 'Normal' : 'Perluas'"></span>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 shadow-xs space-y-1">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800 block">Menunggu Review</span>
-                    <div class="font-outfit text-2xl font-extrabold text-amber-900">{{ number_format($stats['pending']) }}</div>
-                    <span class="text-[10px] text-amber-700 font-semibold">Perlu diproses</span>
+                <!-- Map Canvas Container -->
+                <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100">
+                    <div id="representatives-map" 
+                         :class="mapHeightClass"
+                         class="w-full transition-all duration-300 z-10"></div>
+
+                    @if($totalMapped === 0)
+                        <div class="absolute inset-0 z-20 flex items-center justify-center bg-slate-50/90 backdrop-blur-xs p-6 text-center">
+                            <div class="max-w-md space-y-2">
+                                <span class="text-3xl block">📍</span>
+                                <h3 class="font-outfit font-bold text-sm text-slate-800">Belum Ada Titik Lokasi Terpetakan</h3>
+                                <p class="text-xs text-slate-500">
+                                    Tidak ditemukan koordinat GPS pada data pendaftar dengan filter yang aktif saat ini.
+                                </p>
+                                @if(request()->hasAny(['search', 'status', 'province']))
+                                    <div class="pt-2">
+                                        <a href="{{ route('admin.representatives.index') }}" class="button-secondary text-xs px-3 py-1.5 rounded-xl inline-flex">
+                                            Reset Filter Pencarian
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
-                <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200 shadow-xs space-y-1">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-blue-800 block">Sedang Direview</span>
-                    <div class="font-outfit text-2xl font-extrabold text-blue-900">{{ number_format($stats['reviewed']) }}</div>
-                    <span class="text-[10px] text-blue-700">Tahap validasi</span>
+                <!-- Map Footer Legend & Instructions -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs text-slate-500">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <span class="font-bold text-slate-700 text-[11px]">Keterangan Pin:</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-teal-600 border border-white shadow-xs inline-block"></span>
+                            <span>Diterima / Sah</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-amber-500 border border-white shadow-xs inline-block"></span>
+                            <span>Menunggu Review</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-blue-600 border border-white shadow-xs inline-block"></span>
+                            <span>Sedang Direview</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full bg-rose-600 border border-white shadow-xs inline-block"></span>
+                            <span>Ditolak</span>
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400">
+                        Klik pin pada peta untuk melihat detail ringkas representatif
+                    </div>
                 </div>
 
-                <div class="p-4 rounded-2xl bg-teal-50/70 border border-teal-200 shadow-xs space-y-1">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-teal-800 block">Diterima / Sah</span>
-                    <div class="font-outfit text-2xl font-extrabold text-teal-900">{{ number_format($stats['approved']) }}</div>
-                    <span class="text-[10px] text-teal-700">Representatif resmi</span>
-                </div>
-
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-xs space-y-1 col-span-2 sm:col-span-1">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">Provinsi Terwakili</span>
-                    <div class="font-outfit text-2xl font-extrabold text-slate-800">{{ $stats['total_provinces'] }} <span class="text-xs font-normal text-slate-500">/ 38</span></div>
-                    <span class="text-[10px] text-slate-500">Sebaran wilayah</span>
-                </div>
             </div>
 
             <!-- Filters & Search Toolbar -->
@@ -88,7 +322,7 @@
                     <!-- Status Filter -->
                     <div class="sm:col-span-3">
                         <select name="status" class="form-input text-xs py-2" onchange="this.form.submit()">
-                            <option value="all" {{ request('status') === 'all' ? 'selected' : '' }}>Semua Status</option>
+                            <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>Semua Status</option>
                             <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu Review</option>
                             <option value="reviewed" {{ request('status') === 'reviewed' ? 'selected' : '' }}>Sedang Direview</option>
                             <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Diterima</option>
@@ -186,9 +420,16 @@
                                                 Kec. {{ $rep->district_name }}, {{ $rep->village_name }}
                                             </div>
                                             @if($rep->latitude && $rep->longitude)
-                                                <a href="https://www.google.com/maps?q={{ $rep->latitude }},{{ $rep->longitude }}" target="_blank" class="text-[10px] text-teal-700 hover:underline font-semibold inline-flex items-center gap-0.5 mt-1">
-                                                    <span>📍</span> Peta GPS ↗
-                                                </a>
+                                                <div class="mt-1 flex items-center gap-2">
+                                                    <button type="button" 
+                                                            onclick="focusMapOnPoint({{ $rep->latitude }}, {{ $rep->longitude }}, {{ $rep->id }})" 
+                                                            class="text-[10px] text-teal-700 hover:text-teal-900 hover:underline font-bold inline-flex items-center gap-0.5 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+                                                        <span>📍</span> Fokus di Peta
+                                                    </button>
+                                                    <a href="https://www.google.com/maps?q={{ $rep->latitude }},{{ $rep->longitude }}" target="_blank" class="text-[10px] text-slate-400 hover:text-slate-600">
+                                                        GPS ↗
+                                                    </a>
+                                                </div>
                                             @endif
                                         </td>
 
@@ -249,4 +490,173 @@
 
         </div>
     </div>
+
+    <!-- Leaflet Map Script & Custom Interactive Marker System -->
+    <script>
+        const representativeData = @json($mapRepresentatives ?? []);
+        let mapInstance = null;
+        let markerClusterGroup = null;
+        const allMarkers = [];
+
+        function getMarkerColor(status) {
+            switch(status) {
+                case 'approved': return { bg: '#0f766e', border: '#115e59', text: 'Sah / Diterima' };
+                case 'pending': return { bg: '#d97706', border: '#b45309', text: 'Menunggu Review' };
+                case 'reviewed': return { bg: '#2563eb', border: '#1d4ed8', text: 'Sedang Direview' };
+                case 'rejected': return { bg: '#e11d48', border: '#be123c', text: 'Ditolak' };
+                default: return { bg: '#475569', border: '#334155', text: status };
+            }
+        }
+
+        function createCustomPin(status) {
+            const color = getMarkerColor(status);
+            return L.divIcon({
+                className: 'custom-rep-pin',
+                html: `
+                    <div style="position: relative; width: 30px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                        <svg width="30" height="38" viewBox="0 0 30 38" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));">
+                            <path d="M15 0C6.71573 0 0 6.71573 0 15C0 24.5 15 38 15 38C15 38 30 24.5 30 15C30 6.71573 23.2843 0 15 0Z" fill="${color.bg}"/>
+                            <circle cx="15" cy="15" r="7" fill="white"/>
+                            <circle cx="15" cy="15" r="4.5" fill="${color.border}"/>
+                        </svg>
+                    </div>
+                `,
+                iconSize: [30, 38],
+                iconAnchor: [15, 38],
+                popupAnchor: [0, -38]
+            });
+        }
+
+        function initRepresentativesMap() {
+            const mapContainer = document.getElementById('representatives-map');
+            if (!mapContainer) return;
+
+            // Default center of Indonesia
+            const defaultCenter = [-1.5, 117.5];
+            const defaultZoom = 5;
+
+            mapInstance = L.map('representatives-map', {
+                zoomControl: true,
+                scrollWheelZoom: true
+            }).setView(defaultCenter, defaultZoom);
+
+            window.representativesMap = mapInstance;
+
+            // OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(mapInstance);
+
+            // Layer group for markers
+            markerClusterGroup = L.layerGroup().addTo(mapInstance);
+
+            // Populate markers
+            representativeData.forEach(rep => {
+                if (rep.latitude && rep.longitude) {
+                    const icon = createCustomPin(rep.status);
+                    const marker = L.marker([rep.latitude, rep.longitude], { icon: icon });
+
+                    const statusBadgeClass = rep.badge_bg || 'bg-slate-100 text-slate-800';
+
+                    const popupContent = `
+                        <div class="font-sans text-xs space-y-2 p-1 max-w-[260px]">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-1.5 gap-2">
+                                <span class="font-mono text-[10px] font-bold text-slate-500">${rep.registration_number}</span>
+                                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full border ${statusBadgeClass}">
+                                    ${rep.status_label}
+                                </span>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm leading-snug">${rep.name}</h4>
+                                <div class="text-[11px] text-slate-500 mt-0.5">NBM: <strong class="font-mono text-slate-700">${rep.nbm}</strong></div>
+                            </div>
+
+                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 space-y-1 text-[11px]">
+                                <div class="text-slate-800 font-semibold">${rep.city_name}, ${rep.province_name}</div>
+                                <div class="text-slate-500 text-[10px]">Kec. ${rep.district_name}, ${rep.village_name}</div>
+                                <div class="text-teal-900 font-medium text-[10px] pt-1 border-t border-slate-200/60">
+                                    🏛️ ${rep.muhammadiyah_active_leadership}
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <a href="${rep.show_url}" 
+                                   class="flex-1 bg-teal-700 hover:bg-teal-800 text-white font-bold py-1.5 px-2 rounded-lg text-center text-[10px] transition">
+                                    Detail &amp; Proses ↗
+                                </a>
+                                <a href="${rep.whatsapp_link}" 
+                                   target="_blank"
+                                   class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold py-1.5 px-2 rounded-lg text-[10px] transition inline-flex items-center justify-center">
+                                    💬 WA
+                                </a>
+                            </div>
+                        </div>
+                    `;
+
+                    marker.bindPopup(popupContent, { maxWidth: 280 });
+                    marker.repData = rep;
+                    allMarkers.push(marker);
+                    markerClusterGroup.addLayer(marker);
+                }
+            });
+
+            // If markers exist, fit map bounds nicely
+            if (allMarkers.length > 0) {
+                const group = L.featureGroup(allMarkers);
+                mapInstance.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 13 });
+            }
+        }
+
+        function filterMapMarkers(status) {
+            if (!markerClusterGroup) return;
+            markerClusterGroup.clearLayers();
+
+            const filtered = allMarkers.filter(m => {
+                if (status === 'all') return true;
+                return m.repData.status === status;
+            });
+
+            filtered.forEach(m => markerClusterGroup.addLayer(m));
+
+            if (filtered.length > 0) {
+                const group = L.featureGroup(filtered);
+                mapInstance.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 13 });
+            }
+        }
+
+        function fitMapToAllMarkers() {
+            if (!mapInstance || allMarkers.length === 0) return;
+            const group = L.featureGroup(allMarkers);
+            mapInstance.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 13 });
+        }
+
+        function resetMapToIndonesia() {
+            if (!mapInstance) return;
+            mapInstance.setView([-1.5, 117.5], 5);
+        }
+
+        function focusMapOnPoint(lat, lng, repId) {
+            const mapSection = document.getElementById('map-section');
+            if (mapSection) {
+                mapSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            if (!mapInstance) return;
+
+            setTimeout(() => {
+                mapInstance.setView([lat, lng], 15, { animate: true });
+                const targetMarker = allMarkers.find(m => m.repData.id === repId);
+                if (targetMarker) {
+                    targetMarker.openPopup();
+                }
+            }, 350);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initRepresentativesMap();
+        });
+    </script>
 </x-app-layout>
+

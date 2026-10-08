@@ -103,10 +103,39 @@ class RepresentativeRegistrationTest extends TestCase
             'status' => 'pending',
         ]);
 
+        // Admin index with coordinates
+        $regWithGeo = RepresentativeRegistration::create([
+            'registration_number' => 'REP-202610-GEO1',
+            'name' => 'K.H. Mas Mansur',
+            'nbm' => '11223344',
+            'birth_date' => '1990-01-01',
+            'email' => 'mas.mansur@example.com',
+            'whatsapp_number' => '081122334455',
+            'province_name' => 'Jawa Timur',
+            'city_name' => 'Kota Surabaya',
+            'district_name' => 'Genteng',
+            'village_name' => 'Embong Kaliasin',
+            'latitude' => -7.2625,
+            'longitude' => 112.7483,
+            'formatted_address' => 'Jl. Embong Kaliasin, Genteng, Surabaya',
+            'muhammadiyah_active_leadership' => 'PWM Jawa Timur',
+            'sk_pimpinan_document_path' => 'representatives/sk_pimpinan/sample.pdf',
+            'ktam_document_path' => 'representatives/ktam/sample.jpg',
+            'animal_welfare_essay' => 'Uraian kesrawan tingkat wilayah Jawa Timur.',
+            'privacy_agreed' => true,
+            'status' => 'approved',
+        ]);
+
         // Admin index
         $indexResponse = $this->actingAs($admin)->get(route('admin.representatives.index'));
         $indexResponse->assertStatus(200);
         $indexResponse->assertSee('Siti Walidah');
+        $indexResponse->assertSee('K.H. Mas Mansur');
+        $indexResponse->assertSee('Peta Sebaran Representatif Wilayah');
+        $indexResponse->assertSee('representatives-map');
+        $indexResponse->assertViewHas('mapRepresentatives');
+        $indexResponse->assertViewHas('totalMapped', 1);
+        $indexResponse->assertViewHas('stats');
 
         // Admin show
         $showResponse = $this->actingAs($admin)->get(route('admin.representatives.show', $reg));

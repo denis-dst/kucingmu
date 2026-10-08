@@ -55,9 +55,78 @@ class AdminRepresentativeController extends Controller
             'total_provinces' => RepresentativeRegistration::distinct('province_name')->count('province_name'),
         ];
 
+        // Fetch representative coordinates for Map Visualization based on filters
+        $mapQuery = RepresentativeRegistration::query()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0);
+
+        if (in_array($statusFilter, ['pending', 'reviewed', 'approved', 'rejected'])) {
+            $mapQuery->where('status', $statusFilter);
+        }
+
+        if ($request->filled('province')) {
+            $mapQuery->where('province_name', $request->province);
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $mapQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('registration_number', 'like', "%{$search}%")
+                  ->orWhere('nbm', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('whatsapp_number', 'like', "%{$search}%")
+                  ->orWhere('city_name', 'like', "%{$search}%")
+                  ->orWhere('muhammadiyah_active_leadership', 'like', "%{$search}%");
+            });
+        }
+
+        $mapRepresentatives = $mapQuery->get()->map(function ($item) {
+            $badge = $item->status_badge;
+            return [
+                'id' => $item->id,
+                'registration_number' => $item->registration_number,
+                'name' => $item->name,
+                'nbm' => $item->nbm ?: '-',
+                'status' => $item->status,
+                'status_label' => $item->status_label,
+                'badge_bg' => $badge['bg'] ?? 'bg-slate-100 text-slate-800',
+                'badge_dot' => $badge['dot'] ?? 'bg-slate-500',
+                'province_name' => $item->province_name,
+                'city_name' => $item->city_name,
+                'district_name' => $item->district_name,
+                'village_name' => $item->village_name,
+                'latitude' => (float) $item->latitude,
+                'longitude' => (float) $item->longitude,
+                'formatted_address' => $item->formatted_address,
+                'muhammadiyah_active_leadership' => $item->muhammadiyah_active_leadership,
+                'whatsapp_number' => $item->whatsapp_number,
+                'whatsapp_link' => $item->whatsapp_link,
+                'show_url' => route('admin.representatives.show', $item->id),
+                'created_at_formatted' => $item->created_at ? $item->created_at->format('d/m/Y') : '-',
+            ];
+        });
+
+        $totalMapped = $mapRepresentatives->count();
+        $totalOverallMapped = RepresentativeRegistration::whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->count();
+
         $provinces = IndonesiaWilayahService::getProvinces();
 
-        return view('admin.representatives.index', compact('representatives', 'stats', 'statusFilter', 'provinces'));
+        return view('admin.representatives.index', compact(
+            'representatives',
+            'stats',
+            'statusFilter',
+            'provinces',
+            'mapRepresentatives',
+            'totalMapped',
+            'totalOverallMapped'
+        ));
     }
 
     /**
