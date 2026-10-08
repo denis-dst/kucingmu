@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
             padding: 0;
             line-height: 1.6;
         }
+
         .container {
             max-width: 600px;
             margin: 24px auto;
@@ -22,27 +24,32 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
+
         .header {
             background-color: #0f766e;
             color: #ffffff;
             padding: 24px 32px;
             text-align: center;
         }
+
         .header h1 {
             margin: 0;
             font-size: 20px;
             font-weight: 700;
             letter-spacing: -0.5px;
         }
+
         .content {
             padding: 32px;
         }
+
         .greeting {
             font-size: 16px;
             font-weight: 600;
             color: #0f172a;
             margin-bottom: 16px;
         }
+
         .message-box {
             background-color: #f8fafc;
             border-left: 4px solid #0f766e;
@@ -53,6 +60,7 @@
             color: #1e293b;
             line-height: 1.7;
         }
+
         .footer {
             background-color: #f1f5f9;
             padding: 20px 32px;
@@ -61,18 +69,20 @@
             text-align: center;
             border-top: 1px solid #e2e8f0;
         }
+
         .footer p {
             margin: 4px 0;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>{{ $appName }}</h1>
             <p style="margin: 4px 0 0 0; font-size: 13px; color: #ccfbf1;">Komunikasi Resmi Administrator</p>
         </div>
-        
+
         <div class="content">
             @if(!empty($recipientName))
                 <div class="greeting">Yth. {{ $recipientName }},</div>
@@ -92,10 +102,12 @@
         </div>
 
         <div class="footer">
-            <p><strong>{{ $appName }}</strong> &bull; Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah</p>
-            <p>Alamat: Jl. Gedongkuning No.130 B, Rejowinangun, Kec. Kotagede, Kota Yogyakarta, D.I. Yogyakarta 55171</p>
+            <p><strong>{{ $appName }}</strong> &bull; KucingMu</p>
+            <p>Alamat: Jl. Gedongkuning No.130 B, Rejowinangun, Kec. Kotagede, Kota Yogyakarta, D.I. Yogyakarta 55171
+            </p>
             <p>Email: bidkes.immdiy@gmail.com / kucingmuhammadiyah@gmail.com</p>
         </div>
     </div>
 </body>
+
 </html>

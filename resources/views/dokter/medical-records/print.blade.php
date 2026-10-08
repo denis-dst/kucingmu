@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +10,7 @@
             size: A4;
             margin: 1.5cm;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             color: #1e293b;
@@ -18,6 +20,7 @@
             padding: 0;
             background: #fff;
         }
+
         .header {
             border-bottom: 2px solid #0f766e;
             padding-bottom: 12px;
@@ -26,6 +29,7 @@
             justify-content: space-between;
             align-items: flex-start;
         }
+
         .header-title h1 {
             font-size: 16pt;
             margin: 0;
@@ -33,22 +37,27 @@
             font-weight: bold;
             text-transform: uppercase;
         }
+
         .header-title p {
             margin: 2px 0 0 0;
             font-size: 9pt;
             color: #64748b;
         }
+
         .header-meta {
             text-align: right;
             font-size: 9pt;
         }
+
         .header-meta strong {
             font-size: 11pt;
             color: #0f172a;
         }
+
         .section {
             margin-bottom: 16px;
         }
+
         .section-title {
             font-size: 10pt;
             font-weight: bold;
@@ -59,35 +68,44 @@
             padding-bottom: 4px;
             margin-bottom: 8px;
         }
+
         .grid-2 {
             display: flex;
             gap: 20px;
         }
+
         .col {
             flex: 1;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 9.5pt;
         }
-        th, td {
+
+        th,
+        td {
             padding: 5px 8px;
             text-align: left;
             vertical-align: top;
         }
+
         th {
             background-color: #f8fafc;
             color: #475569;
             border-bottom: 1px solid #cbd5e1;
             font-weight: 600;
         }
+
         td {
             border-bottom: 1px solid #f1f5f9;
         }
+
         .soap-block {
             margin-bottom: 10px;
         }
+
         .soap-tag {
             display: inline-block;
             width: 20px;
@@ -101,19 +119,23 @@
             font-size: 9pt;
             margin-right: 6px;
         }
+
         .signature-box {
             margin-top: 40px;
             display: flex;
             justify-content: flex-end;
         }
+
         .signature-inner {
             text-align: center;
             width: 200px;
         }
+
         .signature-line {
             margin-top: 60px;
             border-bottom: 1px solid #0f172a;
         }
+
         .no-print {
             padding: 10px 15px;
             background: #f1f5f9;
@@ -123,6 +145,7 @@
             align-items: center;
             font-size: 10pt;
         }
+
         .btn-print {
             background: #0f766e;
             color: white;
@@ -132,6 +155,7 @@
             font-weight: 600;
             cursor: pointer;
         }
+
         @media print {
             .no-print {
                 display: none;
@@ -139,6 +163,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="no-print">
@@ -151,7 +176,7 @@
         <div class="header">
             <div class="header-title">
                 <h1>KucingMu &bull; Rekam Medis Veteriner</h1>
-                <p>Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah</p>
+                <p>KucingMu</p>
                 <p>{{ $record->clinic_name ?: 'Klinik Hewan KucingMu Terpadu' }}</p>
             </div>
             <div class="header-meta">
@@ -182,7 +207,9 @@
                         </tr>
                         <tr>
                             <td style="color:#64748b;">Kelamin / Tgl Lahir</td>
-                            <td>: {{ $record->cat->gender === 'male' ? 'Jantan' : 'Betina' }} / {{ $record->cat->date_of_birth ? \Carbon\Carbon::parse($record->cat->date_of_birth)->format('d/m/Y') : '-' }}</td>
+                            <td>: {{ $record->cat->gender === 'male' ? 'Jantan' : 'Betina' }} /
+                                {{ $record->cat->date_of_birth ? \Carbon\Carbon::parse($record->cat->date_of_birth)->format('d/m/Y') : '-' }}
+                            </td>
                         </tr>
                     </table>
                 </div>
@@ -190,7 +217,8 @@
                     <table>
                         <tr>
                             <td width="35%" style="color:#64748b;">Nama Pemilik</td>
-                            <td>: <strong>{{ $record->cat->owner->name ?? ($record->member->name ?? '-') }}</strong></td>
+                            <td>: <strong>{{ $record->cat->owner->name ?? ($record->member->name ?? '-') }}</strong>
+                            </td>
                         </tr>
                         <tr>
                             <td style="color:#64748b;">NBM</td>
@@ -212,15 +240,18 @@
         <!-- Clinical SOAP Breakdown -->
         <div class="section">
             <div class="section-title">Catatan Klinis (SOAP)</div>
-            
+
             <!-- Subjective -->
             <div class="soap-block">
                 <div style="font-weight:600; margin-bottom: 4px;">
                     <span class="soap-tag">S</span> Subjective (Anamnesa)
                 </div>
                 <div style="padding-left: 26px; font-size: 10pt;">
-                    <div><strong>Keluhan Utama:</strong> {{ $record->subjective?->member_complaint ?? $record->chief_complaint }}</div>
-                    <div><strong>Onset:</strong> {{ $record->subjective?->symptom_onset ?? '-' }} &bull; <strong>Nafsu Makan:</strong> {{ $record->subjective?->appetite_history ?? 'Normal' }} &bull; <strong>Minum:</strong> {{ $record->subjective?->drinking_history ?? 'Normal' }}</div>
+                    <div><strong>Keluhan Utama:</strong>
+                        {{ $record->subjective?->member_complaint ?? $record->chief_complaint }}</div>
+                    <div><strong>Onset:</strong> {{ $record->subjective?->symptom_onset ?? '-' }} &bull; <strong>Nafsu
+                            Makan:</strong> {{ $record->subjective?->appetite_history ?? 'Normal' }} &bull;
+                        <strong>Minum:</strong> {{ $record->subjective?->drinking_history ?? 'Normal' }}</div>
                     @if($record->subjective?->doctor_clarification)
                         <div><strong>Klarifikasi Dokter:</strong> {{ $record->subjective->doctor_clarification }}</div>
                     @endif
@@ -248,9 +279,12 @@
                 </div>
                 <div style="padding-left: 26px; font-size: 10pt;">
                     @if($record->primaryDiagnosis)
-                        <div><strong>Diagnosis Utama:</strong> {{ $record->primaryDiagnosis->diagnosis_name }} ({{ ucfirst($record->primaryDiagnosis->certainty) }} - {{ ucfirst($record->primaryDiagnosis->severity) }})</div>
+                        <div><strong>Diagnosis Utama:</strong> {{ $record->primaryDiagnosis->diagnosis_name }}
+                            ({{ ucfirst($record->primaryDiagnosis->certainty) }} -
+                            {{ ucfirst($record->primaryDiagnosis->severity) }})</div>
                         @if($record->primaryDiagnosis->clinical_reasoning)
-                            <div style="color: #475569; font-style: italic;">"{{ $record->primaryDiagnosis->clinical_reasoning }}"</div>
+                            <div style="color: #475569; font-style: italic;">
+                                "{{ $record->primaryDiagnosis->clinical_reasoning }}"</div>
                         @endif
                     @else
                         <div>{{ $record->general_condition }}</div>
@@ -300,7 +334,8 @@
                                 </td>
                                 <td>{{ ucfirst($item->dosage_form) }} / {{ ucfirst($item->administration_route) }}</td>
                                 <td>{{ $item->dose_value }} {{ $item->dose_unit }} ({{ $item->frequency_value }})</td>
-                                <td>{{ $item->duration_value }} {{ $item->duration_unit }} ({{ $item->quantity_value }} {{ $item->quantity_unit }})</td>
+                                <td>{{ $item->duration_value }} {{ $item->duration_unit }} ({{ $item->quantity_value }}
+                                    {{ $item->quantity_unit }})</td>
                                 <td>{{ $item->usage_instructions }}</td>
                             </tr>
                         @endforeach
@@ -315,7 +350,8 @@
             <div class="section">
                 <div class="section-title">Jadwal Kontrol Ulang Pasien</div>
                 <div style="font-size: 10pt;">
-                    Kucing dijadwalkan untuk kontrol pada: <strong>{{ $fu->scheduled_at->format('d F Y') }}</strong> &bull; Alasan: {{ $fu->reason }}
+                    Kucing dijadwalkan untuk kontrol pada: <strong>{{ $fu->scheduled_at->format('d F Y') }}</strong> &bull;
+                    Alasan: {{ $fu->reason }}
                 </div>
             </div>
         @endif
@@ -333,4 +369,5 @@
     </div>
 
 </body>
+
 </html>

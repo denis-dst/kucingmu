@@ -220,7 +220,7 @@
 
             <!-- Footer brand signature -->
             <div class="bg-slate-100 border-t border-slate-200 px-6 py-3.5 text-center text-xs text-slate-600">
-                Pemeriksaan kesehatan kucing & penerbitan KTAKuMu diselenggarakan oleh Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.
+                Pemeriksaan kesehatan kucing & penerbitan KTAKuMu diselenggarakan oleh KucingMu.
             </div>
         </div>
 

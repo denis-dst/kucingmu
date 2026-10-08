@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Penjaringan Representatif KucingMu Seluruh Indonesia | {{ $app_settings['app_name'] ?? 'KucingMu' }}</title>
-    <meta name="description" content="Formulir resmi pendaftaran Penjaringan Representatif KucingMu di seluruh wilayah Indonesia di bawah naungan Majelis Lingkungan Hidup PP Muhammadiyah.">
+    <meta name="description" content="Formulir resmi pendaftaran Penjaringan Representatif KucingMu di seluruh wilayah Indonesia di bawah naungan KucingMu.">
 
     @if(isset($app_settings['app_favicon']))
         <link rel="shortcut icon" href="{{ asset('storage/' . $app_settings['app_favicon']) }}" type="image/x-icon">
@@ -65,7 +65,7 @@
                             {{ $app_settings['app_name'] ?? 'KucingMu' }}
                         </span>
                         <span class="text-[10px] text-slate-500 font-semibold tracking-wider uppercase mt-1">
-                            Majelis Lingkungan Hidup PP Muhammadiyah
+                            KucingMu
                         </span>
                     </div>
                 </a>
@@ -102,7 +102,7 @@
                 
                 <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-teal-100 border border-white/20 text-xs font-semibold backdrop-blur">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Program Inisiasi Nasional &bull; Majelis Lingkungan Hidup PP Muhammadiyah
+                    Program Inisiasi Nasional &bull; KucingMu
                 </div>
 
                 <h1 class="font-outfit text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight max-w-3xl">
@@ -610,7 +610,7 @@
                             <span>🛡️</span> Komitmen Pelindungan Data Organisasi
                         </div>
                         <p class="text-xs text-teal-950 leading-relaxed">
-                            KucingMu dan Majelis Lingkungan Hidup PP Muhammadiyah menjamin bahwa seluruh data identitas, NBM, nomor kontak, serta dokumen yang Anda lampirkan <strong>tidak akan dipublikasikan ke publik</strong>. Data hanya dipergunakan untuk keperluan administrasi organisasi, verifikasi kelayakan representatif wilayah, dan koordinasi program persyarikatan sesuai <a href="{{ route('privacy.policy') }}" target="_blank" class="font-bold underline text-teal-900 hover:text-teal-950">Kebijakan Privasi KucingMu</a> (UU PDP No. 27/2022).
+                            KucingMu dan KucingMu menjamin bahwa seluruh data identitas, NBM, nomor kontak, serta dokumen yang Anda lampirkan <strong>tidak akan dipublikasikan ke publik</strong>. Data hanya dipergunakan untuk keperluan administrasi organisasi, verifikasi kelayakan representatif wilayah, dan koordinasi program persyarikatan sesuai <a href="{{ route('privacy.policy') }}" target="_blank" class="font-bold underline text-teal-900 hover:text-teal-950">Kebijakan Privasi KucingMu</a> (UU PDP No. 27/2022).
                         </p>
                     </div>
 
@@ -676,7 +676,7 @@
             </div>
 
             <p class="text-xs text-slate-400 footer-text">
-                {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
+                {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. KucingMu.' !!}
             </p>
         </div>
     </footer>

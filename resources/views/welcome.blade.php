@@ -853,7 +853,7 @@
             </div>
             
             <p class="text-xs text-slate-400 footer-text">
-                {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. Majelis Lingkungan Hidup Pimpinan Pusat Muhammadiyah.' !!}
+                {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. KucingMu.' !!}
             </p>
         </div>
     </footer>
