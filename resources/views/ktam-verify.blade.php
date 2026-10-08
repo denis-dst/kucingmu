@@ -10,8 +10,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <!-- Tailwind compiled style -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Tracking & Analytics Scripts (GTM & Google Analytics) -->
+    @include('partials.tracking-head')
 </head>
 <body class="bg-slate-50 font-sans antialiased text-slate-800">
+    <!-- Tracking Body (GTM Noscript) -->
+    @include('partials.tracking-body')
+
     <div class="min-h-screen flex flex-col items-center justify-center p-4 py-8">
         
         <div class="w-full max-w-xl bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">

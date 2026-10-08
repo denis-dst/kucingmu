@@ -24,6 +24,9 @@
     <!-- Styles & Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Tracking & Analytics Scripts (GTM & Google Analytics) -->
+    @include('partials.tracking-head')
+
     <style>
         @media print {
             .no-print {
@@ -56,6 +59,9 @@
     class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-teal-100 selection:text-teal-900 min-h-screen flex flex-col"
     x-data="{ activeSection: 'ringkasan', showBackToTop: false }"
     @scroll.window="showBackToTop = (window.pageYOffset > 400)">
+
+    <!-- Tracking Body (GTM Noscript) -->
+    @include('partials.tracking-body')
 
     <!-- Accessibility Skip Link -->
     <a href="#konten-kebijakan"

@@ -30,6 +30,9 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Tracking & Analytics Scripts (GTM & Google Analytics) -->
+    @include('partials.tracking-head')
 </head>
 
 <body class="font-sans antialiased text-slate-800 bg-slate-50 min-h-screen" x-data="{ 
@@ -44,6 +47,9 @@
                   }
               }
           }" @resize.window="if (window.innerWidth >= 1024) { mobileSidebarOpen = false; }">
+    <!-- Tracking Body (GTM Noscript) -->
+    @include('partials.tracking-body')
+
     <!-- Skip link for keyboard accessibility -->
     <a href="#main-content"
         class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-teal-800 focus:text-white focus:rounded-md focus:shadow-md focus:font-semibold">

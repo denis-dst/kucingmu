@@ -20,9 +20,14 @@
 
     <!-- Styles & Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Tracking & Analytics Scripts (GTM & Google Analytics) -->
+    @include('partials.tracking-head')
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+    <!-- Tracking Body (GTM Noscript) -->
+    @include('partials.tracking-body')
 
     <!-- Header -->
     <header class="bg-white border-b border-slate-200 py-4">

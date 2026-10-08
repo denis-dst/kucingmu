@@ -17,7 +17,7 @@ class AppSettingController extends Controller
             abort(403);
         }
 
-        $settings = AppSetting::all();
+        $settings = AppSetting::all()->keyBy('key');
         return view('admin.settings', compact('settings'));
     }
 
@@ -30,7 +30,7 @@ class AppSettingController extends Controller
             abort(403);
         }
 
-        // Process text and select/boolean settings
+        // Process text, textarea, code, and select/boolean settings
         $settings = $request->input('settings', []);
         foreach ($settings as $key => $value) {
             $setting = AppSetting::find($key);
@@ -39,6 +39,13 @@ class AppSettingController extends Controller
                     $value = '0';
                 }
                 $setting->update(['value' => $value]);
+            } elseif (!$setting) {
+                AppSetting::create([
+                    'key' => $key,
+                    'value' => $value,
+                    'label' => ucwords(str_replace('_', ' ', $key)),
+                    'type' => 'text',
+                ]);
             }
         }
 

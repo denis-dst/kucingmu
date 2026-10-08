@@ -26,8 +26,14 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        <!-- Tracking & Analytics Scripts (GTM & Google Analytics) -->
+        @include('partials.tracking-head')
     </head>
     <body class="font-sans text-slate-800 antialiased">
+        <!-- Tracking Body (GTM Noscript) -->
+        @include('partials.tracking-body')
+
         <div class="auth-shell">
             <!-- Left brand panel (visible on large screens) -->
             <div class="auth-brand-panel">

@@ -26,6 +26,9 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
+    <!-- Tracking & Analytics Scripts (GTM & Google Analytics) -->
+    @include('partials.tracking-head')
+
     <style>
         #map-container {
             height: 280px;
@@ -41,6 +44,8 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-teal-100 selection:text-teal-900 min-h-screen flex flex-col">
+    <!-- Tracking Body (GTM Noscript) -->
+    @include('partials.tracking-body')
 
     <!-- Accessibility Skip Link -->
     <a href="#form-pendaftaran" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-teal-800 focus:text-white focus:rounded-md focus:shadow-md focus:font-semibold">
