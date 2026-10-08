@@ -25,18 +25,55 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
+    <style>
+        #representatives-map {
+            height: 440px !important;
+            min-height: 380px !important;
+            width: 100% !important;
+            display: block !important;
+            position: relative !important;
+            border-radius: 1rem;
+            z-index: 10;
+        }
+        @media (max-width: 640px) {
+            #representatives-map {
+                height: 340px !important;
+                min-height: 300px !important;
+            }
+        }
+        .custom-rep-pin {
+            background: transparent !important;
+            border: none !important;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            padding: 2px;
+        }
+        .leaflet-popup-content {
+            margin: 10px 12px;
+            line-height: 1.4;
+        }
+    </style>
+
     <div class="py-6 sm:py-8" x-data="{
-        mapHeightClass: 'h-[360px] sm:h-[460px]',
         isExpanded: false,
         activeMapFilter: 'all',
         toggleMapHeight() {
             this.isExpanded = !this.isExpanded;
-            this.mapHeightClass = this.isExpanded ? 'h-[580px] sm:h-[680px]' : 'h-[360px] sm:h-[460px]';
-            $nextTick(() => {
+            const el = document.getElementById('representatives-map');
+            if (el) {
+                if (this.isExpanded) {
+                    el.style.setProperty('height', window.innerWidth < 640 ? '540px' : '660px', 'important');
+                } else {
+                    el.style.setProperty('height', window.innerWidth < 640 ? '340px' : '440px', 'important');
+                }
+            }
+            setTimeout(() => {
                 if (window.representativesMap) {
                     window.representativesMap.invalidateSize();
                 }
-            });
+            }, 150);
         }
     }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
@@ -248,9 +285,9 @@
                 </div>
 
                 <!-- Map Canvas Container -->
-                <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100">
+                <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-slate-100" style="min-height: 380px;">
                     <div id="representatives-map" 
-                         :class="mapHeightClass"
+                         style="height: 440px; min-height: 380px; width: 100%; display: block;"
                          class="w-full transition-all duration-300 z-10"></div>
 
                     @if($totalMapped === 0)
@@ -529,7 +566,7 @@
 
         function initRepresentativesMap() {
             const mapContainer = document.getElementById('representatives-map');
-            if (!mapContainer) return;
+            if (!mapContainer || mapInstance) return;
 
             // Default center of Indonesia
             const defaultCenter = [-1.5, 117.5];
@@ -603,10 +640,15 @@
             });
 
             // If markers exist, fit map bounds nicely
-            if (allMarkers.length > 0) {
-                const group = L.featureGroup(allMarkers);
-                mapInstance.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 13 });
-            }
+            setTimeout(() => {
+                if (mapInstance) {
+                    mapInstance.invalidateSize();
+                    if (allMarkers.length > 0) {
+                        const group = L.featureGroup(allMarkers);
+                        mapInstance.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 13 });
+                    }
+                }
+            }, 250);
         }
 
         function filterMapMarkers(status) {
@@ -622,14 +664,14 @@
 
             if (filtered.length > 0) {
                 const group = L.featureGroup(filtered);
-                mapInstance.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 13 });
+                mapInstance.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 13 });
             }
         }
 
         function fitMapToAllMarkers() {
             if (!mapInstance || allMarkers.length === 0) return;
             const group = L.featureGroup(allMarkers);
-            mapInstance.fitBounds(group.getBounds(), { padding: [40, 40], maxZoom: 13 });
+            mapInstance.fitBounds(group.getBounds(), { padding: [50, 50], maxZoom: 13 });
         }
 
         function resetMapToIndonesia() {
@@ -654,9 +696,21 @@
             }, 350);
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        function safeInitMap() {
+            const mapContainer = document.getElementById('representatives-map');
+            if (!mapContainer) return;
+            if (typeof L === 'undefined') {
+                setTimeout(safeInitMap, 100);
+                return;
+            }
             initRepresentativesMap();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', safeInitMap);
+        } else {
+            safeInitMap();
+        }
     </script>
 </x-app-layout>
 
