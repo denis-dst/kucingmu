@@ -107,20 +107,29 @@ class EmailOutbox extends Model
     /**
      * Static helper to log an outgoing email attempt.
      */
-    public static function logOutbox(array $data): self
+    public static function logOutbox(array $data): ?self
     {
-        return self::create([
-            'sender_id' => $data['sender_id'] ?? null,
-            'contact_message_id' => $data['contact_message_id'] ?? null,
-            'recipient_email' => $data['recipient_email'],
-            'recipient_name' => $data['recipient_name'] ?? null,
-            'subject' => $data['subject'],
-            'body' => $data['body'],
-            'mail_type' => $data['mail_type'] ?? 'direct_compose',
-            'mailer' => $data['mailer'] ?? config('mail.default', 'smtp'),
-            'status' => $data['status'] ?? 'sent',
-            'error_message' => $data['error_message'] ?? null,
-            'sent_at' => ($data['status'] ?? 'sent') === 'sent' ? now() : null,
-        ]);
+        try {
+            $subject = (string) ($data['subject'] ?? 'Pesan KucingMu');
+            $recipientName = !empty($data['recipient_name']) ? (string) $data['recipient_name'] : null;
+            $errorMessage = !empty($data['error_message']) ? (string) $data['error_message'] : null;
+
+            return self::create([
+                'sender_id' => $data['sender_id'] ?? null,
+                'contact_message_id' => $data['contact_message_id'] ?? null,
+                'recipient_email' => mb_substr((string) ($data['recipient_email'] ?? ''), 0, 255),
+                'recipient_name' => $recipientName ? mb_substr($recipientName, 0, 255) : null,
+                'subject' => mb_substr($subject, 0, 255),
+                'body' => (string) ($data['body'] ?? ''),
+                'mail_type' => mb_substr((string) ($data['mail_type'] ?? 'direct_compose'), 0, 50),
+                'mailer' => mb_substr((string) ($data['mailer'] ?? config('mail.default', 'smtp')), 0, 50),
+                'status' => in_array($data['status'] ?? 'sent', ['sent', 'failed', 'queued']) ? $data['status'] : 'sent',
+                'error_message' => $errorMessage ? mb_substr($errorMessage, 0, 2000) : null,
+                'sent_at' => ($data['status'] ?? 'sent') === 'sent' ? now() : null,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal mencatat log EmailOutbox: ' . $e->getMessage());
+            return null;
+        }
     }
 }

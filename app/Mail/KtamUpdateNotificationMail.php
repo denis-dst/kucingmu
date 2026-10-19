@@ -25,12 +25,12 @@ class KtamUpdateNotificationMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user, $cats, ?string $customNote = null, string $senderName = 'Admin KucingMu')
+    public function __construct(User $user, $cats, ?string $customNote = null, ?string $senderName = 'Admin KucingMu')
     {
         $this->user = $user;
         $this->cats = $cats;
         $this->customNote = $customNote;
-        $this->senderName = $senderName;
+        $this->senderName = $senderName ?: 'Admin KucingMu';
         $this->appName = AppSetting::get('app_name', config('app.name', 'KucingMu'));
         $this->portalUrl = route('dashboard');
     }

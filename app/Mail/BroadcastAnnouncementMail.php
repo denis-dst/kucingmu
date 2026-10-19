@@ -36,7 +36,7 @@ class BroadcastAnnouncementMail extends Mailable
         string $broadcastType = 'event_announcement',
         ?string $ctaText = null,
         ?string $ctaUrl = null,
-        string $senderName = 'Admin KucingMu'
+        ?string $senderName = 'Admin KucingMu'
     ) {
         $this->user = $user;
         $this->emailSubject = $emailSubject;
@@ -44,7 +44,7 @@ class BroadcastAnnouncementMail extends Mailable
         $this->event = $event;
         $this->broadcastType = $broadcastType;
         $this->appName = AppSetting::get('app_name', config('app.name', 'KucingMu'));
-        $this->senderName = $senderName;
+        $this->senderName = $senderName ?: 'Admin KucingMu';
 
         if ($this->event) {
             $this->ctaText = $ctaText ?: 'Lihat Detail & Daftar Kegiatan';

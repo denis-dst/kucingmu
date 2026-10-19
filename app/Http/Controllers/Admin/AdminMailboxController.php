@@ -270,9 +270,12 @@ class AdminMailboxController extends Controller
             'cta_url' => 'nullable|string|max:500',
         ]);
 
-        @set_time_limit(300); // Extended execution time for mailing list loop
+        @set_time_limit(300); // Extended execution time if server permits
 
         $adminUser = Auth::user();
+        $adminId = $adminUser?->id;
+        $adminName = $adminUser?->name ?: 'Admin KucingMu';
+
         $targetAudience = $request->input('target_audience', 'all');
         $broadcastType = $request->input('broadcast_type', 'event_announcement');
         $wilayahFilter = $request->input('wilayah_code');
@@ -323,6 +326,10 @@ class AdminMailboxController extends Controller
 
         $sentCount = 0;
         $failedCount = 0;
+        $skippedCount = 0;
+        $circuitBroken = false;
+        $criticalErrorMessage = null;
+        $timedOut = false;
 
         $mailType = match ($broadcastType) {
             'event_announcement' => 'event_broadcast',
@@ -330,8 +337,55 @@ class AdminMailboxController extends Controller
             default => 'general_broadcast',
         };
 
-        foreach ($recipients as $owner) {
+        // Calculate a safe time budget to prevent HTTP 500 / 504 timeouts from web server / PHP-FPM
+        $maxExecutionTime = (int) @ini_get('max_execution_time');
+        $timeBudgetSeconds = ($maxExecutionTime > 5 && $maxExecutionTime <= 60) ? ($maxExecutionTime - 5) : 25;
+        $startTime = microtime(true);
+
+        foreach ($recipients as $index => $owner) {
+            // Guard against request timeout if sending in bulk
+            $elapsed = microtime(true) - $startTime;
+            if ($elapsed >= $timeBudgetSeconds) {
+                $timedOut = true;
+                // Mark remaining recipients as pending in Outbox so admin can resume
+                $remainingRecipients = $recipients->slice($index);
+                foreach ($remainingRecipients as $remOwner) {
+                    if (empty($remOwner->email)) continue;
+                    EmailOutbox::logOutbox([
+                        'sender_id' => $adminId,
+                        'recipient_email' => $remOwner->email,
+                        'recipient_name' => $remOwner->name,
+                        'subject' => $subjectInput ?: 'Pengumuman Komunitas KucingMu',
+                        'body' => "Pesan tertunda karena batas waktu eksekusi web tercapai (Time limit). Anda dapat mengirim ulang melalui Kotak Keluar.",
+                        'mail_type' => $mailType,
+                        'mailer' => config('mail.default', 'smtp'),
+                        'status' => 'failed',
+                        'error_message' => 'Batas waktu eksekusi web tercapai. Gunakan tombol Kirim Ulang di Kotak Keluar.',
+                    ]);
+                    $failedCount++;
+                }
+                break;
+            }
+
             if (empty($owner->email) || !filter_var($owner->email, FILTER_VALIDATE_EMAIL)) {
+                $skippedCount++;
+                continue;
+            }
+
+            // If circuit breaker is tripped due to SMTP authentication failure or network down
+            if ($circuitBroken) {
+                EmailOutbox::logOutbox([
+                    'sender_id' => $adminId,
+                    'recipient_email' => $owner->email,
+                    'recipient_name' => $owner->name,
+                    'subject' => $subjectInput ?: 'Pengumuman Komunitas KucingMu',
+                    'body' => "Pengiriman dibatalkan otomatis karena server SMTP menolak koneksi atau autentikasi:\n{$criticalErrorMessage}",
+                    'mail_type' => $mailType,
+                    'mailer' => config('mail.default', 'smtp'),
+                    'status' => 'failed',
+                    'error_message' => $criticalErrorMessage,
+                ]);
+                $failedCount++;
                 continue;
             }
 
@@ -341,7 +395,7 @@ class AdminMailboxController extends Controller
 
             $subject = $subjectInput ?: match ($broadcastType) {
                 'event_announcement' => $event ? "[KucingMu] Undangan Agenda: {$event->title}" : "[KucingMu] Pengumuman Agenda Kegiatan",
-                'ktam_update' => $catNames ? "[KucingMu] Pemberitahuan Penyesuaian Nomor & Versi KTAKuMu ({$catNames})" : "[KucingMu] Pemberitahuan Penyesuaian KTAKuMu",
+                'ktam_update' => $catNames ? "[KucingMu] Pemberitahuan Penyesuaian KTAKuMu ({$catNames})" : "[KucingMu] Pemberitahuan Penyesuaian KTAKuMu",
                 default => "[KucingMu] Pengumuman Resmi Komunitas",
             };
 
@@ -350,7 +404,7 @@ class AdminMailboxController extends Controller
 
             try {
                 if ($broadcastType === 'ktam_update' && $userCats->isNotEmpty()) {
-                    Mail::to($owner->email)->send(new KtamUpdateNotificationMail($owner, $userCats, $messageBody, $adminUser->name));
+                    Mail::to($owner->email)->send(new KtamUpdateNotificationMail($owner, $userCats, $messageBody, $adminName));
                 } else {
                     Mail::to($owner->email)->send(new BroadcastAnnouncementMail(
                         $owner,
@@ -360,7 +414,7 @@ class AdminMailboxController extends Controller
                         $broadcastType,
                         $ctaText,
                         $ctaUrl,
-                        $adminUser->name
+                        $adminName
                     ));
                 }
                 $sentCount++;
@@ -369,6 +423,19 @@ class AdminMailboxController extends Controller
                 $errorMessage = $e->getMessage();
                 $failedCount++;
                 Log::error("Gagal broadcast email ke {$owner->email}: " . $e->getMessage());
+
+                // Detect critical connection or authentication failures to trip circuit breaker
+                $errMsgLower = strtolower($errorMessage);
+                if (
+                    str_contains($errorMessage, '535') ||
+                    str_contains($errMsgLower, 'incorrect authentication data') ||
+                    str_contains($errMsgLower, 'failed to authenticate') ||
+                    str_contains($errMsgLower, 'connection refused') ||
+                    str_contains($errMsgLower, 'relay access denied')
+                ) {
+                    $circuitBroken = true;
+                    $criticalErrorMessage = "Server SMTP menolak autentikasi atau koneksi: {$errorMessage}";
+                }
             }
 
             // Body summary for Outbox log
@@ -392,9 +459,9 @@ class AdminMailboxController extends Controller
                 $bodyLog .= "Tautan Aksi (CTA): {$ctaUrl}\n";
             }
 
-            // Record into EmailOutbox
+            // Record into EmailOutbox safely
             EmailOutbox::logOutbox([
-                'sender_id' => $adminUser->id,
+                'sender_id' => $adminId,
                 'recipient_email' => $owner->email,
                 'recipient_name' => $owner->name,
                 'subject' => $subject,
@@ -404,6 +471,9 @@ class AdminMailboxController extends Controller
                 'status' => $status,
                 'error_message' => $errorMessage,
             ]);
+
+            // Slight throttle to prevent flooding mail server
+            usleep(30000); // 30ms
         }
 
         $targetLabel = match ($targetAudience) {
@@ -412,12 +482,22 @@ class AdminMailboxController extends Controller
             default => 'seluruh member terpilih',
         };
 
+        if ($circuitBroken) {
+            return redirect()->route('admin.mail.outbox', ['type' => $mailType])
+                ->with('error', "❌ Pengiriman broadcast dihentikan karena server SMTP menolak autentikasi atau koneksi: {$criticalErrorMessage}. Harap periksa kredensial MAIL_USERNAME dan MAIL_PASSWORD di konfigurasi server.");
+        }
+
+        if ($timedOut) {
+            return redirect()->route('admin.mail.outbox', ['type' => $mailType])
+                ->with('warning', "⚠️ Batas waktu eksekusi web tercapai demi keamanan server: {$sentCount} email terkirim via SMTP, {$failedCount} tertunda ke {$targetLabel}. Seluruh log dicatat di Kotak Keluar dan Anda dapat melanjutkan pengiriman menggunakan tombol 'Kirim Ulang'.");
+        }
+
         if ($failedCount === 0) {
             return redirect()->route('admin.mail.outbox', ['type' => $mailType])
                 ->with('success', "✅ Broadcast berhasil! {$sentCount} email telah terkirim via SMTP ke {$targetLabel} dan dicatat di Kotak Keluar.");
         } else {
             return redirect()->route('admin.mail.outbox', ['type' => $mailType])
-                ->with('warning', "Broadcast selesai: {$sentCount} berhasil terkirim, {$failedCount} gagal ke {$targetLabel}. Anda dapat melihat log dan melakukan Kirim Ulang pada email yang gagal.");
+                ->with('warning', "Broadcast selesai: {$sentCount} berhasil terkirim, {$failedCount} gagal ke {$targetLabel}. Anda dapat melihat detail log dan melakukan Kirim Ulang pada email yang gagal.");
         }
     }
 
