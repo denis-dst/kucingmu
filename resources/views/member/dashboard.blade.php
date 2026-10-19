@@ -688,20 +688,29 @@
                                 @foreach($activeEvents as $event)
                                     <div class="bg-white p-3.5 rounded-lg border border-slate-200 space-y-2">
                                         @if($event->banner_path)
-                                            <div class="h-24 w-full bg-slate-100 rounded-md overflow-hidden mb-1.5">
-                                                <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" class="h-full w-full object-cover">
-                                            </div>
+                                            <a href="{{ route('events.show', $event) }}" class="block focus:outline-none rounded-md overflow-hidden">
+                                                <div class="h-24 w-full bg-slate-100 rounded-md overflow-hidden mb-1.5">
+                                                    <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" class="h-full w-full object-cover hover:scale-105 transition duration-200">
+                                                </div>
+                                            </a>
                                         @endif
-                                        <h3 class="font-bold text-slate-900 text-xs leading-snug">{{ $event->title }}</h3>
-                                        <p class="text-[11px] text-slate-600">{{ $event->date->format('d M Y') }} &bull; {{ $event->location }}</p>
+                                        <h3 class="font-bold text-slate-900 text-xs leading-snug">
+                                            <a href="{{ route('events.show', $event) }}" class="hover:text-teal-700 transition">
+                                                {{ $event->title }}
+                                            </a>
+                                        </h3>
+                                        <p class="text-[11px] text-slate-600">{{ $event->date ? $event->date->format('d M Y') : '-' }} &bull; {{ $event->location }}</p>
                                         <p class="text-xs text-slate-600 line-clamp-2">{{ $event->description }}</p>
-                                        @if($event->registration_link)
-                                            <div class="pt-1">
-                                                <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="w-full button-primary flex justify-center py-2 text-xs font-semibold text-center">
-                                                    Daftar Kegiatan
+                                        <div class="pt-1 flex items-center justify-between gap-2">
+                                            <a href="{{ route('events.show', $event) }}" class="text-[11px] font-bold text-teal-700 hover:text-teal-900 hover:underline">
+                                                Baca Selengkapnya →
+                                            </a>
+                                            @if($event->registration_link)
+                                                <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="button-primary py-1 px-3 text-[11px] font-semibold text-center">
+                                                    Daftar
                                                 </a>
-                                            </div>
-                                        @endif
+                                            @endif
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>

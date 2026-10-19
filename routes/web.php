@@ -108,6 +108,12 @@ Route::middleware(['auth', 'role:volunteer'])->group(function () {
 Route::get('/kontak', [ContactController::class, 'index'])->name('contact.index');
 Route::post('/kontak', [ContactController::class, 'store'])->name('contact.store');
 
+// Public Event / Agenda Detail Routes
+Route::get('/agenda/{event}', [EventController::class, 'show'])->name('events.show');
+Route::get('/events/{event}', function (\App\Models\Event $event) {
+    return redirect()->route('events.show', $event);
+});
+
 use App\Http\Controllers\Admin\AdminMailboxController;
 
 // Verification Routes (Accessible by Verifikator, Admin, Superadmin)
@@ -121,7 +127,7 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/export-data', [DashboardController::class, 'exportData'])->name('export-data');
     Route::get('/settings', [AppSettingController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [AppSettingController::class, 'update'])->name('admin.settings.update');
-    Route::resource('/events', EventController::class, ['names' => 'admin.events']);
+    Route::resource('/events', EventController::class, ['names' => 'admin.events', 'except' => ['show']]);
 
     // Admin Mailbox (Inbox & Outbox) Management
     Route::get('/admin/mail/inbox', [AdminMailboxController::class, 'inbox'])->name('admin.mail.inbox');

@@ -23,6 +23,28 @@ class EventController extends Controller
     }
 
     /**
+     * Display the specified event (public detail page).
+     */
+    public function show(Event $event)
+    {
+        // If event is draft and user is not admin/superadmin, abort 404
+        if ($event->status === 'draft') {
+            if (!Auth::check() || !in_array(Auth::user()->role, ['admin', 'superadmin'])) {
+                abort(404);
+            }
+        }
+
+        // Other active upcoming events
+        $otherEvents = Event::where('status', 'active')
+            ->where('id', '!=', $event->id)
+            ->orderBy('date', 'asc')
+            ->take(3)
+            ->get();
+
+        return view('events.show', compact('event', 'otherEvents'));
+    }
+
+    /**
      * Show form to create a new event (admin only).
      */
     public function create()

@@ -520,42 +520,59 @@
                             <div class="content-card flex flex-col justify-between">
                                 <div>
                                     <!-- Banner -->
-                                    <div class="h-44 w-full bg-slate-100 rounded-lg overflow-hidden relative border border-slate-200">
-                                        @if($event->banner_path)
-                                            <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" width="400" height="176" loading="lazy" decoding="async" class="h-full w-full object-cover">
-                                        @else
-                                            <div class="h-full w-full flex flex-col items-center justify-center text-slate-400">
-                                                <span class="text-3xl" aria-hidden="true">📅</span>
-                                                <span class="text-xs font-semibold uppercase tracking-wider mt-1 text-slate-500">Agenda Kegiatan</span>
+                                    <a href="{{ route('events.show', $event) }}" class="block focus:outline-none focus:ring-2 focus:ring-teal-700 rounded-lg group" aria-label="Lihat detail kegiatan {{ $event->title }}">
+                                        <div class="h-44 w-full bg-slate-100 rounded-lg overflow-hidden relative border border-slate-200">
+                                            @if($event->banner_path)
+                                                <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" width="400" height="176" loading="lazy" decoding="async" class="h-full w-full object-cover group-hover:scale-105 transition duration-300">
+                                            @else
+                                                <div class="h-full w-full flex flex-col items-center justify-center text-slate-400 group-hover:bg-slate-200/60 transition">
+                                                    <span class="text-3xl" aria-hidden="true">📅</span>
+                                                    <span class="text-xs font-semibold uppercase tracking-wider mt-1 text-slate-500">Agenda Kegiatan</span>
+                                                </div>
+                                            @endif
+                                            <div class="absolute top-3 left-3 bg-teal-800 text-white font-semibold text-xs px-2.5 py-1 rounded-md shadow-xs">
+                                                {{ $event->date ? $event->date->format('d M Y') : '-' }}
                                             </div>
-                                        @endif
-                                        <div class="absolute top-3 left-3 bg-teal-800 text-white font-semibold text-xs px-2.5 py-1 rounded-md shadow-xs">
-                                            {{ $event->date->format('d M Y') }}
                                         </div>
-                                    </div>
+                                    </a>
 
                                     <!-- Body -->
                                     <div class="pt-4 space-y-2">
                                         <h3 class="font-outfit text-lg font-bold text-slate-900 leading-snug">
-                                            {{ $event->title }}
+                                            <a href="{{ route('events.show', $event) }}" class="hover:text-teal-800 transition-colors">
+                                                {{ $event->title }}
+                                            </a>
                                         </h3>
                                         <p class="text-xs text-slate-600 font-medium flex items-center gap-1.5">
                                             <span aria-hidden="true">📍</span> {{ $event->location }}
                                         </p>
                                         <p class="text-xs text-slate-600 leading-relaxed pt-1">
-                                            {{ $event->description }}
+                                            {{ \Illuminate\Support\Str::limit(strip_tags($event->description), 110, '...') }}
                                         </p>
+                                        <div>
+                                            <a href="{{ route('events.show', $event) }}" class="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-950 transition-colors group">
+                                                <span>Baca Selengkapnya</span>
+                                                <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">&rarr;</span>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Footer / Register Link -->
                                 <div class="pt-4 mt-4 border-t border-slate-100">
                                     @if($event->registration_link)
-                                        <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="w-full button-primary text-center text-xs font-semibold py-2.5">
-                                            Daftar Kegiatan
-                                        </a>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('events.show', $event) }}" class="flex-1 button-secondary text-center text-xs font-semibold py-2.5">
+                                                Detail
+                                            </a>
+                                            <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="flex-1 button-primary text-center text-xs font-semibold py-2.5">
+                                                Daftar Kegiatan
+                                            </a>
+                                        </div>
                                     @else
-                                        <span class="text-xs text-slate-500 font-medium block text-center py-2 bg-slate-100 rounded-lg">Pendaftaran di Lokasi</span>
+                                        <a href="{{ route('events.show', $event) }}" class="w-full button-secondary text-center text-xs font-semibold py-2.5">
+                                            Detail & Informasi Kegiatan
+                                        </a>
                                     @endif
                                 </div>
                             </div>

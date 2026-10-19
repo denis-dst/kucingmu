@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
         date_default_timezone_set(config('app.timezone', 'Asia/Jakarta'));
 
         // Force HTTPS in production or if accessed via HTTPS proxy / Cloudflare
-        if (config('app.env') === 'production' || request()->header('X-Forwarded-Proto') === 'https' || request()->server('HTTPS') === 'on') {
+        if (config('app.env') === 'production' || (!app()->runningInConsole() && (request()->header('X-Forwarded-Proto') === 'https' || request()->server('HTTPS') === 'on'))) {
             URL::forceScheme('https');
         }
 
