@@ -8,10 +8,12 @@ use App\Models\EmailOutbox;
 use App\Models\User;
 use App\Models\Cat;
 use App\Models\MasterWilayah;
+use App\Models\Event;
 use App\Mail\ContactResponseMail;
 use App\Mail\AdminDirectMail;
 use App\Mail\SmtpTestMail;
 use App\Mail\KtamUpdateNotificationMail;
+use App\Mail\BroadcastAnnouncementMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -182,9 +184,11 @@ class AdminMailboxController extends Controller
             $query->where('status', $statusFilter);
         }
 
-        // Filter mail_type: all, direct_compose, contact_reply, ktam_broadcast, test_smtp, registration_notice
+        // Filter mail_type: all, direct_compose, contact_reply, ktam_broadcast, event_broadcast, general_broadcast, broadcasts, test_smtp, registration_notice
         $typeFilter = $request->get('type', 'all');
-        if (in_array($typeFilter, ['direct_compose', 'contact_reply', 'ktam_broadcast', 'test_smtp', 'registration_notice'])) {
+        if ($typeFilter === 'broadcasts' || $typeFilter === 'ktam_broadcast') {
+            $query->whereIn('mail_type', ['ktam_broadcast', 'event_broadcast', 'general_broadcast']);
+        } elseif (in_array($typeFilter, ['direct_compose', 'contact_reply', 'event_broadcast', 'general_broadcast', 'test_smtp', 'registration_notice'])) {
             $query->where('mail_type', $typeFilter);
         }
 
@@ -207,7 +211,7 @@ class AdminMailboxController extends Controller
             'failed' => EmailOutbox::where('status', 'failed')->count(),
             'direct' => EmailOutbox::where('mail_type', 'direct_compose')->count(),
             'replies' => EmailOutbox::where('mail_type', 'contact_reply')->count(),
-            'broadcasts' => EmailOutbox::where('mail_type', 'ktam_broadcast')->count(),
+            'broadcasts' => EmailOutbox::whereIn('mail_type', ['ktam_broadcast', 'event_broadcast', 'general_broadcast'])->count(),
         ];
 
         $unreadInboxCount = ContactMessage::where('status', 'unread')->count();
@@ -216,11 +220,18 @@ class AdminMailboxController extends Controller
         // Registered users for quick autocomplete in compose modal
         $usersList = User::select('id', 'name', 'email', 'role')->orderBy('name')->take(100)->get();
 
-        // Count members owning cats with issued KTAKuMu
+        // Count members based on KTAKuMu ownership
         $ktamIssuedCatsCount = Cat::whereNotNull('unique_code')->where('unique_code', '!=', '')->count();
         $ktamMembersCount = User::whereHas('cats', function ($q) {
             $q->whereNotNull('unique_code')->where('unique_code', '!=', '');
         })->count();
+        $nonKtamMembersCount = User::whereDoesntHave('cats', function ($q) {
+            $q->whereNotNull('unique_code')->where('unique_code', '!=', '');
+        })->count();
+        $totalMembersCount = User::count();
+
+        // Active events list for event broadcast selection
+        $activeEvents = Event::where('status', 'active')->orderBy('date', 'asc')->get();
 
         // Master Wilayah list for broadcast filter
         $wilayahList = MasterWilayah::where('is_active', true)->orderBy('nama')->get();
@@ -235,78 +246,151 @@ class AdminMailboxController extends Controller
             'usersList',
             'ktamIssuedCatsCount',
             'ktamMembersCount',
+            'nonKtamMembersCount',
+            'totalMembersCount',
+            'activeEvents',
             'wilayahList'
         ));
     }
 
     /**
-     * Broadcast KTAKuMu update notification to members whose KTA is issued.
+     * Broadcast notification or event announcement to members.
      */
     public function broadcastKtamUpdate(Request $request)
     {
         $request->validate([
-            'subject' => 'nullable|string|max:255',
-            'custom_note' => 'nullable|string|max:5000',
+            'target_audience' => 'nullable|in:all,ktam_issued,ktam_not_issued',
+            'broadcast_type' => 'nullable|in:event_announcement,general_announcement,ktam_update',
+            'event_id' => 'nullable|exists:events,id',
+            'subject' => 'required|string|max:255',
+            'message' => 'nullable|string|max:10000',
+            'custom_note' => 'nullable|string|max:10000',
             'wilayah_code' => 'nullable|string|max:20',
+            'cta_text' => 'nullable|string|max:100',
+            'cta_url' => 'nullable|string|max:500',
         ]);
 
         @set_time_limit(300); // Extended execution time for mailing list loop
 
         $adminUser = Auth::user();
-        $customNote = trim($request->input('custom_note', ''));
+        $targetAudience = $request->input('target_audience', 'all');
+        $broadcastType = $request->input('broadcast_type', 'event_announcement');
         $wilayahFilter = $request->input('wilayah_code');
+        $eventId = $request->input('event_id');
+        $event = $eventId ? Event::find($eventId) : null;
 
-        // Query cats that have issued unique_code and valid owner
-        $catsQuery = Cat::with('owner')
-            ->whereNotNull('unique_code')
-            ->where('unique_code', '!=', '')
-            ->whereHas('owner');
+        $subjectInput = trim($request->input('subject', ''));
+        $messageBody = trim($request->input('message') ?: $request->input('custom_note', ''));
+        $ctaText = trim($request->input('cta_text', ''));
+        $ctaUrl = trim($request->input('cta_url', ''));
 
-        if (!empty($wilayahFilter) && $wilayahFilter !== 'all') {
-            $catsQuery->where('wilayah_code', $wilayahFilter);
+        // Query users based on target_audience
+        $usersQuery = User::whereNotNull('email')->where('email', '!=', '');
+
+        if ($targetAudience === 'ktam_issued') {
+            $usersQuery->whereHas('cats', function ($q) use ($wilayahFilter) {
+                $q->whereNotNull('unique_code')->where('unique_code', '!=', '');
+                if (!empty($wilayahFilter) && $wilayahFilter !== 'all') {
+                    $q->where('wilayah_code', $wilayahFilter);
+                }
+            });
+        } elseif ($targetAudience === 'ktam_not_issued') {
+            $usersQuery->whereDoesntHave('cats', function ($q) {
+                $q->whereNotNull('unique_code')->where('unique_code', '!=', '');
+            });
+            if (!empty($wilayahFilter) && $wilayahFilter !== 'all') {
+                $usersQuery->where(function ($uq) use ($wilayahFilter) {
+                    $uq->whereHas('cats', function ($cq) use ($wilayahFilter) {
+                        $cq->where('wilayah_code', $wilayahFilter);
+                    })->orWhereDoesntHave('cats');
+                });
+            }
+        } else { // 'all'
+            if (!empty($wilayahFilter) && $wilayahFilter !== 'all') {
+                $usersQuery->whereHas('cats', function ($q) use ($wilayahFilter) {
+                    $q->where('wilayah_code', $wilayahFilter);
+                });
+            }
         }
 
-        $issuedCats = $catsQuery->get();
+        $recipients = $usersQuery->with(['cats' => function ($q) {
+            $q->whereNotNull('unique_code')->where('unique_code', '!=', '');
+        }])->get();
 
-        if ($issuedCats->isEmpty()) {
-            return redirect()->back()->with('warning', 'Tidak ditemukan data kucing dengan KTAKuMu terbit yang sesuai dengan filter wilayah terpilih.');
+        if ($recipients->isEmpty()) {
+            return redirect()->back()->with('warning', 'Tidak ditemukan member penerima yang sesuai dengan kriteria target dan filter wilayah terpilih.');
         }
-
-        // Group cats by owner
-        $groupedByOwner = $issuedCats->groupBy('user_id');
 
         $sentCount = 0;
         $failedCount = 0;
 
-        foreach ($groupedByOwner as $userId => $cats) {
-            $owner = $cats->first()->owner;
-            if (!$owner || empty($owner->email) || !filter_var($owner->email, FILTER_VALIDATE_EMAIL)) {
+        $mailType = match ($broadcastType) {
+            'event_announcement' => 'event_broadcast',
+            'ktam_update' => 'ktam_broadcast',
+            default => 'general_broadcast',
+        };
+
+        foreach ($recipients as $owner) {
+            if (empty($owner->email) || !filter_var($owner->email, FILTER_VALIDATE_EMAIL)) {
                 continue;
             }
 
-            $catNames = $cats->pluck('name')->implode(', ');
-            $catCodes = $cats->pluck('unique_code')->implode(', ');
-            $subject = trim($request->input('subject')) ?: "[KucingMu] Pemberitahuan Penyesuaian Nomor & Versi KTAKuMu ({$catNames})";
+            $userCats = $owner->cats;
+            $catNames = $userCats->isNotEmpty() ? $userCats->pluck('name')->implode(', ') : '';
+            $catCodes = $userCats->isNotEmpty() ? $userCats->pluck('unique_code')->implode(', ') : '';
+
+            $subject = $subjectInput ?: match ($broadcastType) {
+                'event_announcement' => $event ? "[KucingMu] Undangan Agenda: {$event->title}" : "[KucingMu] Pengumuman Agenda Kegiatan",
+                'ktam_update' => $catNames ? "[KucingMu] Pemberitahuan Penyesuaian Nomor & Versi KTAKuMu ({$catNames})" : "[KucingMu] Pemberitahuan Penyesuaian KTAKuMu",
+                default => "[KucingMu] Pengumuman Resmi Komunitas",
+            };
 
             $status = 'sent';
             $errorMessage = null;
 
             try {
-                Mail::to($owner->email)->send(new KtamUpdateNotificationMail($owner, $cats, $customNote, $adminUser->name));
+                if ($broadcastType === 'ktam_update' && $userCats->isNotEmpty()) {
+                    Mail::to($owner->email)->send(new KtamUpdateNotificationMail($owner, $userCats, $messageBody, $adminUser->name));
+                } else {
+                    Mail::to($owner->email)->send(new BroadcastAnnouncementMail(
+                        $owner,
+                        $subject,
+                        $messageBody,
+                        $event,
+                        $broadcastType,
+                        $ctaText,
+                        $ctaUrl,
+                        $adminUser->name
+                    ));
+                }
                 $sentCount++;
             } catch (\Throwable $e) {
                 $status = 'failed';
                 $errorMessage = $e->getMessage();
                 $failedCount++;
-                Log::error("Gagal broadcast KTA update ke {$owner->email}: " . $e->getMessage());
+                Log::error("Gagal broadcast email ke {$owner->email}: " . $e->getMessage());
             }
 
-            // Summary log for Outbox
-            $bodyLog = "Pemberitahuan Penyesuaian KTAKuMu untuk anabul: {$catNames} (Nomor: {$catCodes}).\n\n";
-            if (!empty($customNote)) {
-                $bodyLog .= "Catatan Admin:\n{$customNote}\n\n";
+            // Body summary for Outbox log
+            $bodyLog = "Penerima: {$owner->name} ({$owner->email})\n";
+            $bodyLog .= "Target: " . match ($targetAudience) {
+                'ktam_issued' => 'Member Pemilik KTAKuMu',
+                'ktam_not_issued' => 'Member Belum Memiliki KTAKuMu',
+                default => 'Semua Member',
+            } . "\n\n";
+
+            if ($event) {
+                $bodyLog .= "Agenda Kegiatan Terlampir: {$event->title}\n";
+                $bodyLog .= "Waktu: " . ($event->date ? $event->date->format('d M Y') : '-') . " | Lokasi: {$event->location}\n\n";
             }
-            $bodyLog .= "Tautan Portal: " . route('dashboard');
+
+            if (!empty($messageBody)) {
+                $bodyLog .= "Isi Pesan:\n{$messageBody}\n\n";
+            }
+
+            if ($ctaUrl) {
+                $bodyLog .= "Tautan Aksi (CTA): {$ctaUrl}\n";
+            }
 
             // Record into EmailOutbox
             EmailOutbox::logOutbox([
@@ -315,19 +399,25 @@ class AdminMailboxController extends Controller
                 'recipient_name' => $owner->name,
                 'subject' => $subject,
                 'body' => $bodyLog,
-                'mail_type' => 'ktam_broadcast',
+                'mail_type' => $mailType,
                 'mailer' => config('mail.default', 'smtp'),
                 'status' => $status,
                 'error_message' => $errorMessage,
             ]);
         }
 
+        $targetLabel = match ($targetAudience) {
+            'ktam_issued' => 'member pemilik KTAKuMu',
+            'ktam_not_issued' => 'member yang belum memiliki KTAKuMu',
+            default => 'seluruh member terpilih',
+        };
+
         if ($failedCount === 0) {
-            return redirect()->route('admin.mail.outbox', ['type' => 'ktam_broadcast'])
-                ->with('success', "✅ Broadcast KTAKuMu berhasil! {$sentCount} email telah terkirim via SMTP ke pemilik KTAKuMu dan dicatat di Kotak Keluar.");
+            return redirect()->route('admin.mail.outbox', ['type' => $mailType])
+                ->with('success', "✅ Broadcast berhasil! {$sentCount} email telah terkirim via SMTP ke {$targetLabel} dan dicatat di Kotak Keluar.");
         } else {
-            return redirect()->route('admin.mail.outbox', ['type' => 'ktam_broadcast'])
-                ->with('warning', "Broadcast selesai: {$sentCount} berhasil terkirim, {$failedCount} gagal. Anda dapat melihat log dan melakukan Kirim Ulang pada email yang gagal.");
+            return redirect()->route('admin.mail.outbox', ['type' => $mailType])
+                ->with('warning', "Broadcast selesai: {$sentCount} berhasil terkirim, {$failedCount} gagal ke {$targetLabel}. Anda dapat melihat log dan melakukan Kirim Ulang pada email yang gagal.");
         }
     }
 

@@ -139,6 +139,7 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/admin/mail/outbox', [AdminMailboxController::class, 'outbox'])->name('admin.mail.outbox');
     Route::get('/admin/mail/outbox/{outbox}', [AdminMailboxController::class, 'showOutbox'])->name('admin.mail.outbox.show');
     Route::post('/admin/mail/compose', [AdminMailboxController::class, 'compose'])->name('admin.mail.compose');
+    Route::post('/admin/mail/broadcast', [AdminMailboxController::class, 'broadcastKtamUpdate'])->name('admin.mail.broadcast');
     Route::post('/admin/mail/broadcast-ktam', [AdminMailboxController::class, 'broadcastKtamUpdate'])->name('admin.mail.broadcast-ktam');
     Route::post('/admin/mail/outbox/{outbox}/resend', [AdminMailboxController::class, 'resendOutbox'])->name('admin.mail.outbox.resend');
     Route::post('/admin/mail/test-smtp', [AdminMailboxController::class, 'testSmtp'])->name('admin.mail.test-smtp');

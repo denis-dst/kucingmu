@@ -9,7 +9,7 @@
             </div>
             <div class="flex items-center gap-2 flex-wrap">
                 <button type="button" @click="showBroadcastModal = true" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 transition shadow-xs inline-flex items-center gap-2 cursor-pointer">
-                    <span>📢</span> Mailing List KTAKuMu
+                    <span>📢</span> Broadcast Email Member
                 </button>
                 <button type="button" @click="showComposeModal = true" class="button-primary text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer">
                     <span>✍️</span> Tulis Email Baru
@@ -36,13 +36,69 @@
         subject: '',
         body: '',
         broadcastWilayah: 'all',
-        broadcastSubject: '[KucingMu] Pemberitahuan Penyesuaian Nomor & Versi KTAKuMu Terbaru',
-        broadcastNote: '',
+        broadcastTarget: 'all',
+        broadcastType: 'event_announcement',
+        selectedEventId: '',
+        broadcastSubject: '',
+        broadcastMessage: '',
+        broadcastCtaText: 'Lihat Detail & Daftar Kegiatan',
+        broadcastCtaUrl: '',
+        eventsData: @json($activeEvents ?? []),
         selectUser(u) {
             this.recipientEmail = u.email;
             this.recipientName = u.name;
+        },
+        onEventSelect() {
+            if (!this.selectedEventId) {
+                this.broadcastSubject = '[KucingMu] Undangan Agenda Kegiatan Komunitas';
+                this.broadcastCtaUrl = '{{ url('/#events') }}';
+                return;
+            }
+            const ev = this.eventsData.find(e => e.id == this.selectedEventId);
+            if (ev) {
+                this.broadcastSubject = `[KucingMu] Undangan Agenda: ${ev.title}`;
+                let eventDate = ev.date ? new Date(ev.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
+                this.broadcastMessage = `Yth. Rekan Member KucingMu,\n\nKami mengundang Anda untuk berpartisipasi dalam agenda kegiatan komunitas:\n\n📌 Kegiatan: ${ev.title}\n📅 Waktu: ${eventDate}\n📍 Lokasi: ${ev.location}\n\n${ev.description ? ev.description.substring(0, 250) + '...' : ''}\n\nMari hadir bersama anabul kesayangan dan manfaatkan layanan edukasi serta pemeriksaan kesehatan hewan ini.`;
+                this.broadcastCtaText = 'Lihat Detail & Daftar Kegiatan';
+                this.broadcastCtaUrl = `{{ url('/agenda') }}/${ev.id}`;
+            }
+        },
+        onBroadcastTypeChange() {
+            if (this.broadcastType === 'ktam_update') {
+                this.broadcastSubject = '[KucingMu] Pemberitahuan Penyesuaian Nomor & Versi KTAKuMu Terbaru';
+                this.broadcastMessage = 'Silakan login ke portal KucingMu dan buka menu Kucing Saya untuk melihat serta mengunduh versi KTAKuMu terbaru anabul Anda.';
+                this.broadcastCtaText = 'Buka KTAKuMu Saya';
+                this.broadcastCtaUrl = '{{ route('dashboard') }}';
+            } else if (this.broadcastType === 'event_announcement') {
+                if (this.eventsData && this.eventsData.length > 0 && !this.selectedEventId) {
+                    this.selectedEventId = this.eventsData[0].id;
+                    this.onEventSelect();
+                } else if (this.selectedEventId) {
+                    this.onEventSelect();
+                } else {
+                    this.broadcastSubject = '[KucingMu] Pengumuman Agenda & Pemeriksaan Kesehatan Kucing';
+                    this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nKami menginformasikan agenda kegiatan dan pemeriksaan kesehatan kucing terdekat. Silakan cek detail jadwal dan lokasi pendaftaran.';
+                    this.broadcastCtaText = 'Lihat Agenda Kegiatan';
+                    this.broadcastCtaUrl = '{{ url('/#events') }}';
+                }
+            } else {
+                this.broadcastSubject = '[KucingMu] Pengumuman Resmi Komunitas';
+                this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nBerikut kami sampaikan informasi penting untuk seluruh anggota komunitas KucingMu.';
+                this.broadcastCtaText = 'Kunjungi Portal KucingMu';
+                this.broadcastCtaUrl = '{{ route('dashboard') }}';
+            }
+        },
+        initBroadcast() {
+            if (this.eventsData && this.eventsData.length > 0) {
+                this.selectedEventId = this.eventsData[0].id;
+                this.onEventSelect();
+            } else {
+                this.broadcastSubject = '[KucingMu] Undangan Agenda Kegiatan Komunitas';
+                this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nKami menginformasikan agenda kegiatan pemeriksaan kesehatan hewan dan edukasi terdekat.';
+                this.broadcastCtaUrl = '{{ url('/#events') }}';
+            }
         }
-    }">
+    }" x-init="initBroadcast()">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             <!-- Flash Alerts -->
@@ -91,7 +147,7 @@
 
                 <div class="flex items-center gap-2 shrink-0 flex-wrap">
                     <button type="button" @click="showBroadcastModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
-                        <span>📢</span> Broadcast KTAKuMu
+                        <span>📢</span> Broadcast Email
                     </button>
                     <button type="button" @click="showTestModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-teal-900 hover:bg-teal-50 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
                         <span>🧪</span> Uji SMTP
@@ -136,12 +192,12 @@
                     </div>
                 </a>
 
-                <a href="{{ route('admin.mail.outbox', ['type' => 'ktam_broadcast']) }}" 
-                   class="content-card p-4 transition hover:border-amber-400 hover:shadow-md bg-amber-50/50 border border-amber-200 block {{ $typeFilter === 'ktam_broadcast' ? 'ring-2 ring-amber-500/30' : '' }}">
-                    <span class="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">Mailing List KTA</span>
+                <a href="{{ route('admin.mail.outbox', ['type' => 'broadcasts']) }}" 
+                   class="content-card p-4 transition hover:border-amber-400 hover:shadow-md bg-amber-50/50 border border-amber-200 block {{ in_array($typeFilter, ['broadcasts', 'ktam_broadcast', 'event_broadcast', 'general_broadcast']) ? 'ring-2 ring-amber-500/30' : '' }}">
+                    <span class="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">Broadcast Email</span>
                     <div class="mt-1 flex items-baseline gap-1.5">
                         <span class="font-outfit text-2xl font-bold text-amber-900">{{ number_format($stats['broadcasts'] ?? 0) }}</span>
-                        <span class="text-xs font-semibold text-amber-700">Broadcast</span>
+                        <span class="text-xs font-semibold text-amber-700">Terkirim</span>
                     </div>
                 </a>
 
@@ -174,9 +230,9 @@
                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $statusFilter === 'failed' ? 'bg-rose-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             ❌ Gagal ({{ $stats['failed'] }})
                         </a>
-                        <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['type' => 'ktam_broadcast'])) }}" 
-                           class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $typeFilter === 'ktam_broadcast' ? 'bg-amber-600 text-white shadow-xs font-bold' : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100' }}">
-                            📢 Mailing List KTA ({{ $stats['broadcasts'] ?? 0 }})
+                        <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['type' => 'broadcasts'])) }}" 
+                           class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ in_array($typeFilter, ['broadcasts', 'ktam_broadcast', 'event_broadcast', 'general_broadcast']) ? 'bg-amber-600 text-white shadow-xs font-bold' : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100' }}">
+                            📢 Broadcast Email ({{ $stats['broadcasts'] ?? 0 }})
                         </a>
                         <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['type' => 'direct_compose'])) }}" 
                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $typeFilter === 'direct_compose' ? 'bg-indigo-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
@@ -217,7 +273,7 @@
                         <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Kotak keluar kosong atau belum ada email terkirim dengan filter saat ini.</p>
                         <div class="mt-3 flex items-center justify-center gap-3">
                             <button type="button" @click="showBroadcastModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-xs">
-                                📢 Kirim Broadcast KTAKuMu
+                                📢 Kirim Broadcast Email
                             </button>
                             <button type="button" @click="showComposeModal = true" class="button-primary text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs">
                                 ✍️ Tulis Email Sekarang
@@ -390,7 +446,7 @@
 
         </div>
 
-        <!-- Modal Mailing List / Broadcast KTAKuMu -->
+        <!-- Modal Mailing List / Broadcast Email Member -->
         <div x-show="showBroadcastModal" 
              x-cloak 
              class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
@@ -399,66 +455,179 @@
                     <div class="flex items-center gap-2">
                         <span class="text-xl">📢</span>
                         <div>
-                            <h3 class="font-outfit text-base font-bold text-slate-900">Mailing List / Broadcast Pemilik KTAKuMu</h3>
-                            <p class="text-[11px] text-slate-500">Kirim email pemberitahuan ke seluruh member pemilik KTAKuMu terbit untuk memeriksa versi kartu terbarunya.</p>
+                            <h3 class="font-outfit text-base font-bold text-slate-900">Kirim Broadcast & Pengumuman Email</h3>
+                            <p class="text-[11px] text-slate-500">Kirim email pengumuman event, berita komunitas, atau pembaruan KTAKuMu ke member terdaftar.</p>
                         </div>
                     </div>
                     <button type="button" @click="showBroadcastModal = false" class="text-slate-400 hover:text-slate-700 font-bold text-sm">✕</button>
                 </div>
 
-                <!-- Summary Badge Info -->
-                <div class="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 flex items-center justify-between gap-3 text-xs text-amber-900">
+                <!-- Dynamic Recipient Counter Info -->
+                <div class="p-3.5 bg-gradient-to-r from-amber-50 via-teal-50 to-sky-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                     <div class="flex items-center gap-2.5">
-                        <span class="text-2xl">🐱</span>
+                        <span class="text-2xl" aria-hidden="true" x-text="broadcastTarget === 'ktam_issued' ? '🪪' : (broadcastTarget === 'ktam_not_issued' ? '⏳' : '👥')"></span>
                         <div>
-                            <div class="font-bold text-slate-900">Target Penerima: {{ $ktamMembersCount ?? 0 }} Member Terdaftar</div>
-                            <div class="text-[11px] text-amber-800 font-medium">Total {{ $ktamIssuedCatsCount ?? 0 }} kucing ber-KTAKuMu resmi aktif di sistem</div>
+                            <div class="font-bold text-slate-900">
+                                <span x-show="broadcastTarget === 'all'">Target: {{ number_format($totalMembersCount ?? 0) }} Seluruh Member Terdaftar</span>
+                                <span x-show="broadcastTarget === 'ktam_issued'">Target: {{ number_format($ktamMembersCount ?? 0) }} Member Pemilik KTAKuMu</span>
+                                <span x-show="broadcastTarget === 'ktam_not_issued'">Target: {{ number_format($nonKtamMembersCount ?? 0) }} Member yang Belum Memiliki KTAKuMu</span>
+                            </div>
+                            <div class="text-[11px] text-slate-600">
+                                <span x-show="broadcastTarget === 'all'">Mengirim ke seluruh akun member terdaftar (baik yang sudah maupun belum memiliki KTAKuMu).</span>
+                                <span x-show="broadcastTarget === 'ktam_issued'">Khusus member yang anabulnya sudah terverifikasi resmi & ber-KTAKuMu ({{ number_format($ktamIssuedCatsCount ?? 0) }} kucing).</span>
+                                <span x-show="broadcastTarget === 'ktam_not_issued'">Dikhususkan untuk member yang belum memiliki kartu KTAKuMu terbit. Sangat tepat untuk sosialisasi event.</span>
+                            </div>
                         </div>
                     </div>
-                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-200/80 text-amber-950 shrink-0">
+                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-100 text-teal-900 shrink-0 self-start sm:self-center border border-teal-200">
                         SMTP Otomatis
                     </span>
                 </div>
 
-                <form method="POST" action="{{ route('admin.mail.broadcast-ktam') }}" class="space-y-4" onsubmit="return confirm('Kirim email broadcast ke seluruh pemilik KTAKuMu terpilih via SMTP sekarang?')">
+                <form method="POST" action="{{ route('admin.mail.broadcast') }}" class="space-y-4" onsubmit="return confirm('Kirim email broadcast ke seluruh member terpilih via SMTP sekarang?')">
                     @csrf
+
+                    <!-- Target Penerima (Sudah KTAKuMu / Belum KTAKuMu / Semua) -->
+                    <div>
+                        <label class="form-label text-xs font-bold text-slate-700">Pilih Target Penerima: <span class="text-rose-500">*</span></label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition"
+                                   :class="broadcastTarget === 'all' ? 'border-teal-600 bg-teal-50/60 font-bold text-teal-950 ring-1 ring-teal-600' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
+                                <input type="radio" name="target_audience" value="all" x-model="broadcastTarget" class="sr-only">
+                                <span>🌐</span>
+                                <div>
+                                    <div class="leading-tight">Semua Member</div>
+                                    <div class="text-[10px] text-slate-500 font-normal">({{ $totalMembersCount ?? 0 }} Akun)</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition"
+                                   :class="broadcastTarget === 'ktam_not_issued' ? 'border-teal-600 bg-teal-50/60 font-bold text-teal-950 ring-1 ring-teal-600' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
+                                <input type="radio" name="target_audience" value="ktam_not_issued" x-model="broadcastTarget" class="sr-only">
+                                <span>⏳</span>
+                                <div>
+                                    <div class="leading-tight">Belum Ada KTAKuMu</div>
+                                    <div class="text-[10px] text-slate-500 font-normal">({{ $nonKtamMembersCount ?? 0 }} Member)</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition"
+                                   :class="broadcastTarget === 'ktam_issued' ? 'border-teal-600 bg-teal-50/60 font-bold text-teal-950 ring-1 ring-teal-600' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
+                                <input type="radio" name="target_audience" value="ktam_issued" x-model="broadcastTarget" class="sr-only">
+                                <span>🪪</span>
+                                <div>
+                                    <div class="leading-tight">Sudah Ber-KTAKuMu</div>
+                                    <div class="text-[10px] text-slate-500 font-normal">({{ $ktamMembersCount ?? 0 }} Member)</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Jenis Pesan / Pengumuman -->
+                    <div>
+                        <label class="form-label text-xs font-bold text-slate-700">Jenis Pesan / Pengumuman: <span class="text-rose-500">*</span></label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition"
+                                   :class="broadcastType === 'event_announcement' ? 'border-amber-600 bg-amber-50/60 font-bold text-amber-950 ring-1 ring-amber-600' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
+                                <input type="radio" name="broadcast_type" value="event_announcement" x-model="broadcastType" @change="onBroadcastTypeChange()" class="sr-only">
+                                <span>📅</span>
+                                <div>
+                                    <div class="leading-tight">Pengumuman Event</div>
+                                    <div class="text-[10px] text-slate-500 font-normal">Agenda & Kegiatan</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition"
+                                   :class="broadcastType === 'general_announcement' ? 'border-amber-600 bg-amber-50/60 font-bold text-amber-950 ring-1 ring-amber-600' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
+                                <input type="radio" name="broadcast_type" value="general_announcement" x-model="broadcastType" @change="onBroadcastTypeChange()" class="sr-only">
+                                <span>📢</span>
+                                <div>
+                                    <div class="leading-tight">Pengumuman Umum</div>
+                                    <div class="text-[10px] text-slate-500 font-normal">Informasi Komunitas</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition"
+                                   :class="broadcastType === 'ktam_update' ? 'border-amber-600 bg-amber-50/60 font-bold text-amber-950 ring-1 ring-amber-600' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
+                                <input type="radio" name="broadcast_type" value="ktam_update" x-model="broadcastType" @change="onBroadcastTypeChange()" class="sr-only">
+                                <span>🪪</span>
+                                <div>
+                                    <div class="leading-tight">Pembaruan KTAKuMu</div>
+                                    <div class="text-[10px] text-slate-500 font-normal">Nomor / Versi Kartu</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pilih Agenda Kegiatan Aktif (Jika Tipe Event) -->
+                    <div x-show="broadcastType === 'event_announcement'" x-transition class="p-3 bg-amber-50/70 rounded-xl border border-amber-200 space-y-2">
+                        <label class="form-label text-xs font-bold text-amber-950 flex items-center justify-between">
+                            <span>Pilih Agenda Kegiatan (Otomatis Mengisi Judul, Waktu, & Lokasi):</span>
+                            <span class="text-[10px] text-amber-800 font-normal">Data dari Agenda Terdekat</span>
+                        </label>
+                        @if(isset($activeEvents) && $activeEvents->isNotEmpty())
+                            <select name="event_id" x-model="selectedEventId" @change="onEventSelect()" class="w-full text-xs py-2 px-3 rounded-xl border border-amber-300 bg-white text-slate-800 font-medium">
+                                <option value="">-- Pilih Agenda Kegiatan --</option>
+                                @foreach($activeEvents as $ev)
+                                    <option value="{{ $ev->id }}">
+                                        {{ $ev->date ? $ev->date->format('d/m/Y') : '-' }} — {{ $ev->title }} ({{ $ev->location }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        @else
+                            <p class="text-xs text-amber-800">Belum ada agenda kegiatan aktif. Anda dapat mengisi pengumuman secara manual.</p>
+                        @endif
+                    </div>
 
                     <!-- Filter Wilayah -->
                     <div>
-                        <label class="form-label text-xs font-bold text-slate-700">Filter Wilayah Penerima:</label>
+                        <label class="form-label text-xs font-bold text-slate-700">Filter Wilayah Penerima (Opsional):</label>
                         <select name="wilayah_code" x-model="broadcastWilayah" class="w-full text-xs py-2 px-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 font-medium">
-                            <option value="all">🌐 Semua Wilayah (Seluruh Member Pemilik KTAKuMu)</option>
+                            <option value="all">🌐 Semua Wilayah (Nasional)</option>
                             @if(isset($wilayahList))
                                 @foreach($wilayahList as $w)
                                     <option value="{{ $w->kode }}">{{ $w->kode }} - {{ $w->nama }}</option>
                                 @endforeach
                             @endif
                         </select>
-                        <span class="text-[10px] text-slate-400 mt-1 block">Pilih wilayah tertentu (misal kode 11) atau biarkan Semua Wilayah.</span>
                     </div>
 
                     <!-- Subjek Email -->
                     <div>
-                        <label class="form-label text-xs font-bold text-slate-700">Subjek Email:</label>
+                        <label class="form-label text-xs font-bold text-slate-700">Subjek Email: <span class="text-rose-500">*</span></label>
                         <input type="text" name="subject" x-model="broadcastSubject" required class="form-input text-xs" placeholder="Subjek email pemberitahuan...">
                     </div>
 
-                    <!-- Catatan Tambahan Kustom -->
+                    <!-- Isi Pesan Pengumuman -->
                     <div>
-                        <label class="form-label text-xs font-bold text-slate-700">Catatan Tambahan Admin (Opsional):</label>
-                        <textarea name="custom_note" x-model="broadcastNote" rows="3" class="form-input text-xs leading-relaxed" placeholder="Contoh: Silakan login ke portal dan buka menu Kucing Saya untuk melihat serta mengunduh versi KTAKuMu terbaru Anda..."></textarea>
+                        <label class="form-label text-xs font-bold text-slate-700">Isi Pesan Pengumuman: <span class="text-rose-500">*</span></label>
+                        <textarea name="message" x-model="broadcastMessage" rows="5" required class="form-input text-xs leading-relaxed font-sans" placeholder="Tuliskan isi pesan pengumuman atau ajakan kegiatan..."></textarea>
                     </div>
 
-                    <!-- Preview Isi Template Email -->
-                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
-                        <div class="font-bold text-slate-700 flex items-center gap-1">
-                            <span>👁️</span> Format Email Otomatis:
+                    <!-- Tautan Tombol Call-to-Action (CTA) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" x-show="broadcastType !== 'ktam_update'">
+                        <div>
+                            <label class="form-label text-xs font-bold text-slate-700">Teks Tombol Aksi (CTA):</label>
+                            <input type="text" name="cta_text" x-model="broadcastCtaText" class="form-input text-xs" placeholder="Contoh: Lihat Detail & Daftar Kegiatan">
                         </div>
-                        <ul class="text-[11px] text-slate-500 list-disc list-inside space-y-0.5">
-                            <li>Menyapa nama masing-masing pemilik secara personal.</li>
-                            <li>Menyertakan rincian nama kucing dan nomor KTAKuMu terbaru milik member tersebut.</li>
-                            <li>Menyertakan tombol langsung (CTA) menuju portal <strong>KTAKuMu Saya</strong>.</li>
-                            <li>Semua email keluar akan dicatat otomatis di Kotak Keluar (Outbox).</li>
+                        <div>
+                            <label class="form-label text-xs font-bold text-slate-700">Tautan Tombol (URL):</label>
+                            <input type="text" name="cta_url" x-model="broadcastCtaUrl" class="form-input text-xs font-mono" placeholder="Contoh: {{ url('/agenda/1') }}">
+                        </div>
+                    </div>
+
+                    <!-- Pratinjau Cepat Pesan -->
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
+                        <div class="font-bold text-slate-700 flex items-center justify-between">
+                            <span class="flex items-center gap-1">👁️ Format Email Otomatis:</span>
+                            <span class="text-[10px] text-teal-800 font-semibold bg-teal-50 px-2 py-0.5 rounded border border-teal-100">Personalisasi Otomatis</span>
+                        </div>
+                        <ul class="text-[11px] text-slate-600 list-disc list-inside space-y-1">
+                            <li>Setiap email menyapa nama masing-masing member secara personal.</li>
+                            <li x-show="broadcastType === 'event_announcement'">Melampirkan kartu rincian agenda (tanggal, lokasi, dan link pendaftaran kegiatan).</li>
+                            <li x-show="broadcastType === 'ktam_update'">Menyertakan rincian nama kucing dan nomor identitas KTAKuMu masing-masing pemilik.</li>
+                            <li>Menyertakan tombol aksi langsung (CTA) menuju agenda atau portal anggota.</li>
+                            <li>Seluruh email keluar akan dicatat otomatis di Kotak Keluar (Outbox).</li>
                         </ul>
                     </div>
 
@@ -466,7 +635,7 @@
                         <button type="button" @click="showBroadcastModal = false" class="button-secondary text-xs px-4 py-2.5 rounded-xl">
                             Batal
                         </button>
-                        <button type="submit" class="button-primary text-xs font-bold px-5 py-2.5 shadow-sm rounded-xl bg-amber-600 hover:bg-amber-700 text-white inline-flex items-center gap-1.5">
+                        <button type="submit" class="button-primary text-xs font-bold px-5 py-2.5 shadow-sm rounded-xl bg-amber-600 hover:bg-amber-700 text-white inline-flex items-center gap-1.5 cursor-pointer">
                             <span>🚀</span> Kirim Broadcast via SMTP
                         </button>
                     </div>
