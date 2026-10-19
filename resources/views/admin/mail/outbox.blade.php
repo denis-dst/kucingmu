@@ -26,79 +26,89 @@
         </div>
     </x-slot>
 
-    <div class="py-8" x-data="{ 
-        showComposeModal: false, 
-        showBroadcastModal: false,
-        showTestModal: false, 
-        testEmail: '{{ Auth::user()->email }}',
-        recipientEmail: '',
-        recipientName: '',
-        subject: '',
-        body: '',
-        broadcastWilayah: 'all',
-        broadcastTarget: 'all',
-        broadcastType: 'event_announcement',
-        selectedEventId: '',
-        broadcastSubject: '',
-        broadcastMessage: '',
-        broadcastCtaText: 'Lihat Detail & Daftar Kegiatan',
-        broadcastCtaUrl: '',
-        eventsData: @json($activeEvents ?? []),
-        selectUser(u) {
-            this.recipientEmail = u.email;
-            this.recipientName = u.name;
-        },
-        onEventSelect() {
-            if (!this.selectedEventId) {
-                this.broadcastSubject = '[KucingMu] Undangan Agenda Kegiatan Komunitas';
-                this.broadcastCtaUrl = '{{ url('/#events') }}';
-                return;
-            }
-            const ev = this.eventsData.find(e => e.id == this.selectedEventId);
-            if (ev) {
-                this.broadcastSubject = `[KucingMu] Undangan Agenda: ${ev.title}`;
-                let eventDate = ev.date ? new Date(ev.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
-                this.broadcastMessage = `Yth. Rekan Member KucingMu,\n\nKami mengundang Anda untuk berpartisipasi dalam agenda kegiatan komunitas:\n\n📌 Kegiatan: ${ev.title}\n📅 Waktu: ${eventDate}\n📍 Lokasi: ${ev.location}\n\n${ev.description ? ev.description.substring(0, 250) + '...' : ''}\n\nMari hadir bersama anabul kesayangan dan manfaatkan layanan edukasi serta pemeriksaan kesehatan hewan ini.`;
-                this.broadcastCtaText = 'Lihat Detail & Daftar Kegiatan';
-                this.broadcastCtaUrl = `{{ url('/agenda') }}/${ev.id}`;
-            }
-        },
-        onBroadcastTypeChange() {
-            if (this.broadcastType === 'ktam_update') {
-                this.broadcastSubject = '[KucingMu] Pemberitahuan Penyesuaian Nomor & Versi KTAKuMu Terbaru';
-                this.broadcastMessage = 'Silakan login ke portal KucingMu dan buka menu Kucing Saya untuk melihat serta mengunduh versi KTAKuMu terbaru anabul Anda.';
-                this.broadcastCtaText = 'Buka KTAKuMu Saya';
-                this.broadcastCtaUrl = '{{ route('dashboard') }}';
-            } else if (this.broadcastType === 'event_announcement') {
-                if (this.eventsData && this.eventsData.length > 0 && !this.selectedEventId) {
-                    this.selectedEventId = this.eventsData[0].id;
-                    this.onEventSelect();
-                } else if (this.selectedEventId) {
-                    this.onEventSelect();
-                } else {
-                    this.broadcastSubject = '[KucingMu] Pengumuman Agenda & Pemeriksaan Kesehatan Kucing';
-                    this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nKami menginformasikan agenda kegiatan dan pemeriksaan kesehatan kucing terdekat. Silakan cek detail jadwal dan lokasi pendaftaran.';
-                    this.broadcastCtaText = 'Lihat Agenda Kegiatan';
-                    this.broadcastCtaUrl = '{{ url('/#events') }}';
+    <script>
+        function outboxMailboxApp() {
+            return {
+                showComposeModal: false,
+                showBroadcastModal: false,
+                showTestModal: false,
+                testEmail: '{{ Auth::user()->email }}',
+                recipientEmail: '',
+                recipientName: '',
+                subject: '',
+                body: '',
+                broadcastWilayah: 'all',
+                broadcastTarget: 'all',
+                broadcastType: 'event_announcement',
+                selectedEventId: '',
+                broadcastSubject: '',
+                broadcastMessage: '',
+                broadcastCtaText: 'Lihat Detail & Daftar Kegiatan',
+                broadcastCtaUrl: '',
+                eventsData: @json($activeEvents ?? []),
+                selectUser(u) {
+                    this.recipientEmail = u.email;
+                    this.recipientName = u.name;
+                },
+                onEventSelect() {
+                    if (!this.selectedEventId) {
+                        this.broadcastSubject = '[KucingMu] Undangan Agenda Kegiatan Komunitas';
+                        this.broadcastCtaUrl = '{{ url('/#events') }}';
+                        return;
+                    }
+                    var selectedId = this.selectedEventId;
+                    var ev = this.eventsData.find(function(e) { return e.id == selectedId; });
+                    if (ev) {
+                        this.broadcastSubject = '[KucingMu] Undangan Agenda: ' + ev.title;
+                        var eventDate = ev.date ? new Date(ev.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '';
+                        this.broadcastMessage = 'Yth. Rekan Member KucingMu,\n\nKami mengundang Anda untuk berpartisipasi dalam agenda kegiatan komunitas:\n\n📌 Kegiatan: ' + ev.title + '\n📅 Waktu: ' + eventDate + '\n📍 Lokasi: ' + ev.location + '\n\n' + (ev.description ? ev.description.substring(0, 250) + '...' : '') + '\n\nMari hadir bersama anabul kesayangan dan manfaatkan layanan edukasi serta pemeriksaan kesehatan hewan ini.';
+                        this.broadcastCtaText = 'Lihat Detail & Daftar Kegiatan';
+                        this.broadcastCtaUrl = '{{ url('/agenda') }}/' + ev.id;
+                    }
+                },
+                onBroadcastTypeChange() {
+                    if (this.broadcastType === 'ktam_update') {
+                        this.broadcastSubject = '[KucingMu] Pemberitahuan Penyesuaian Nomor & Versi KTAKuMu Terbaru';
+                        this.broadcastMessage = 'Silakan login ke portal KucingMu dan buka menu Kucing Saya untuk melihat serta mengunduh versi KTAKuMu terbaru anabul Anda.';
+                        this.broadcastCtaText = 'Buka KTAKuMu Saya';
+                        this.broadcastCtaUrl = '{{ route('dashboard') }}';
+                    } else if (this.broadcastType === 'event_announcement') {
+                        if (this.eventsData && this.eventsData.length > 0 && !this.selectedEventId) {
+                            this.selectedEventId = this.eventsData[0].id;
+                            this.onEventSelect();
+                        } else if (this.selectedEventId) {
+                            this.onEventSelect();
+                        } else {
+                            this.broadcastSubject = '[KucingMu] Pengumuman Agenda & Pemeriksaan Kesehatan Kucing';
+                            this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nKami menginformasikan agenda kegiatan dan pemeriksaan kesehatan kucing terdekat. Silakan cek detail jadwal dan lokasi pendaftaran.';
+                            this.broadcastCtaText = 'Lihat Agenda Kegiatan';
+                            this.broadcastCtaUrl = '{{ url('/#events') }}';
+                        }
+                    } else {
+                        this.broadcastSubject = '[KucingMu] Pengumuman Resmi Komunitas';
+                        this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nBerikut kami sampaikan informasi penting untuk seluruh anggota komunitas KucingMu.';
+                        this.broadcastCtaText = 'Kunjungi Portal KucingMu';
+                        this.broadcastCtaUrl = '{{ route('dashboard') }}';
+                    }
+                },
+                init() {
+                    this.initBroadcast();
+                },
+                initBroadcast() {
+                    if (this.eventsData && this.eventsData.length > 0) {
+                        this.selectedEventId = this.eventsData[0].id;
+                        this.onEventSelect();
+                    } else {
+                        this.broadcastSubject = '[KucingMu] Undangan Agenda Kegiatan Komunitas';
+                        this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nKami menginformasikan agenda kegiatan pemeriksaan kesehatan hewan dan edukasi terdekat.';
+                        this.broadcastCtaUrl = '{{ url('/#events') }}';
+                    }
                 }
-            } else {
-                this.broadcastSubject = '[KucingMu] Pengumuman Resmi Komunitas';
-                this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nBerikut kami sampaikan informasi penting untuk seluruh anggota komunitas KucingMu.';
-                this.broadcastCtaText = 'Kunjungi Portal KucingMu';
-                this.broadcastCtaUrl = '{{ route('dashboard') }}';
-            }
-        },
-        initBroadcast() {
-            if (this.eventsData && this.eventsData.length > 0) {
-                this.selectedEventId = this.eventsData[0].id;
-                this.onEventSelect();
-            } else {
-                this.broadcastSubject = '[KucingMu] Undangan Agenda Kegiatan Komunitas';
-                this.broadcastMessage = 'Halo Rekan Member KucingMu,\n\nKami menginformasikan agenda kegiatan pemeriksaan kesehatan hewan dan edukasi terdekat.';
-                this.broadcastCtaUrl = '{{ url('/#events') }}';
-            }
+            };
         }
-    }" x-init="initBroadcast()">
+    </script>
+
+    <div class="py-8" x-data="outboxMailboxApp()">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
             <!-- Flash Alerts -->
