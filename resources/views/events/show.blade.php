@@ -218,9 +218,21 @@
                         <!-- Mobile Action Button (Visible on small screens) -->
                         <div class="lg:hidden pt-4 border-t border-slate-100">
                             @if($event->registration_link)
-                                <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="button-primary w-full py-3 text-center text-sm font-bold flex items-center justify-center gap-2">
-                                    <span>✍️</span> Daftar Kegiatan Sekarang
-                                </a>
+                                @auth
+                                    <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="button-primary w-full py-3 text-center text-sm font-bold flex items-center justify-center gap-2">
+                                        <span>✍️</span> Daftar Kegiatan Sekarang
+                                    </a>
+                                @else
+                                    <div class="space-y-2">
+                                        <a href="{{ route('login') }}" class="w-full py-3 px-4 rounded-xl text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition shadow-2xs">
+                                            <span class="text-base" aria-hidden="true">🔒</span>
+                                            <span>Daftar Kegiatan Sekarang (Perlu Login Member)</span>
+                                        </a>
+                                        <p class="text-[11px] text-slate-500 text-center leading-relaxed">
+                                            Silakan <a href="{{ route('login') }}" class="text-teal-700 font-bold hover:underline">Masuk</a> atau <a href="{{ route('register') }}" class="text-teal-700 font-bold hover:underline">Daftar Member</a> untuk membuka link pendaftaran kegiatan.
+                                        </p>
+                                    </div>
+                                @endauth
                             @else
                                 <div class="p-3 bg-slate-100 rounded-xl text-center text-xs font-semibold text-slate-600">
                                     Pendaftaran langsung di lokasi acara (On the spot)
@@ -277,7 +289,15 @@
                                 <div>
                                     <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Pendaftaran</span>
                                     <span class="font-semibold text-slate-800">
-                                        {{ $event->registration_link ? 'Pendaftaran Online Tersedia' : 'Pendaftaran di Tempat (On-site)' }}
+                                        @if($event->registration_link)
+                                            @auth
+                                                Pendaftaran Online Terbuka
+                                            @else
+                                                Pendaftaran Online (Khusus Member)
+                                            @endauth
+                                        @else
+                                            Pendaftaran di Tempat (On-site)
+                                        @endif
                                     </span>
                                 </div>
                             </div>
@@ -286,9 +306,36 @@
                         <!-- CTA Button -->
                         <div class="pt-2 border-t border-slate-100">
                             @if($event->registration_link)
-                                <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="button-primary w-full py-3 text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs">
-                                    <span>✍️</span> Daftar Kegiatan Sekarang
-                                </a>
+                                @auth
+                                    <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="button-primary w-full py-3 text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs">
+                                        <span>✍️</span> Daftar Kegiatan Sekarang
+                                    </a>
+                                @else
+                                    <div class="space-y-2.5">
+                                        <a href="{{ route('login') }}" class="w-full py-3 px-4 rounded-xl text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition shadow-2xs">
+                                            <span class="text-base" aria-hidden="true">🔒</span>
+                                            <span>Daftar Kegiatan Sekarang</span>
+                                        </a>
+                                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center space-y-1.5">
+                                            <p class="text-xs font-bold text-amber-900 flex items-center justify-center gap-1">
+                                                <span>🔒</span> Khusus Member KucingMu
+                                            </p>
+                                            <p class="text-[11px] text-amber-800 leading-relaxed">
+                                                Tombol pendaftaran aktif setelah Anda login sebagai member.
+                                            </p>
+                                            <div class="flex items-center gap-2 pt-1">
+                                                <a href="{{ route('login') }}" class="flex-1 button-primary py-1.5 text-xs font-bold text-center">
+                                                    Masuk
+                                                </a>
+                                                @if(Route::has('register'))
+                                                    <a href="{{ route('register') }}" class="flex-1 button-secondary py-1.5 text-xs font-bold text-center border-amber-300 bg-white hover:bg-amber-100/50">
+                                                        Daftar
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endauth
                             @else
                                 <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs font-semibold text-slate-600">
                                     Pendaftaran langsung di lokasi acara
