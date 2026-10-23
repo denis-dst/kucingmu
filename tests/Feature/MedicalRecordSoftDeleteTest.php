@@ -181,4 +181,106 @@ class MedicalRecordSoftDeleteTest extends TestCase
         $response->assertStatus(200);
         $response->assertDontSee('MR-202610-0004');
     }
+
+    public function test_soft_deleting_medical_record_cancels_appointment_and_removes_from_queue(): void
+    {
+        $appointment = Appointment::create([
+            'cat_id' => $this->cat->id,
+            'date' => now()->toDateString(),
+            'time_slot' => 'On-site Registration',
+            'status' => 'checked_in',
+            'notes' => 'Registrasi langsung di lokasi event.',
+        ]);
+
+        $record = MedicalRecord::create([
+            'record_number' => 'MR-202610-0005',
+            'appointment_id' => $appointment->id,
+            'cat_id' => $this->cat->id,
+            'member_id' => $this->memberUser->id,
+            'vet_id' => $this->doctorA->id,
+            'service_type' => 'clinic',
+            'status' => 'in_progress',
+            'chief_complaint' => 'Registrasi langsung di lokasi event.',
+            'weight' => 3.5,
+            'temperature' => 38.5,
+            'general_condition' => 'Sedang Diperiksa',
+            'created_by' => $this->doctorA->id,
+        ]);
+
+        // Soft delete the medical record
+        $response = $this->actingAs($this->doctorA)
+            ->delete(route('dokter.medical-records.destroy', $record));
+
+        $response->assertRedirect(route('dokter.medical-records.index'));
+
+        // Appointment should be cancelled
+        $appointment->refresh();
+        $this->assertEquals('cancelled', $appointment->status);
+
+        // Should not appear in queue
+        $indexResponse = $this->actingAs($this->doctorA)
+            ->get(route('dokter.medical-records.index'));
+
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertDontSee('Mulai Pemeriksaan SOAP');
+        $indexResponse->assertSee('Tidak ada antrian pasien untuk hari ini.');
+    }
+
+    public function test_lingering_appointment_with_trashed_record_is_automatically_cancelled_and_excluded_from_queue(): void
+    {
+        $appointment = Appointment::create([
+            'cat_id' => $this->cat->id,
+            'date' => now()->toDateString(),
+            'time_slot' => 'On-site Registration',
+            'status' => 'checked_in',
+            'notes' => 'Registrasi langsung di lokasi event.',
+        ]);
+
+        $record = MedicalRecord::create([
+            'record_number' => 'MR-202610-0006',
+            'appointment_id' => $appointment->id,
+            'cat_id' => $this->cat->id,
+            'member_id' => $this->memberUser->id,
+            'vet_id' => $this->doctorA->id,
+            'service_type' => 'clinic',
+            'status' => 'in_progress',
+            'chief_complaint' => 'Registrasi langsung',
+            'weight' => 3.5,
+            'temperature' => 38.5,
+            'general_condition' => 'Sedang Diperiksa',
+            'created_by' => $this->doctorA->id,
+        ]);
+
+        // Directly soft-delete the record while leaving appointment in checked_in (simulating existing data bug)
+        $record->delete();
+
+        $this->assertEquals('checked_in', $appointment->fresh()->status);
+
+        // Visiting index should auto-cancel the lingering appointment and exclude it
+        $response = $this->actingAs($this->doctorA)
+            ->get(route('dokter.medical-records.index'));
+
+        $response->assertStatus(200);
+        $this->assertEquals('cancelled', $appointment->fresh()->status);
+        $response->assertSee('Tidak ada antrian pasien untuk hari ini.');
+    }
+
+    public function test_doctor_can_cancel_appointment_directly_from_queue(): void
+    {
+        $appointment = Appointment::create([
+            'cat_id' => $this->cat->id,
+            'date' => now()->toDateString(),
+            'time_slot' => 'On-site Registration',
+            'status' => 'checked_in',
+            'notes' => 'Registrasi langsung di lokasi event.',
+        ]);
+
+        $response = $this->actingAs($this->doctorA)
+            ->delete(route('dokter.appointments.cancel', $appointment));
+
+        $response->assertRedirect(route('dokter.medical-records.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertEquals('cancelled', $appointment->fresh()->status);
+    }
 }

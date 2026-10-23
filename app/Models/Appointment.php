@@ -30,4 +30,14 @@ class Appointment extends Model
     {
         return $this->hasOne(MedicalRecord::class);
     }
+
+    public function medicalRecords()
+    {
+        return $this->hasMany(MedicalRecord::class);
+    }
+
+    public function trashedMedicalRecords()
+    {
+        return $this->hasMany(MedicalRecord::class)->onlyTrashed();
+    }
 }

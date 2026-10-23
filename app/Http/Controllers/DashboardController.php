@@ -352,9 +352,15 @@ class DashboardController extends Controller
     protected function dokterDashboard()
     {
         // Queue for today
-        $queue = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
+        Appointment::whereIn('status', ['scheduled', 'checked_in'])
+            ->whereHas('trashedMedicalRecords')
+            ->whereDoesntHave('medicalRecords')
+            ->update(['status' => 'cancelled']);
+
+        $queue = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos', 'cat.ktamCard', 'medicalRecord'])
             ->whereIn('status', ['scheduled', 'checked_in'])
             ->whereDate('date', Carbon::today())
+            ->whereDoesntHave('trashedMedicalRecords')
             ->orderBy('status', 'desc') // checked_in first
             ->orderBy('id', 'asc')
             ->get();

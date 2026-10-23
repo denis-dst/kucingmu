@@ -33,11 +33,18 @@ class VetMedicalRecordController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        // Auto-cancel any lingering appointments whose medical record was soft-deleted
+        Appointment::whereIn('status', ['scheduled', 'checked_in'])
+            ->whereHas('trashedMedicalRecords')
+            ->whereDoesntHave('medicalRecords')
+            ->update(['status' => 'cancelled']);
+
         // 1. Today's Appointment Queue
         $queue = Appointment::whereHas('cat')
-            ->with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
+            ->with(['cat.owner', 'cat.photos', 'cat.ktamCard', 'medicalRecord'])
             ->whereIn('status', ['scheduled', 'checked_in'])
             ->whereDate('date', Carbon::today())
+            ->whereDoesntHave('trashedMedicalRecords')
             ->orderBy('status', 'desc') // checked_in first
             ->orderBy('id', 'asc')
             ->get();
@@ -721,9 +728,9 @@ class VetMedicalRecordController extends Controller
         try {
             $recordNumber = $record->record_number;
 
-            // Revert appointment status if it was completed by this record
-            if ($record->appointment && $record->appointment->status === 'completed') {
-                $record->appointment->update(['status' => 'checked_in']);
+            // Cancel associated appointment so it doesn't linger or reappear in today's queue
+            if ($record->appointment) {
+                $record->appointment->update(['status' => 'cancelled']);
             }
 
             MedicalRecordAuditLog::log(
@@ -743,6 +750,48 @@ class VetMedicalRecordController extends Controller
             DB::rollBack();
             Log::error('Gagal menghapus rekam medis: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal menghapus rekam medis: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancel an appointment directly from the queue.
+     */
+    public function cancelAppointment(Appointment $appointment)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if (!$user->hasRole('dokter') && !$user->isAdmin()) {
+            abort(403, 'Akses terbatas untuk Dokter Hewan atau Administrator.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $catName = $appointment->cat->name ?? 'Pasien';
+
+            // Mark appointment as cancelled
+            $appointment->update(['status' => 'cancelled']);
+
+            // If there was any draft/in_progress medical record, soft delete it as well
+            if ($appointment->medicalRecord && in_array($appointment->medicalRecord->status, ['draft', 'in_progress'])) {
+                $record = $appointment->medicalRecord;
+                MedicalRecordAuditLog::log(
+                    $record,
+                    $user,
+                    'deleted',
+                    "Rekam medis #{$record->record_number} dibatalkan bersama antrian oleh {$user->name}."
+                );
+                $record->delete();
+            }
+
+            DB::commit();
+
+            return redirect()->route('dokter.medical-records.index')
+                ->with('success', "Antrian pemeriksaan pasien {$catName} berhasil dibatalkan dan dihapus dari antrian hari ini.");
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal membatalkan antrian: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membatalkan antrian: ' . $e->getMessage());
         }
     }
 

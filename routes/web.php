@@ -72,6 +72,7 @@ Route::middleware(['auth', 'role:dokter,admin,superadmin'])->prefix('dokter')->n
     Route::post('/medical-records/{record}/amend', [VetMedicalRecordController::class, 'amend'])->name('medical-records.amend');
     Route::get('/medical-records/{record}/print', [VetMedicalRecordController::class, 'printSheet'])->name('medical-records.print');
     Route::delete('/medical-records/{record}', [VetMedicalRecordController::class, 'destroy'])->name('medical-records.destroy');
+    Route::delete('/appointments/{appointment}', [VetMedicalRecordController::class, 'cancelAppointment'])->name('appointments.cancel');
     Route::get('/medicines/lookup', [VetMedicalRecordController::class, 'lookupMedicines'])->name('medicines.lookup');
     Route::get('/cats/{cat}/history', [VetMedicalRecordController::class, 'catMedicalHistory'])->name('cats.history');
 });

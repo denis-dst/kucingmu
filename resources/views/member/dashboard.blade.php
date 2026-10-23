@@ -681,9 +681,12 @@
                     @endif
 
                     <!-- Active Events / Kegiatan Sosialisasi -->
-                    @if(isset($activeEvents) && $activeEvents->isNotEmpty())
-                        <div id="events-section" class="content-card border-teal-200 bg-teal-50/40 scroll-mt-6">
-                            <h2 class="font-outfit text-base font-bold text-slate-900 border-b border-teal-200 pb-2.5 mb-3">Agenda & Sosialisasi Terdekat</h2>
+                    <div id="events-section" class="content-card border-teal-200 bg-teal-50/40 scroll-mt-6">
+                        <div class="flex items-center justify-between border-b border-teal-200 pb-2.5 mb-3">
+                            <h2 class="font-outfit text-base font-bold text-slate-900">Agenda & Event KucingMu</h2>
+                            <span class="text-xs text-teal-800 font-semibold bg-teal-100/70 px-2.5 py-0.5 rounded-full">Verifikasi KTAKuMu</span>
+                        </div>
+                        @if(isset($activeEvents) && $activeEvents->isNotEmpty())
                             <div class="space-y-3">
                                 @foreach($activeEvents as $event)
                                     <div class="bg-white p-3.5 rounded-lg border border-slate-200 space-y-2">
@@ -714,8 +717,16 @@
                                     </div>
                                 @endforeach
                             </div>
-                        </div>
-                    @endif
+                        @else
+                            <div class="bg-white p-5 rounded-lg border border-slate-200 text-center space-y-2">
+                                <p class="text-xs text-slate-700 font-medium">Saat ini belum ada agenda event terdekat yang dijadwalkan.</p>
+                                <p class="text-[11px] text-slate-500">Informasi jadwal booth dan kegiatan verifikasi KTAKuMu akan diumumkan secara berkala.</p>
+                                <a href="{{ url('/#events') }}" class="inline-flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-900 hover:underline pt-1">
+                                    Lihat Agenda di Beranda KucingMu →
+                                </a>
+                            </div>
+                        @endif
+                    </div>
 
                 </div>
 
@@ -767,27 +778,32 @@
                 <!-- Content -->
                 <div class="space-y-2.5">
                     <h3 id="reg-success-title" class="font-outfit text-xl sm:text-2xl font-extrabold text-slate-900">
-                        Selamat, Kucing Anda berhasil didaftarkan
+                        Selamat, Kucing Anda Berhasil Terdaftar!
                     </h3>
                     @if(session('registered_cat_name'))
                         <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 text-teal-800 text-xs font-bold border border-teal-200">
                             <span>🐱</span> <span>{{ session('registered_cat_name') }}</span>
                         </div>
                     @endif
-                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto pt-1">
-                        Selanjutnya silakan lakukan verifikasi keanggotaan Kucing Anda di <strong>Booth/Event KucingMu di Kota Anda</strong>.
+                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed max-w-md mx-auto pt-1 font-medium">
+                        Selamat Kucing Anda telah terdaftar pada KucingMu, untuk mendapatkan KTAKuMu perlu dilakukan Verifikasi secara langsung pada Event KucingMu. 
+                        <a href="#events-section" 
+                           @click="showRegistrationSuccessModal = false; $nextTick(() => { document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" 
+                           class="text-teal-700 font-bold underline hover:text-teal-900 focus:outline-hidden focus:ring-2 focus:ring-teal-500 rounded-sm">
+                            Lihat Event KucingMu disini
+                        </a>
                     </p>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                    @if(isset($activeEvents) && $activeEvents->isNotEmpty())
-                        <a href="#events-section" @click="showRegistrationSuccessModal = false" class="w-full sm:w-auto button-primary text-xs font-bold py-3 px-5 shadow-sm flex items-center justify-center gap-1.5">
-                            <span>📍</span> Lihat Jadwal Booth / Event
-                        </a>
-                    @endif
-                    <button type="button" @click="showRegistrationSuccessModal = false" class="w-full sm:w-auto button-secondary text-xs font-semibold py-3 px-5">
-                        Mengerti & Tutup
+                    <a href="#events-section" 
+                       @click="showRegistrationSuccessModal = false; $nextTick(() => { document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); })" 
+                       class="w-full sm:w-auto button-primary text-xs font-bold py-3 px-5 shadow-sm flex items-center justify-center gap-1.5 min-h-[44px]">
+                        <span>📍</span> Lihat Event KucingMu Disini
+                    </a>
+                    <button type="button" @click="showRegistrationSuccessModal = false" class="w-full sm:w-auto button-secondary text-xs font-semibold py-3 px-5 min-h-[44px]">
+                        Tutup & Lanjut ke Dashboard
                     </button>
                 </div>
             </div>

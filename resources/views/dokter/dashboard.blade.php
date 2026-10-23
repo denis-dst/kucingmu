@@ -150,16 +150,28 @@
                                     
                                     <div class="flex flex-row md:flex-col items-end gap-2 shrink-0">
                                         <!-- Primary action: Full SOAP Stepper -->
-                                        <form method="POST" action="{{ route('dokter.medical-records.store') }}">
-                                            @csrf
-                                            <input type="hidden" name="cat_id" value="{{ $app->cat_id }}">
-                                            <input type="hidden" name="appointment_id" value="{{ $app->id }}">
-                                            <input type="hidden" name="service_type" value="clinic">
-                                            <input type="hidden" name="chief_complaint" value="{{ $app->notes ?: 'Pemeriksaan antrian klinik' }}">
-                                            <button type="submit" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition shadow-xs flex items-center gap-1.5">
-                                                <span>🩺 Mulai SOAP</span>
-                                            </button>
-                                        </form>
+                                        <div class="flex items-center gap-1.5">
+                                            <form method="POST" action="{{ route('dokter.medical-records.store') }}">
+                                                @csrf
+                                                <input type="hidden" name="cat_id" value="{{ $app->cat_id }}">
+                                                <input type="hidden" name="appointment_id" value="{{ $app->id }}">
+                                                <input type="hidden" name="service_type" value="clinic">
+                                                <input type="hidden" name="chief_complaint" value="{{ $app->notes ?: 'Pemeriksaan antrian klinik' }}">
+                                                <button type="submit" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition shadow-xs flex items-center gap-1.5">
+                                                    <span>🩺 Mulai SOAP</span>
+                                                </button>
+                                            </form>
+
+                                            <form method="POST" action="{{ route('dokter.appointments.cancel', $app) }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan antrian pasien {{ $app->cat->name }} dari daftar antrian hari ini?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" title="Batalkan / Hapus Antrian" aria-label="Batalkan dan hapus antrian pasien {{ $app->cat->name }}" class="p-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 text-xs font-semibold flex items-center justify-center transition">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
 
                                         <!-- Secondary action: Quick inline checkup -->
                                         <button type="button" @click="activeAppointment = {{ $app }}" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800 underline">

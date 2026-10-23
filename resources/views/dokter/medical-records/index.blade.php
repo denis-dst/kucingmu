@@ -156,16 +156,28 @@
                                 </div>
                             </div>
 
-                            <form method="POST" action="{{ route('dokter.medical-records.store') }}">
-                                @csrf
-                                <input type="hidden" name="cat_id" value="{{ $app->cat_id }}">
-                                <input type="hidden" name="appointment_id" value="{{ $app->id }}">
-                                <input type="hidden" name="service_type" value="clinic">
-                                <input type="hidden" name="chief_complaint" value="{{ $app->notes ?: 'Pemeriksaan rutin antrian klinik' }}">
-                                <button type="submit" class="w-full py-2 px-3 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition">
-                                    <span>🩺 Mulai Pemeriksaan SOAP</span>
-                                </button>
-                            </form>
+                            <div class="flex items-center gap-2">
+                                <form method="POST" action="{{ route('dokter.medical-records.store') }}" class="flex-1">
+                                    @csrf
+                                    <input type="hidden" name="cat_id" value="{{ $app->cat_id }}">
+                                    <input type="hidden" name="appointment_id" value="{{ $app->id }}">
+                                    <input type="hidden" name="service_type" value="clinic">
+                                    <input type="hidden" name="chief_complaint" value="{{ $app->notes ?: 'Pemeriksaan rutin antrian klinik' }}">
+                                    <button type="submit" class="w-full py-2 px-3 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs flex items-center justify-center gap-1.5 transition min-h-[40px]">
+                                        <span>🩺 Mulai Pemeriksaan SOAP</span>
+                                    </button>
+                                </form>
+
+                                <form method="POST" action="{{ route('dokter.appointments.cancel', $app) }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan antrian pasien {{ $app->cat->name }} dari daftar antrian hari ini?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" title="Batalkan dan Hapus dari Antrian" aria-label="Batalkan dan hapus antrian pasien {{ $app->cat->name }}" class="p-2.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 text-xs font-semibold flex items-center justify-center transition min-h-[40px] min-w-[40px]">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     @endforeach
                 </div>
