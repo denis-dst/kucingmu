@@ -228,13 +228,133 @@
                         <p class="text-[11px] text-slate-400 mt-1"></p>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                            Nama Fasilitas / Klinik
-                        </label>
-                        <input type="text" name="clinic_name" value="{{ old('clinic_name', 'Klinik Hewan KucingMu') }}"
-                            class="w-full text-sm rounded-xl border-slate-200 py-2.5 px-3.5 text-slate-800 focus:ring-teal-600 focus:border-teal-600"
-                            placeholder="e.g. Klinik Hewan KucingMu">
+                    <!-- Field: Nama Fasilitas / Klinik (Select List dari /events + Ketik Manual) -->
+                    <div x-data="{
+                        mode: '{{ old('clinic_mode', (old('clinic_name') && old('clinic_name') !== 'Klinik Hewan KucingMu' && !collect($eventsData)->contains('facility_name', old('clinic_name'))) ? 'manual' : 'select') }}',
+                        selectedSource: '{{ old('clinic_event_id', (request('event_id') ?: (collect($eventsData)->firstWhere('facility_name', old('clinic_name'))['id'] ?? 'default'))) }}',
+                        clinicName: '{{ old('clinic_name', (request('event_id') && collect($eventsData)->firstWhere('id', request('event_id')) ? collect($eventsData)->firstWhere('id', request('event_id'))['facility_name'] : 'Klinik Hewan KucingMu')) }}',
+                        eventsList: {{ json_encode($eventsData ?? []) }},
+                        get currentEvent() {
+                            if (this.selectedSource === 'default' || this.selectedSource === '__manual__') return null;
+                            return this.eventsList.find(e => String(e.id) === String(this.selectedSource)) || null;
+                        },
+                        onSelectChange(val) {
+                            if (val === '__manual__') {
+                                this.mode = 'manual';
+                                this.$nextTick(() => {
+                                    this.$refs.manualClinicInput?.focus();
+                                });
+                                return;
+                            }
+                            if (val === 'default') {
+                                this.clinicName = 'Klinik Hewan KucingMu';
+                                return;
+                            }
+                            const ev = this.eventsList.find(e => String(e.id) === String(val));
+                            if (ev) {
+                                this.clinicName = ev.facility_name;
+                            }
+                        },
+                        switchToManual() {
+                            this.mode = 'manual';
+                            this.$nextTick(() => {
+                                this.$refs.manualClinicInput?.focus();
+                            });
+                        },
+                        switchToSelect() {
+                            this.mode = 'select';
+                            if (this.selectedSource === '__manual__') {
+                                this.selectedSource = 'default';
+                                this.clinicName = 'Klinik Hewan KucingMu';
+                            }
+                        }
+                    }">
+                        <div class="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                Nama Fasilitas / Klinik <span class="text-rose-500">*</span>
+                            </label>
+
+                            <!-- Mode Toggle Pill -->
+                            <div class="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-[11px] font-semibold">
+                                <button type="button"
+                                        @click="switchToSelect()"
+                                        :class="mode === 'select' ? 'bg-white text-teal-800 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-700'"
+                                        class="px-2 py-0.5 rounded-md transition cursor-pointer">
+                                    📋 List Event
+                                </button>
+                                <button type="button"
+                                        @click="switchToManual()"
+                                        :class="mode === 'manual' ? 'bg-white text-teal-800 shadow-2xs font-bold' : 'text-slate-500 hover:text-slate-700'"
+                                        class="px-2 py-0.5 rounded-md transition cursor-pointer">
+                                    ✍️ Ketik Manual
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mode 1: Select List (ambil dari detail /events) -->
+                        <div x-show="mode === 'select'" class="space-y-2">
+                            <div class="relative">
+                                <select x-model="selectedSource"
+                                        @change="onSelectChange($event.target.value)"
+                                        class="w-full text-xs sm:text-sm rounded-xl border-slate-200 py-2.5 px-3.5 text-slate-800 focus:ring-teal-600 focus:border-teal-600 bg-white">
+                                    <option value="default">🏥 Klinik Hewan KucingMu (Klinik Utama)</option>
+                                    @if(count($events) > 0)
+                                        <optgroup label="📍 Fasilitas / Lokasi dari Detail Kegiatan (/events)">
+                                            @foreach($events as $ev)
+                                                <option value="{{ $ev->id }}">
+                                                    📍 {{ $ev->location ?: $ev->title }} ({{ $ev->title }} - {{ $ev->date ? $ev->date->format('d M Y') : '' }})
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+                                    <option value="__manual__">✍️ Ketik Manual (Fasilitas di Luar List Event)...</option>
+                                </select>
+                            </div>
+
+                            <!-- Informational Event Card Preview if an event is selected -->
+                            <template x-if="currentEvent">
+                                <div class="p-2.5 rounded-xl border border-teal-200 bg-teal-50/70 text-xs flex items-center justify-between gap-3">
+                                    <div class="space-y-0.5 min-w-0">
+                                        <div class="flex items-center gap-1.5 text-teal-900 font-bold truncate">
+                                            <span>📍</span>
+                                            <span x-text="currentEvent.facility_name"></span>
+                                        </div>
+                                        <div class="text-[11px] text-teal-700 truncate" x-text="`Kegiatan: ${currentEvent.title} (${currentEvent.date_formatted})`"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <a :href="currentEvent.url" target="_blank" class="text-[11px] text-teal-800 font-semibold hover:underline">
+                                            Detail Event &rarr;
+                                        </a>
+                                        <button type="button" @click="switchToManual()" class="px-2 py-0.5 rounded bg-white text-slate-700 hover:bg-slate-100 text-[10px] font-semibold border border-teal-200">
+                                            Edit Teks
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <input type="hidden" name="clinic_name" :value="clinicName" :disabled="mode !== 'select'">
+                        </div>
+
+                        <!-- Mode 2: Manual Freeform Text Input -->
+                        <div x-show="mode === 'manual'" class="space-y-1.5" style="display: none;">
+                            <div class="relative">
+                                <input type="text"
+                                       x-ref="manualClinicInput"
+                                       name="clinic_name"
+                                       x-model="clinicName"
+                                       :disabled="mode !== 'manual'"
+                                       placeholder="e.g. Klinik Hewan PKU Kotagede, RSH Soeparwi, Klinik Mandiri..."
+                                       class="w-full text-sm rounded-xl border-slate-200 py-2.5 pl-3.5 pr-24 text-slate-800 focus:ring-teal-600 focus:border-teal-600 bg-white font-medium">
+                                <button type="button"
+                                        @click="switchToSelect()"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 font-semibold border border-teal-200 transition">
+                                    Pilih Event
+                                </button>
+                            </div>
+                            <p class="text-[11px] text-slate-500">
+                                Ketik nama klinik atau fasilitas lain yang berada di luar daftar kegiatan /events.
+                            </p>
+                        </div>
                     </div>
                 </div>
 

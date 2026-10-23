@@ -9,10 +9,16 @@ class Prescription extends Model
 {
     use HasFactory;
 
+    public const TYPE_REGULAR = 'regular';
+    public const TYPE_COMPOUNDED = 'compounded';
+    public const TYPE_MANUAL = 'manual';
+
     protected $fillable = [
         'prescription_number',
         'medical_record_id',
         'prescribed_by',
+        'prescription_type',
+        'notes',
         'status',
         'issued_at',
         'cancelled_at',
@@ -63,6 +69,30 @@ class Prescription extends Model
     public function isCancelled(): bool
     {
         return $this->status === 'cancelled';
+    }
+
+    public function isManual(): bool
+    {
+        return $this->prescription_type === self::TYPE_MANUAL;
+    }
+
+    public function isCompounded(): bool
+    {
+        return $this->prescription_type === self::TYPE_COMPOUNDED;
+    }
+
+    public function isRegular(): bool
+    {
+        return empty($this->prescription_type) || $this->prescription_type === self::TYPE_REGULAR;
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return match ($this->prescription_type) {
+            self::TYPE_MANUAL => 'Resep Manual',
+            self::TYPE_COMPOUNDED => 'Resep Racikan',
+            default => 'Resep Reguler',
+        };
     }
 
     public static function generatePrescriptionNumber(): string

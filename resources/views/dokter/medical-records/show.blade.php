@@ -324,49 +324,79 @@
                         </div>
                     @endif
 
-                    <!-- Electronic Prescriptions -->
+                    <!-- Electronic / Manual Prescriptions -->
                     <div class="space-y-2">
-                        <span class="text-slate-700 font-bold block text-xs">Resep Elektronik (e-Prescription):</span>
+                        <span class="text-slate-700 font-bold block text-xs">Peresepan Obat:</span>
                         @forelse($record->prescriptions as $rx)
-                            <div class="rounded-xl border border-teal-200 overflow-hidden">
-                                <div
-                                    class="bg-teal-50 px-4 py-2 border-b border-teal-100 flex items-center justify-between text-xs">
-                                    <span class="font-mono font-bold text-teal-900">Rx No:
-                                        {{ $rx->prescription_number }}</span>
-                                    <span
-                                        class="px-2 py-0.5 rounded text-[10px] font-bold {{ $rx->isIssued() ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                            <div class="rounded-xl border {{ $rx->isManual() ? 'border-amber-300' : 'border-teal-200' }} overflow-hidden">
+                                <div class="{{ $rx->isManual() ? 'bg-amber-50 border-amber-200' : 'bg-teal-50 border-teal-100' }} px-4 py-2 border-b flex items-center justify-between text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono font-bold {{ $rx->isManual() ? 'text-amber-950' : 'text-teal-900' }}">Rx No: {{ $rx->prescription_number }}</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $rx->isManual() ? 'bg-amber-200 text-amber-900' : ($rx->isCompounded() ? 'bg-purple-100 text-purple-800' : 'bg-teal-100 text-teal-800') }}">
+                                            {{ $rx->type_label }}
+                                        </span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $rx->isIssued() ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
                                         {{ $rx->isIssued() ? 'Diterbitkan (Issued)' : 'Draft Resep' }}
                                     </span>
                                 </div>
-                                <div class="p-4 divide-y divide-slate-100 bg-white">
-                                    @forelse($rx->items as $item)
-                                        <div class="py-2.5 first:pt-0 last:pb-0 text-xs space-y-1">
-                                            <div class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                                                <span>{{ $item->medicine_name_snapshot }}</span>
-                                                <span
-                                                    class="text-[10px] font-semibold text-slate-500 uppercase">[{{ $item->dosage_form }}]</span>
-                                            </div>
-                                            <div class="text-slate-700">
-                                                Aturan: <strong class="text-teal-900">{{ $item->dose_value }}
-                                                    {{ $item->dose_unit }}</strong> &bull;
-                                                Frekuensi: <strong>{{ $item->frequency_value }}
-                                                    {{ $item->frequency_unit }}</strong> &bull;
-                                                Durasi: <strong>{{ $item->duration_value }} {{ $item->duration_unit }}</strong>
-                                                &bull;
-                                                Rute: <strong>{{ $item->administration_route }}</strong>
-                                            </div>
-                                            <div class="text-slate-500 italic">
-                                                "{{ $item->usage_instructions }}"
-                                                @if($item->warnings)
-                                                    <span class="text-rose-600 font-medium"> &bull; Catatan:
-                                                        {{ $item->warnings }}</span>
-                                                @endif
-                                            </div>
+
+                                @if($rx->isManual())
+                                    <div class="p-4 bg-white text-xs space-y-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-0.5 rounded bg-amber-600 text-white font-bold text-[10px] uppercase">Resep Manual</span>
+                                            <span class="font-semibold text-slate-800">Ditulis pada Kertas Resep Fisik Dokter Hewan</span>
                                         </div>
-                                    @empty
-                                        <div class="text-xs text-slate-400 italic">Tidak ada item obat terdaftar.</div>
-                                    @endforelse
-                                </div>
+                                        <p class="text-slate-600">
+                                            Resep obat diberikan secara langsung pada lembar blanko kertas tanpa entri item obat ke sistem komputer.
+                                        </p>
+                                        @if($rx->notes)
+                                            <div class="p-2.5 rounded-lg bg-amber-50/60 border border-amber-200 text-slate-800">
+                                                <strong>Catatan Resep Fisik:</strong> {{ $rx->notes }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="p-4 divide-y divide-slate-100 bg-white">
+                                        @forelse($rx->items as $item)
+                                            <div class="py-2.5 first:pt-0 last:pb-0 text-xs space-y-1">
+                                                <div class="font-bold text-slate-900 text-sm flex items-center gap-2 flex-wrap">
+                                                    @if($item->is_racikan)
+                                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">🧪 Racikan</span>
+                                                        <span>{{ $item->racikan_name ?: $item->medicine_name_snapshot }}</span>
+                                                    @else
+                                                        <span>{{ $item->medicine_name_snapshot }}</span>
+                                                    @endif
+                                                    <span class="text-[10px] font-semibold text-slate-500 uppercase">[{{ $item->dosage_form }}]</span>
+                                                    <span class="text-[10px] font-semibold text-teal-800 bg-teal-50 px-2 py-0.5 rounded">Rute: {{ $item->administration_route }}</span>
+                                                </div>
+
+                                                @if($item->is_racikan && $item->composition)
+                                                    <div class="p-2 rounded-lg bg-purple-50/70 border border-purple-100 text-purple-950 font-medium">
+                                                        <span class="font-bold text-purple-900">Formula Komposisi:</span> {{ $item->composition }}
+                                                    </div>
+                                                @endif
+
+                                                <div class="text-slate-700">
+                                                    @if(!$item->is_racikan)
+                                                        Aturan: <strong class="text-teal-900">{{ $item->dose_value }} {{ $item->dose_unit }}</strong> &bull;
+                                                    @endif
+                                                    Frekuensi: <strong>{{ $item->frequency_value }} {{ $item->frequency_unit }}</strong> &bull;
+                                                    Durasi: <strong>{{ $item->duration_value }} {{ $item->duration_unit }}</strong> &bull;
+                                                    Jumlah: <strong>{{ $item->quantity_value }} {{ $item->quantity_unit }}</strong>
+                                                </div>
+                                                <div class="text-slate-500 italic">
+                                                    "{{ $item->usage_instructions }}"
+                                                    @if($item->warnings)
+                                                        <span class="text-rose-600 font-medium"> &bull; Catatan: {{ $item->warnings }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-xs text-slate-400 italic">Tidak ada item obat terdaftar.</div>
+                                        @endforelse
+                                    </div>
+                                @endif
                             </div>
                         @empty
                             <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 text-slate-400 text-xs italic">

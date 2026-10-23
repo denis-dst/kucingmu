@@ -20,6 +20,13 @@
     <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6" 
          x-data="{ 
              currentStep: {{ $activeStep ?: 1 }},
+             rxMode: '{{ $activeRx ? $activeRx->prescription_type : 'regular' }}',
+             setStep(step) {
+                 this.currentStep = step;
+                 const url = new URL(window.location.href);
+                 url.searchParams.set('step', step);
+                 window.history.replaceState({}, '', url.toString());
+             },
              showHistoryModal: false,
              rxMedicineSearch: '',
              rxSelectedMedicine: null,
@@ -139,7 +146,7 @@
             <div class="soap-stepper-scroll">
                 <nav class="soap-stepper-nav" aria-label="Langkah Pemeriksaan SOAP">
                     <button type="button" 
-                            @click="currentStep = 1" 
+                            @click="setStep(1)" 
                             :class="currentStep === 1 ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'" 
                             class="min-h-[38px] py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition cursor-pointer">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" 
@@ -148,7 +155,7 @@
                     </button>
 
                     <button type="button" 
-                            @click="currentStep = 2" 
+                            @click="setStep(2)" 
                             :class="currentStep === 2 ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'" 
                             class="min-h-[38px] py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition cursor-pointer">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" 
@@ -157,7 +164,7 @@
                     </button>
 
                     <button type="button" 
-                            @click="currentStep = 3" 
+                            @click="setStep(3)" 
                             :class="currentStep === 3 ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'" 
                             class="min-h-[38px] py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition cursor-pointer">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" 
@@ -166,7 +173,7 @@
                     </button>
 
                     <button type="button" 
-                            @click="currentStep = 4" 
+                            @click="setStep(4)" 
                             :class="currentStep === 4 ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'" 
                             class="min-h-[38px] py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition cursor-pointer">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" 
@@ -175,7 +182,7 @@
                     </button>
 
                     <button type="button" 
-                            @click="currentStep = 5" 
+                            @click="setStep(5)" 
                             :class="currentStep === 5 ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'" 
                             class="min-h-[38px] py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-2 transition cursor-pointer">
                         <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0" 
@@ -468,7 +475,7 @@
                     </div>
 
                     <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <button type="button" @click="currentStep = 1" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs">
+                        <button type="button" @click="setStep(1)" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs">
                             &larr; Kembali ke Step 1
                         </button>
                         <button type="submit" class="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-xs transition">
@@ -586,7 +593,7 @@
                     </div>
 
                     <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <button type="button" @click="currentStep = 2" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs">
+                        <button type="button" @click="setStep(2)" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs">
                             &larr; Kembali ke Step 2
                         </button>
                         <button type="submit" class="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-xs transition">
@@ -602,30 +609,94 @@
              =================================================================== -->
         <div x-show="currentStep === 4" x-cloak class="space-y-6">
             
-            <!-- Resep Elektronik Builder Card -->
+            <!-- Resep Elektronik & Peresepan Builder Card -->
             <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-xs space-y-6">
                 <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
                     <div>
-                        <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700">Resep Elektronik Terstruktur</span>
-                        <h2 class="font-outfit text-xl font-bold text-slate-900">e-Prescription Dokter Hewan</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Buat resep obat terstandar dengan basis dosis per kg atau dosis tetap untuk pasien kucing.</p>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700">Peresepan Dokter Hewan</span>
+                        <h2 class="font-outfit text-xl font-bold text-slate-900">Peresepan Obat Pasien</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Tersedia 3 mode peresepan: Resep Reguler, Resep Racikan Veteriner, atau Manual (Kertas Fisik).</p>
                     </div>
                     <span class="text-2xl">💊</span>
                 </div>
 
-                <!-- Existing Prescribed Items List -->
+                <!-- 3-Mode Prescription Selector -->
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-800">
+                            Pilih Mode Peresepan
+                        </label>
+                        @if($activeRx)
+                            <span class="text-[11px] px-2.5 py-0.5 rounded-full font-bold {{ $activeRx->isManual() ? 'bg-amber-100 text-amber-800' : ($activeRx->isCompounded() ? 'bg-purple-100 text-purple-800' : 'bg-teal-100 text-teal-800') }}">
+                                Mode Aktif: {{ $activeRx->type_label }}
+                            </span>
+                        @endif
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <!-- Mode 1: Resep Reguler -->
+                        <label class="relative flex flex-col p-3.5 rounded-xl border cursor-pointer transition select-none"
+                               :class="rxMode === 'regular' ? 'bg-teal-50/70 border-teal-600 ring-2 ring-teal-600/20' : 'bg-white border-slate-200 hover:border-slate-300'">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-xs" :class="rxMode === 'regular' ? 'text-teal-950' : 'text-slate-800'">1. Resep Reguler</span>
+                                <input type="radio" name="ui_prescription_type" value="regular" x-model="rxMode" class="text-teal-600 focus:ring-teal-500 h-4 w-4">
+                            </div>
+                            <p class="text-[11px] leading-snug" :class="rxMode === 'regular' ? 'text-teal-800' : 'text-slate-500'">
+                                Obat jadi terdaftar (tablet, sirup, salep, injeksi, tetes) dengan basis dosis tetap / per kg.
+                            </p>
+                        </label>
+
+                        <!-- Mode 2: Resep Racikan -->
+                        <label class="relative flex flex-col p-3.5 rounded-xl border cursor-pointer transition select-none"
+                               :class="rxMode === 'compounded' ? 'bg-teal-50/70 border-teal-600 ring-2 ring-teal-600/20' : 'bg-white border-slate-200 hover:border-slate-300'">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-xs" :class="rxMode === 'compounded' ? 'text-teal-950' : 'text-slate-800'">2. Resep Racikan</span>
+                                <input type="radio" name="ui_prescription_type" value="compounded" x-model="rxMode" class="text-teal-600 focus:ring-teal-500 h-4 w-4">
+                            </div>
+                            <p class="text-[11px] leading-snug" :class="rxMode === 'compounded' ? 'text-teal-800' : 'text-slate-500'">
+                                Sediaan racikan veteriner (puyer/pulveres, kapsul, suspensi oral) dengan komposisi campuran obat.
+                            </p>
+                        </label>
+
+                        <!-- Mode 3: Manual -->
+                        <label class="relative flex flex-col p-3.5 rounded-xl border cursor-pointer transition select-none"
+                               :class="rxMode === 'manual' ? 'bg-teal-50/70 border-teal-600 ring-2 ring-teal-600/20' : 'bg-white border-slate-200 hover:border-slate-300'">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-bold text-xs" :class="rxMode === 'manual' ? 'text-teal-950' : 'text-slate-800'">3. Manual (Kertas Fisik)</span>
+                                <input type="radio" name="ui_prescription_type" value="manual" x-model="rxMode" class="text-teal-600 focus:ring-teal-500 h-4 w-4">
+                            </div>
+                            <p class="text-[11px] leading-snug" :class="rxMode === 'manual' ? 'text-teal-800' : 'text-slate-500'">
+                                Tulis resep di lembar kertas tanpa input sistem. Pada cetak Rekam Medis berlabel "Resep Manual".
+                            </p>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Existing Prescribed Items List (Shown if items exist) -->
                 @if($activeRx && $activeRx->items->isNotEmpty())
                     <div class="rounded-xl border border-teal-200 overflow-hidden">
                         <div class="bg-teal-50 px-4 py-2.5 flex items-center justify-between border-b border-teal-100">
-                            <span class="text-xs font-bold text-teal-900">Daftar Obat dalam Resep (#{{ $activeRx->prescription_number }})</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-teal-900">Daftar Obat dalam Resep (#{{ $activeRx->prescription_number }})</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $activeRx->isCompounded() ? 'bg-purple-100 text-purple-800' : 'bg-teal-100 text-teal-800' }}">
+                                    {{ $activeRx->type_label }}
+                                </span>
+                            </div>
                             <span class="text-[11px] text-teal-700 font-semibold">{{ $activeRx->items->count() }} Item Obat</span>
                         </div>
                         <div class="divide-y divide-slate-100 bg-white">
                             @foreach($activeRx->items as $item)
                                 <div class="p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
                                     <div class="space-y-1">
-                                        <div class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                                            <span>{{ $item->medicine_name_snapshot }}</span>
+                                        <div class="font-bold text-slate-900 text-sm flex items-center gap-2 flex-wrap">
+                                            @if($item->is_racikan)
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">
+                                                    🧪 Racikan
+                                                </span>
+                                                <span>{{ $item->racikan_name ?: $item->medicine_name_snapshot }}</span>
+                                            @else
+                                                <span>{{ $item->medicine_name_snapshot }}</span>
+                                            @endif
                                             <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 uppercase">
                                                 {{ $item->dosage_form }}
                                             </span>
@@ -633,9 +704,18 @@
                                                 Rute: {{ $item->administration_route }}
                                             </span>
                                         </div>
+
+                                        @if($item->is_racikan && $item->composition)
+                                            <div class="p-2 rounded-lg bg-purple-50/70 border border-purple-100 text-purple-950 font-medium">
+                                                <span class="font-bold text-purple-900">Formula Komposisi:</span> {{ $item->composition }}
+                                            </div>
+                                        @endif
+
                                         <div class="text-slate-600">
-                                            Dosis: <strong class="text-slate-800">{{ $item->dose_value }} {{ $item->dose_unit }}</strong>
-                                            ({{ $item->dose_basis === 'per_kg' ? 'per kg BB' : 'tetap' }}) &bull;
+                                            @if(!$item->is_racikan)
+                                                Dosis: <strong class="text-slate-800">{{ $item->dose_value }} {{ $item->dose_unit }}</strong>
+                                                ({{ $item->dose_basis === 'per_kg' ? 'per kg BB' : 'tetap' }}) &bull;
+                                            @endif
                                             Frekuensi: <strong class="text-slate-800">{{ $item->frequency_value }} {{ $item->frequency_unit }}</strong> &bull;
                                             Durasi: <strong class="text-slate-800">{{ $item->duration_value }} {{ $item->duration_unit }}</strong> &bull;
                                             Jumlah: <strong class="text-slate-800">{{ $item->quantity_value }} {{ $item->quantity_unit }}</strong>
@@ -659,15 +739,35 @@
                             @endforeach
                         </div>
                     </div>
+                @elseif($activeRx && $activeRx->isManual())
+                    <!-- Manual Prescription Notice -->
+                    <div class="p-4 rounded-xl border border-amber-300 bg-amber-50/80 space-y-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-md bg-amber-600 text-white font-bold text-xs uppercase tracking-wide">
+                                Resep Manual
+                            </span>
+                            <span class="text-xs font-mono font-bold text-amber-900">No. Rx: {{ $activeRx->prescription_number }}</span>
+                        </div>
+                        <p class="text-xs text-amber-900">
+                            Mode saat ini telah disetel ke <strong>Resep Manual (Tulis di Kertas Fisik)</strong>. Dokter menuliskan resep secara manual pada blanko kertas fisik. Label <strong>"Resep Manual"</strong> akan otomatis tercantum pada cetakan hasil Rekam Medis.
+                        </p>
+                        @if($activeRx->notes)
+                            <div class="p-2.5 rounded-lg bg-white border border-amber-200 text-xs text-slate-800">
+                                <strong>Catatan Resep Fisik:</strong> {{ $activeRx->notes }}
+                            </div>
+                        @endif
+                    </div>
                 @else
                     <div class="text-center py-6 border border-dashed border-slate-200 rounded-xl text-slate-400 text-xs">
-                        Belum ada item obat dalam resep ini. Gunakan formulir di bawah untuk menambahkan obat.
+                        Belum ada item obat dalam resep ini. Pilih mode di atas lalu isi formulir yang tersedia.
                     </div>
                 @endif
 
-                <!-- Add Medicine Form -->
-                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
-                    <span class="block text-xs font-bold uppercase tracking-wider text-slate-800">+ Tambah Item Obat ke Resep</span>
+                <!-- =========================================================
+                     PANEL MODE 1: RESEP REGULER (Single / Finished Medicine)
+                     ========================================================= -->
+                <div x-show="rxMode === 'regular'" class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                    <span class="block text-xs font-bold uppercase tracking-wider text-slate-800">+ Tambah Obat Reguler ke Resep</span>
 
                     <!-- Quick search from master medicines -->
                     <div>
@@ -692,6 +792,7 @@
 
                     <form method="POST" action="{{ route('dokter.medical-records.prescription.add', $record) }}" class="space-y-4 pt-2 border-t border-slate-200">
                         @csrf
+                        <input type="hidden" name="is_racikan" value="0">
                         <input type="hidden" id="rx_medicine_id" name="medicine_id" value="">
                         <input type="hidden" id="rx_active_ingredient" name="active_ingredient" value="">
                         <input type="hidden" id="rx_concentration_value" name="concentration_value" value="">
@@ -788,6 +889,126 @@
                         </button>
                     </form>
                 </div>
+
+                <!-- =========================================================
+                     PANEL MODE 2: RESEP RACIKAN VETERINER
+                     ========================================================= -->
+                <div x-show="rxMode === 'compounded'" class="p-5 rounded-2xl bg-purple-50/50 border border-purple-200 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-purple-950">🧪 Tambah Sediaan Racikan ke Resep (Veteriner)</span>
+                        <span class="text-[10px] text-purple-700 font-semibold bg-purple-100 px-2 py-0.5 rounded">Standar Praktik Hewan Kecil</span>
+                    </div>
+
+                    <form method="POST" action="{{ route('dokter.medical-records.prescription.add', $record) }}" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="is_racikan" value="1">
+
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <div class="md:col-span-2">
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Nama Racikan <span class="text-rose-500">*</span></label>
+                                <input type="text" name="racikan_name" required class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-3 bg-white font-semibold" placeholder="e.g. Puyer Batuk & Pilek Pasien, Kapsul Imun & Antibiotik">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Bentuk Sediaan Racikan <span class="text-rose-500">*</span></label>
+                                <select name="dosage_form" required class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-2 bg-white">
+                                    <option value="puyer">Puyer / Pulveres (Serbuk Bungkus)</option>
+                                    <option value="kapsul">Kapsul Racikan</option>
+                                    <option value="sirup">Sirup / Suspensi Oral Racik</option>
+                                    <option value="salep">Salep / Krim Kulit Racik</option>
+                                    <option value="tetes">Larutan Tetes Racik</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                Komposisi / Formula Racikan <span class="text-rose-500">*</span>
+                            </label>
+                            <textarea name="composition" rows="2" required class="w-full text-xs rounded-lg border-slate-200 p-2.5 bg-white font-mono" placeholder="Tuliskan komponen obat & dosis per sediaan, e.g. Amoxicillin 50 mg + Dexamethasone 0.25 mg + Bromhexine 1 mg (per bungkus)"></textarea>
+                            <span class="text-[10px] text-slate-500">Cantumkan nama bahan aktif atau obat jadi yang digerus dan takaran dosis per sediaan/bungkus.</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Jumlah Racikan (Qty) <span class="text-rose-500">*</span></label>
+                                <input type="number" step="1" name="quantity_value" required value="10" class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-3 bg-white">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Satuan Jumlah <span class="text-rose-500">*</span></label>
+                                <input type="text" name="quantity_unit" required value="bungkus" class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-3 bg-white" placeholder="e.g. bungkus, kapsul, botol">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Rute Pemberian <span class="text-rose-500">*</span></label>
+                                <select name="administration_route" required class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-2 bg-white">
+                                    <option value="oral">Oral (Minum)</option>
+                                    <option value="topikal">Topikal (Kulit Luar)</option>
+                                    <option value="tetes_mata">Tetes Mata</option>
+                                    <option value="tetes_telinga">Tetes Telinga</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Frekuensi Pemberian <span class="text-rose-500">*</span></label>
+                                <input type="text" name="frequency_value" required value="2x sehari" class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-3 bg-white" placeholder="e.g. 2x sehari, tiap 12 jam">
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Durasi Pemberian <span class="text-rose-500">*</span></label>
+                                <input type="text" name="duration_value" required value="5 hari" class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-3 bg-white" placeholder="e.g. 5 hari">
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-[11px] font-semibold text-slate-700 mb-1">Instruksi Cara Penggunaan <span class="text-rose-500">*</span></label>
+                                <input type="text" name="usage_instructions" required value="Campur 1 bungkus ke sedikit wet food / madu, berikan sesudah makan" class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-3 bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">Peringatan Khusus</label>
+                            <input type="text" name="warnings" value="Habiskan seluruh bungkus racikan, simpan di tempat kering dan sejuk" class="w-full text-xs rounded-lg border-slate-200 py-1.5 px-3 bg-white">
+                        </div>
+
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-purple-800 hover:bg-purple-900 text-white font-semibold text-xs transition">
+                            + Masukkan Racikan ke Resep
+                        </button>
+                    </form>
+                </div>
+
+                <!-- =========================================================
+                     PANEL MODE 3: MANUAL (Tulis di Kertas tanpa Sistem)
+                     ========================================================= -->
+                <div x-show="rxMode === 'manual'" class="p-5 rounded-2xl bg-amber-50/70 border border-amber-300 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-amber-950">📝 Mode Resep Manual (Tulis di Kertas Fisik)</span>
+                        <span class="text-[10px] text-amber-800 font-bold bg-amber-100 px-2 py-0.5 rounded">Cetak RM: "Resep Manual"</span>
+                    </div>
+
+                    <p class="text-xs text-amber-900 leading-relaxed">
+                        Gunakan mode ini apabila resep obat ditulis secara langsung pada lembar kertas resep fisik dokter hewan (blanko klinik atau resep apotek luar). Anda tidak perlu menginput item obat satu per satu ke dalam sistem. Pada cetakan hasil Rekam Medis, sistem akan otomatis mencantumkan label tegas <strong>"Resep Manual"</strong>.
+                    </p>
+
+                    <form method="POST" action="{{ route('dokter.medical-records.prescription.mode', $record) }}" class="space-y-3 pt-2 border-t border-amber-200">
+                        @csrf
+                        <input type="hidden" name="prescription_type" value="manual">
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-800 mb-1">
+                                Catatan Resep Fisik / Keterangan Tambahan (Opsional)
+                            </label>
+                            <textarea name="notes" rows="2" class="w-full text-xs rounded-lg border-amber-300 p-2.5 bg-white text-slate-800 focus:ring-amber-500" placeholder="e.g. Resep fisik no. 024 diberikan ke pemilik untuk ditebus di Apotek Kimia Farma / K24">{{ old('notes', $activeRx && $activeRx->isManual() ? $activeRx->notes : '') }}</textarea>
+                            <span class="text-[10px] text-slate-500">Catatan ini akan tercetak pada lembar Rekam Medis di bawah label Resep Manual.</span>
+                        </div>
+
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs shadow-xs transition">
+                            ✓ Konfirmasi & Simpan Mode Resep Manual
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <!-- Treatment Plan & Home Care Form -->
@@ -849,7 +1070,7 @@
                     </div>
 
                     <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                        <button type="button" @click="currentStep = 3" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs">
+                        <button type="button" @click="setStep(3)" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs">
                             &larr; Kembali ke Step 3
                         </button>
                         <button type="submit" class="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs shadow-xs transition">
@@ -881,7 +1102,7 @@
                     <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">1. Subjective (Anamnesa)</h3>
-                            <button type="button" @click="currentStep = 1" class="text-xs text-teal-700 font-bold hover:underline">Edit</button>
+                            <button type="button" @click="setStep(1)" class="text-xs text-teal-700 font-bold hover:underline">Edit</button>
                         </div>
                         <p class="text-xs text-slate-700"><strong>Keluhan:</strong> {{ $subj->member_complaint ?? $record->chief_complaint }}</p>
                         <p class="text-xs text-slate-600"><strong>Onset:</strong> {{ $subj->symptom_onset ?? '-' }}</p>
@@ -893,7 +1114,7 @@
                     <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">2. Objective (Pemeriksaan Fisik)</h3>
-                            <button type="button" @click="currentStep = 2" class="text-xs text-teal-700 font-bold hover:underline">Edit</button>
+                            <button type="button" @click="setStep(2)" class="text-xs text-teal-700 font-bold hover:underline">Edit</button>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div><strong>Berat:</strong> {{ $record->weight }} kg</div>
@@ -907,7 +1128,7 @@
                     <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">3. Assessment (Diagnosis)</h3>
-                            <button type="button" @click="currentStep = 3" class="text-xs text-teal-700 font-bold hover:underline">Edit</button>
+                            <button type="button" @click="setStep(3)" class="text-xs text-teal-700 font-bold hover:underline">Edit</button>
                         </div>
                         @if($primaryDiag)
                             <div class="text-xs font-bold text-slate-900">{{ $primaryDiag->diagnosis_name }}</div>
@@ -924,11 +1145,27 @@
                     <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2">
                         <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                             <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider">4. Plan & Resep Terbit</h3>
-                            <button type="button" @click="currentStep = 4" class="text-xs text-teal-700 font-bold hover:underline">Edit</button>
+                            <button type="button" @click="setStep(4)" class="text-xs text-teal-700 font-bold hover:underline">Edit</button>
                         </div>
                         <div class="text-xs text-slate-700">
-                            <strong>Resep Obat:</strong> {{ $activeRx ? $activeRx->items->count() . ' item obat' : 'Tidak ada obat' }}
+                            <strong>Resep Obat:</strong> 
+                            @if(!$activeRx)
+                                Tidak ada resep
+                            @elseif($activeRx->isManual())
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">Resep Manual (Kertas Fisik)</span>
+                            @elseif($activeRx->isCompounded())
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">Resep Racikan</span>
+                                ({{ $activeRx->items->count() }} item)
+                            @else
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-800">Resep Reguler</span>
+                                ({{ $activeRx->items->count() }} item obat)
+                            @endif
                         </div>
+                        @if($activeRx && $activeRx->isManual() && $activeRx->notes)
+                            <div class="text-xs text-slate-600 italic">
+                                Catatan Resep Fisik: "{{ $activeRx->notes }}"
+                            </div>
+                        @endif
                         <div class="text-xs text-slate-700">
                             <strong>Kontrol Ulang:</strong> {{ $followup && $followup->scheduled_at ? $followup->scheduled_at->format('d M Y') : 'Tidak dijadwalkan' }}
                         </div>
@@ -956,7 +1193,7 @@
                         </label>
 
                         <div class="flex items-center justify-between pt-2 border-t border-teal-200">
-                            <button type="button" @click="currentStep = 4" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-white font-semibold text-xs">
+                            <button type="button" @click="setStep(4)" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-white font-semibold text-xs">
                                 &larr; Kembali ke Step 4
                             </button>
                             <button type="submit" class="px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs shadow-md transition flex items-center gap-2">

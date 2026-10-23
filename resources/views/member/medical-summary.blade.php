@@ -92,21 +92,52 @@
                         @endif
                     </div>
 
-                    @if($issuedRx && $issuedRx->items->isNotEmpty())
+                    @if($issuedRx && $issuedRx->isManual())
+                        <div class="p-4 rounded-xl border border-amber-300 bg-amber-50/80 text-xs space-y-2">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 rounded-md bg-amber-600 text-white font-bold text-xs uppercase tracking-wide">
+                                    Resep Manual
+                                </span>
+                                <span class="font-bold text-slate-800 text-sm">Resep Obat Ditulis di Kertas Fisik</span>
+                            </div>
+                            <p class="text-slate-700 leading-relaxed">
+                                Dokter hewan telah memberikan lembar resep fisik manual kepada Anda saat kunjungan klinik. Silakan gunakan atau tebus resep obat fisik tersebut sesuai petunjuk dokter hewan.
+                            </p>
+                            @if($issuedRx->notes)
+                                <div class="p-2.5 rounded-lg bg-white border border-amber-200 text-slate-800">
+                                    <strong>Catatan Dokter:</strong> {{ $issuedRx->notes }}
+                                </div>
+                            @endif
+                        </div>
+                    @elseif($issuedRx && $issuedRx->items->isNotEmpty())
                         <div class="divide-y divide-slate-100 border border-teal-200 rounded-xl overflow-hidden bg-white">
                             @foreach($issuedRx->items as $item)
                                 <div class="p-4 text-xs space-y-1.5">
-                                    <div class="flex items-center justify-between">
-                                        <div class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                                            <span>{{ $item->medicine_name_snapshot }}</span>
+                                    <div class="flex items-center justify-between flex-wrap gap-2">
+                                        <div class="font-bold text-slate-900 text-sm flex items-center gap-2 flex-wrap">
+                                            @if($item->is_racikan)
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">🧪 Racikan</span>
+                                                <span>{{ $item->racikan_name ?: $item->medicine_name_snapshot }}</span>
+                                            @else
+                                                <span>{{ $item->medicine_name_snapshot }}</span>
+                                            @endif
                                             <span class="px-2 py-0.5 rounded text-[10px] uppercase font-semibold bg-slate-100 text-slate-700">
                                                 {{ $item->dosage_form }}
                                             </span>
                                         </div>
                                         <span class="text-slate-500 font-medium">Qty: {{ $item->quantity_value }} {{ $item->quantity_unit }}</span>
                                     </div>
+
+                                    @if($item->is_racikan && $item->composition)
+                                        <div class="p-2 rounded-lg bg-purple-50/70 border border-purple-100 text-purple-950 font-medium text-[11px]">
+                                            <span class="font-bold text-purple-900">Komposisi:</span> {{ $item->composition }}
+                                        </div>
+                                    @endif
+
                                     <div class="text-slate-700 font-medium">
-                                        Dosis: <strong class="text-teal-800">{{ $item->dose_value }} {{ $item->dose_unit }}</strong> &bull;
+                                        @if(!$item->is_racikan)
+                                            Dosis: <strong class="text-teal-800">{{ $item->dose_value }} {{ $item->dose_unit }}</strong> &bull;
+                                        @endif
                                         Frekuensi: <strong>{{ $item->frequency_value }} {{ $item->frequency_unit }}</strong> &bull;
                                         Durasi: <strong>{{ $item->duration_value }} {{ $item->duration_unit }}</strong> &bull;
                                         Rute: <strong>{{ $item->administration_route }}</strong>

@@ -309,39 +309,88 @@
         </div>
 
         <!-- Prescriptions -->
-        @php $rx = $record->prescriptions->first(); @endphp
-        @if($rx && $rx->items->isNotEmpty())
-            <div class="section">
-                <div class="section-title">Resep Obat Elektronik (#{{ $rx->prescription_number }})</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th width="30%">Nama Obat</th>
-                            <th width="15%">Sediaan / Rute</th>
-                            <th width="20%">Dosis & Frekuensi</th>
-                            <th width="15%">Durasi & Qty</th>
-                            <th width="20%">Aturan Pakai</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($rx->items as $item)
+        @php 
+            $rx = $record->prescriptions()->where('status', 'issued')->first() ?: $record->prescriptions->first(); 
+        @endphp
+        @if($rx)
+            @if($rx->isManual())
+                <div class="section">
+                    <div class="section-title">Resep Obat Dokter Hewan</div>
+                    <div style="border: 1.5px solid #0f766e; border-radius: 6px; padding: 10px 14px; background: #f0fdfa;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="display: inline-block; padding: 3px 10px; border-radius: 4px; background: #0f766e; color: #ffffff; font-weight: bold; font-size: 10pt; text-transform: uppercase; letter-spacing: 0.5px;">Resep Manual</span>
+                            <span style="font-size: 8.5pt; color: #0f766e; font-family: monospace; font-weight: 600;">No. Rx: {{ $rx->prescription_number }}</span>
+                        </div>
+                        <div style="font-size: 9.5pt; color: #1e293b; line-height: 1.4;">
+                            Resep obat diberikan secara tertulis pada lembar kertas fisik resep dokter hewan tanpa entri item obat ke sistem komputer.
+                            @if($rx->notes)
+                                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1; font-size: 9pt;">
+                                    <strong>Catatan Resep Fisik:</strong> {{ $rx->notes }}
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @elseif($rx->items->isNotEmpty())
+                <div class="section">
+                    <div class="section-title">
+                        Resep Obat Elektronik (#{{ $rx->prescription_number }})
+                        @if($rx->isCompounded())
+                            <span style="font-size: 8.5pt; text-transform: none; color: #0f766e; font-weight: normal;">(Termasuk Resep Racikan)</span>
+                        @endif
+                    </div>
+                    <table>
+                        <thead>
                             <tr>
-                                <td>
-                                    <strong>{{ $item->medicine_name_snapshot }}</strong>
-                                    @if($item->active_ingredient)
-                                        <div style="font-size:8pt; color:#64748b;">{{ $item->active_ingredient }}</div>
-                                    @endif
-                                </td>
-                                <td>{{ ucfirst($item->dosage_form) }} / {{ ucfirst($item->administration_route) }}</td>
-                                <td>{{ $item->dose_value }} {{ $item->dose_unit }} ({{ $item->frequency_value }})</td>
-                                <td>{{ $item->duration_value }} {{ $item->duration_unit }} ({{ $item->quantity_value }}
-                                    {{ $item->quantity_unit }})</td>
-                                <td>{{ $item->usage_instructions }}</td>
+                                <th width="32%">Nama Obat / Racikan</th>
+                                <th width="16%">Sediaan / Rute</th>
+                                <th width="18%">Dosis & Frekuensi</th>
+                                <th width="16%">Durasi & Qty</th>
+                                <th width="18%">Aturan Pakai</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @foreach($rx->items as $item)
+                                <tr>
+                                    <td>
+                                        @if($item->is_racikan)
+                                            <span style="display: inline-block; padding: 1px 5px; border-radius: 3px; background: #0f766e; color: #fff; font-size: 7.5pt; font-weight: bold; margin-right: 3px;">Racikan</span>
+                                            <strong>{{ $item->racikan_name ?: $item->medicine_name_snapshot }}</strong>
+                                            @if($item->composition)
+                                                <div style="font-size: 8pt; color: #475569; margin-top: 2px;">
+                                                    <strong>Komposisi:</strong> {{ $item->composition }}
+                                                </div>
+                                            @endif
+                                        @else
+                                            <strong>{{ $item->medicine_name_snapshot }}</strong>
+                                            @if($item->active_ingredient)
+                                                <div style="font-size: 8pt; color: #64748b;">{{ $item->active_ingredient }}</div>
+                                            @endif
+                                        @endif
+                                    </td>
+                                    <td>{{ ucfirst($item->dosage_form) }} / {{ ucfirst($item->administration_route) }}</td>
+                                    <td>
+                                        @if($item->is_racikan)
+                                            {{ $item->frequency_value }}
+                                        @else
+                                            {{ $item->dose_value }} {{ $item->dose_unit }} ({{ $item->frequency_value }})
+                                        @endif
+                                    </td>
+                                    <td>{{ $item->duration_value }} {{ $item->duration_unit }} ({{ $item->quantity_value }} {{ $item->quantity_unit }})</td>
+                                    <td>
+                                        {{ $item->usage_instructions }}
+                                        @if($item->warnings)
+                                            <div style="font-size: 8pt; color: #b91c1c; margin-top: 2px;">
+                                                * {{ $item->warnings }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         @endif
 
         <!-- Follow-up -->

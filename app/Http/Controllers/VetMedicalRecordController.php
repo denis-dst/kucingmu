@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\Cat;
+use App\Models\Event;
 use App\Models\MedicalRecord;
 use App\Models\MedicalRecordSubjective;
 use App\Models\MedicalRecordObjective;
@@ -136,7 +137,27 @@ class VetMedicalRecordController extends Controller
             ];
         });
 
-        return view('dokter.medical-records.create', compact('selectedCat', 'appointment', 'availableCats', 'availableCatsData'));
+        $events = Event::orderBy('date', 'desc')->get();
+        $eventsData = $events->map(function ($event) {
+            return [
+                'id' => $event->id,
+                'title' => $event->title,
+                'location' => $event->location,
+                'facility_name' => $event->location ?: $event->title,
+                'date_formatted' => $event->date ? $event->date->format('d M Y') : '-',
+                'status' => $event->status,
+                'url' => route('events.show', $event),
+            ];
+        })->values();
+
+        return view('dokter.medical-records.create', compact(
+            'selectedCat',
+            'appointment',
+            'availableCats',
+            'availableCatsData',
+            'events',
+            'eventsData'
+        ));
     }
 
     /**
@@ -338,26 +359,135 @@ class VetMedicalRecordController extends Controller
     }
 
     /**
-     * Add structured prescription item to draft prescription.
+     * Add structured prescription item (regular or racikan) to draft prescription.
      */
     public function addPrescriptionItem(Request $request, MedicalRecord $record)
     {
         $this->authorizeEdit($record);
 
+        $isRacikan = $request->boolean('is_racikan');
+
+        if ($isRacikan) {
+            $request->validate([
+                'racikan_name' => 'required|string|max:255',
+                'composition' => 'required|string|max:1000',
+                'dosage_form' => 'required|string|max:50',
+                'quantity_value' => 'required|numeric|min:1',
+                'quantity_unit' => 'required|string|max:30',
+                'administration_route' => 'required|string|max:50',
+                'frequency_value' => 'required|string|max:50',
+                'duration_value' => 'required|string|max:50',
+                'usage_instructions' => 'required|string|max:500',
+                'warnings' => 'nullable|string|max:500',
+            ]);
+        } else {
+            $request->validate([
+                'medicine_name' => 'required|string|max:255',
+                'medicine_id' => 'nullable|exists:medicines,id',
+                'dosage_form' => 'required|string|max:50',
+                'dose_value' => 'required|numeric|min:0.01',
+                'dose_unit' => 'required|string|max:30',
+                'dose_basis' => 'required|in:fixed,per_kg,other',
+                'administration_route' => 'required|string|max:50',
+                'frequency_value' => 'required|string|max:50',
+                'duration_value' => 'required|string|max:50',
+                'quantity_value' => 'nullable|numeric|min:0.1',
+                'quantity_unit' => 'nullable|string|max:30',
+                'usage_instructions' => 'required|string|max:500',
+                'warnings' => 'nullable|string|max:500',
+            ]);
+        }
+
+        $prescription = Prescription::firstOrCreate(
+            ['medical_record_id' => $record->id, 'status' => 'draft'],
+            [
+                'prescription_number' => Prescription::generatePrescriptionNumber(),
+                'prescribed_by' => Auth::id(),
+                'prescription_type' => $isRacikan ? Prescription::TYPE_COMPOUNDED : Prescription::TYPE_REGULAR,
+            ]
+        );
+
+        if ($prescription->prescription_type === Prescription::TYPE_MANUAL) {
+            $prescription->update([
+                'prescription_type' => $isRacikan ? Prescription::TYPE_COMPOUNDED : Prescription::TYPE_REGULAR,
+            ]);
+        }
+
+        if ($isRacikan) {
+            $item = PrescriptionItem::create([
+                'prescription_id' => $prescription->id,
+                'medicine_name_snapshot' => $request->racikan_name,
+                'is_racikan' => true,
+                'racikan_name' => $request->racikan_name,
+                'composition' => $request->composition,
+                'active_ingredient' => $request->composition,
+                'dosage_form' => $request->dosage_form,
+                'dose_value' => 1,
+                'dose_unit' => $request->quantity_unit,
+                'dose_basis' => 'fixed',
+                'administration_route' => $request->administration_route,
+                'frequency_value' => $request->frequency_value,
+                'frequency_unit' => $request->input('frequency_unit', 'kali sehari'),
+                'duration_value' => $request->duration_value,
+                'duration_unit' => $request->input('duration_unit', 'hari'),
+                'quantity_value' => $request->quantity_value,
+                'quantity_unit' => $request->quantity_unit,
+                'usage_instructions' => $request->usage_instructions,
+                'warnings' => $request->warnings,
+            ]);
+
+            MedicalRecordAuditLog::log($record, Auth::user(), 'prescription_item_added', "Menambahkan resep racikan: {$item->racikan_name}.");
+        } else {
+            $medicine = $request->medicine_id ? Medicine::find($request->medicine_id) : null;
+
+            $item = PrescriptionItem::create([
+                'prescription_id' => $prescription->id,
+                'medicine_id' => $medicine ? $medicine->id : null,
+                'medicine_name_snapshot' => $request->medicine_name,
+                'is_racikan' => false,
+                'active_ingredient' => $medicine ? $medicine->active_ingredient : $request->input('active_ingredient'),
+                'dosage_form' => $request->dosage_form,
+                'concentration_value' => $medicine ? $medicine->concentration_value : $request->input('concentration_value'),
+                'concentration_unit' => $medicine ? $medicine->concentration_unit : $request->input('concentration_unit'),
+                'dose_value' => $request->dose_value,
+                'dose_unit' => $request->dose_unit,
+                'dose_basis' => $request->dose_basis,
+                'administration_route' => $request->administration_route,
+                'frequency_value' => $request->frequency_value,
+                'frequency_unit' => $request->input('frequency_unit', 'kali sehari'),
+                'duration_value' => $request->duration_value,
+                'duration_unit' => $request->input('duration_unit', 'hari'),
+                'quantity_value' => $request->quantity_value ?: 1,
+                'quantity_unit' => $request->input('quantity_unit', $request->dosage_form),
+                'usage_instructions' => $request->usage_instructions,
+                'warnings' => $request->warnings,
+            ]);
+
+            MedicalRecordAuditLog::log($record, Auth::user(), 'prescription_item_added', "Menambahkan resep: {$item->medicine_name_snapshot}.");
+        }
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => "Obat {$item->medicine_name_snapshot} berhasil ditambahkan ke resep.",
+                'item' => $item,
+            ]);
+        }
+
+        return redirect()->route('dokter.medical-records.examine', ['record' => $record->id, 'step' => 4])
+            ->with('success', "Obat {$item->medicine_name_snapshot} berhasil ditambahkan ke resep.");
+    }
+
+    /**
+     * Set prescription mode (regular, compounded, manual).
+     */
+    public function setPrescriptionMode(Request $request, MedicalRecord $record)
+    {
+        $this->authorizeEdit($record);
+
         $request->validate([
-            'medicine_name' => 'required|string|max:255',
-            'medicine_id' => 'nullable|exists:medicines,id',
-            'dosage_form' => 'required|string|max:50',
-            'dose_value' => 'required|numeric|min:0.01',
-            'dose_unit' => 'required|string|max:30',
-            'dose_basis' => 'required|in:fixed,per_kg,other',
-            'administration_route' => 'required|string|max:50',
-            'frequency_value' => 'required|string|max:50',
-            'duration_value' => 'required|string|max:50',
-            'quantity_value' => 'nullable|numeric|min:0.1',
-            'quantity_unit' => 'nullable|string|max:30',
-            'usage_instructions' => 'required|string|max:500',
-            'warnings' => 'nullable|string|max:500',
+            'prescription_type' => 'required|in:regular,compounded,manual',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         $prescription = Prescription::firstOrCreate(
@@ -368,41 +498,29 @@ class VetMedicalRecordController extends Controller
             ]
         );
 
-        $medicine = $request->medicine_id ? Medicine::find($request->medicine_id) : null;
-
-        $item = PrescriptionItem::create([
-            'prescription_id' => $prescription->id,
-            'medicine_id' => $medicine ? $medicine->id : null,
-            'medicine_name_snapshot' => $request->medicine_name,
-            'active_ingredient' => $medicine ? $medicine->active_ingredient : $request->input('active_ingredient'),
-            'dosage_form' => $request->dosage_form,
-            'concentration_value' => $medicine ? $medicine->concentration_value : $request->input('concentration_value'),
-            'concentration_unit' => $medicine ? $medicine->concentration_unit : $request->input('concentration_unit'),
-            'dose_value' => $request->dose_value,
-            'dose_unit' => $request->dose_unit,
-            'dose_basis' => $request->dose_basis,
-            'administration_route' => $request->administration_route,
-            'frequency_value' => $request->frequency_value,
-            'frequency_unit' => $request->input('frequency_unit', 'kali sehari'),
-            'duration_value' => $request->duration_value,
-            'duration_unit' => $request->input('duration_unit', 'hari'),
-            'quantity_value' => $request->quantity_value ?: 1,
-            'quantity_unit' => $request->input('quantity_unit', $request->dosage_form),
-            'usage_instructions' => $request->usage_instructions,
-            'warnings' => $request->warnings,
+        $prescription->update([
+            'prescription_type' => $request->prescription_type,
+            'notes' => $request->notes,
         ]);
 
-        MedicalRecordAuditLog::log($record, Auth::user(), 'prescription_item_added', "Menambahkan resep: {$item->medicine_name_snapshot}.");
+        $typeLabel = match ($request->prescription_type) {
+            Prescription::TYPE_MANUAL => 'Resep Manual (Tulis di Kertas Fisik)',
+            Prescription::TYPE_COMPOUNDED => 'Resep Racikan Veteriner',
+            default => 'Resep Reguler',
+        };
+
+        MedicalRecordAuditLog::log($record, Auth::user(), 'prescription_mode_updated', "Mengubah mode resep menjadi {$typeLabel}.");
 
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'status' => 'success',
-                'message' => "Obat {$item->medicine_name_snapshot} berhasil ditambahkan ke resep.",
-                'item' => $item,
+                'message' => "Mode resep berhasil disetel ke {$typeLabel}.",
+                'prescription' => $prescription,
             ]);
         }
 
-        return redirect()->back()->with('success', "Obat {$item->medicine_name_snapshot} berhasil ditambahkan ke resep.");
+        return redirect()->route('dokter.medical-records.examine', ['record' => $record->id, 'step' => 4])
+            ->with('success', "Mode resep berhasil disetel ke {$typeLabel}.");
     }
 
     /**
@@ -420,7 +538,8 @@ class VetMedicalRecordController extends Controller
 
         MedicalRecordAuditLog::log($record, Auth::user(), 'prescription_item_deleted', "Menghapus obat '{$name}' dari draft resep.");
 
-        return redirect()->back()->with('success', "Obat '{$name}' berhasil dihapus dari resep.");
+        return redirect()->route('dokter.medical-records.examine', ['record' => $record->id, 'step' => 4])
+            ->with('success', "Obat '{$name}' berhasil dihapus dari resep.");
     }
 
     /**
@@ -449,7 +568,7 @@ class VetMedicalRecordController extends Controller
             // Finalize draft prescriptions into 'issued'
             $prescriptions = $record->prescriptions()->where('status', 'draft')->get();
             foreach ($prescriptions as $rx) {
-                if ($rx->items()->exists()) {
+                if ($rx->isManual() || $rx->items()->exists()) {
                     $rx->update([
                         'status' => 'issued',
                         'issued_at' => now(),

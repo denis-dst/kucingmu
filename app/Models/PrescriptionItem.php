@@ -13,6 +13,9 @@ class PrescriptionItem extends Model
         'prescription_id',
         'medicine_id',
         'medicine_name_snapshot',
+        'is_racikan',
+        'racikan_name',
+        'composition',
         'active_ingredient',
         'dosage_form',
         'concentration_value',
@@ -32,6 +35,7 @@ class PrescriptionItem extends Model
     ];
 
     protected $casts = [
+        'is_racikan' => 'boolean',
         'concentration_value' => 'decimal:2',
         'dose_value' => 'decimal:2',
         'quantity_value' => 'decimal:2',
