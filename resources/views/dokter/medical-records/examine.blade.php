@@ -1376,19 +1376,22 @@
                             <button type="button"
                                     @click="copyTypeFilter = 'all'"
                                     :class="copyTypeFilter === 'all' ? 'bg-teal-700 text-white font-bold shadow-xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
-                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0">
+                                    :style="copyTypeFilter === 'all' ? 'background-color: #0f766e !important; color: #ffffff !important;' : ''"
+                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0 cursor-pointer">
                                 Semua (<span x-text="copyablePrescriptions.length"></span>)
                             </button>
                             <button type="button"
                                     @click="copyTypeFilter = 'regular'"
                                     :class="copyTypeFilter === 'regular' ? 'bg-teal-700 text-white font-bold shadow-xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
-                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0">
+                                    :style="copyTypeFilter === 'regular' ? 'background-color: #0f766e !important; color: #ffffff !important;' : ''"
+                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0 cursor-pointer">
                                 💊 Resep Reguler
                             </button>
                             <button type="button"
                                     @click="copyTypeFilter = 'compounded'"
-                                    :class="copyTypeFilter === 'compounded' ? 'bg-purple-700 text-white font-bold shadow-xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
-                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0">
+                                    :class="copyTypeFilter === 'compounded' ? 'bg-teal-700 text-white font-bold shadow-xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
+                                    :style="copyTypeFilter === 'compounded' ? 'background-color: #0f766e !important; color: #ffffff !important;' : ''"
+                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0 cursor-pointer">
                                 🧪 Resep Racikan
                             </button>
                         </div>
