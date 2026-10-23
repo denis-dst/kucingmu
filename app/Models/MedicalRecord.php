@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class MedicalRecord extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'record_number',
@@ -34,7 +36,18 @@ class MedicalRecord extends Model
         'started_at',
         'completed_at',
         'created_by',
+        'deleted_by',
     ];
+
+    protected static function booted()
+    {
+        static::deleting(function ($record) {
+            if (Auth::check() && empty($record->deleted_by)) {
+                $record->deleted_by = Auth::id();
+                $record->saveQuietly();
+            }
+        });
+    }
 
     protected $casts = [
         'deworming_given' => 'boolean',
@@ -89,6 +102,11 @@ class MedicalRecord extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function deleter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function subjective(): HasOne
@@ -161,6 +179,13 @@ class MedicalRecord extends Model
         if ($user->isAdmin()) return true;
         if ($this->isCompleted() || $this->isCancelled()) return false;
         return (int) $this->vet_id === (int) $user->id;
+    }
+
+    public function canBeDeletedBy(?User $user): bool
+    {
+        if (!$user) return false;
+        if ($user->isAdmin()) return true;
+        return (int) $this->vet_id === (int) $user->id || (int) $this->created_by === (int) $user->id;
     }
 
     public function getStatusLabelAttribute(): string

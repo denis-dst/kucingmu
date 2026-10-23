@@ -1,5 +1,27 @@
 <x-app-layout>
-    <div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+    <div class="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8" 
+         x-data="{ 
+             deleteModalOpen: false, 
+             deleteRecordId: null, 
+             deleteRecordNumber: '', 
+             deleteCatName: '',
+             deleteActionUrl: '',
+             openDeleteModal(id, recordNumber, catName, actionUrl) {
+                 this.deleteRecordId = id;
+                 this.deleteRecordNumber = recordNumber;
+                 this.deleteCatName = catName;
+                 this.deleteActionUrl = actionUrl;
+                 this.deleteModalOpen = true;
+             },
+             closeDeleteModal() {
+                 this.deleteModalOpen = false;
+                 this.deleteRecordId = null;
+                 this.deleteRecordNumber = '';
+                 this.deleteCatName = '';
+                 this.deleteActionUrl = '';
+             }
+         }"
+         @keydown.escape.window="closeDeleteModal()">
         
         <!-- Header Banner -->
         <div class="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -11,7 +33,7 @@
                 <h1 class="font-outfit text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
                     Portal & Antrian Dokter Hewan
                 </h1>
-                <p class="text-sm text-slate-600 max-w-2xl">
+                <p class="text-sm text-slate-600 max-w-2xl leading-relaxed">
                     Kelola antrian pemeriksaan kucing pasien hari ini, buat catatan klinis terstandar SOAP (Subjective, Objective, Assessment, Plan), terbitkan resep elektronik, dan tinjau riwayat kesehatan kucing.
                 </p>
             </div>
@@ -159,9 +181,9 @@
                 </div>
 
                 <!-- Filters -->
-                <form method="GET" action="{{ route('dokter.medical-records.index') }}" class="flex flex-wrap items-center gap-2.5">
+                <form method="GET" action="{{ route('dokter.medical-records.index') }}" class="flex flex-col sm:flex-row sm:items-center flex-wrap gap-2.5">
                     <!-- Status Filter -->
-                    <select name="status" onchange="this.form.submit()" class="text-xs rounded-xl border-slate-200 py-1.5 px-3 font-medium text-slate-700 focus:ring-teal-600 focus:border-teal-600">
+                    <select name="status" onchange="this.form.submit()" class="text-xs rounded-xl border-slate-200 py-2 px-3 font-medium text-slate-700 focus:ring-teal-600 focus:border-teal-600 bg-white">
                         <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>Semua Status</option>
                         <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>Sedang Diperiksa</option>
                         <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
@@ -169,22 +191,22 @@
                     </select>
 
                     <!-- Service Type Filter -->
-                    <select name="service_type" onchange="this.form.submit()" class="text-xs rounded-xl border-slate-200 py-1.5 px-3 font-medium text-slate-700 focus:ring-teal-600 focus:border-teal-600">
+                    <select name="service_type" onchange="this.form.submit()" class="text-xs rounded-xl border-slate-200 py-2 px-3 font-medium text-slate-700 focus:ring-teal-600 focus:border-teal-600 bg-white">
                         <option value="all" {{ request('service_type') === 'all' || !request('service_type') ? 'selected' : '' }}>Semua Layanan</option>
                         <option value="clinic" {{ request('service_type') === 'clinic' ? 'selected' : '' }}>Pemeriksaan Klinik</option>
                         <option value="online" {{ request('service_type') === 'online' ? 'selected' : '' }}>Telekonsultasi Online</option>
                     </select>
 
                     <!-- Search Input -->
-                    <div class="relative">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kucing / No RM..." class="text-xs rounded-xl border-slate-200 py-1.5 pl-3 pr-8 w-44 md:w-56 text-slate-700 focus:ring-teal-600 focus:border-teal-600">
-                        <button type="submit" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+                    <div class="relative w-full sm:w-56 md:w-64">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kucing / No RM..." class="w-full text-xs rounded-xl border-slate-200 py-2 pl-3 pr-8 text-slate-700 focus:ring-teal-600 focus:border-teal-600 bg-white">
+                        <button type="submit" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs" title="Cari">
                             🔍
                         </button>
                     </div>
 
                     @if(request()->anyFilled(['status', 'service_type', 'search']))
-                        <a href="{{ route('dokter.medical-records.index') }}" class="text-xs text-rose-600 hover:underline font-semibold">Reset</a>
+                        <a href="{{ route('dokter.medical-records.index') }}" class="text-xs text-rose-600 hover:underline font-semibold py-1">Reset Filter</a>
                     @endif
                 </form>
             </div>
@@ -195,70 +217,83 @@
                     <p class="mt-3 text-sm font-semibold text-slate-700">Belum ada data rekam medis yang sesuai kriteria.</p>
                 </div>
             @else
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
+                <!-- Desktop Table View -->
+                <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full min-w-[960px] text-left text-xs border-collapse">
                         <thead>
-                            <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
-                                <th class="py-3 px-3">No. Rekam Medis</th>
-                                <th class="py-3 px-3">Pasien Kucing</th>
-                                <th class="py-3 px-3">Pemilik</th>
-                                <th class="py-3 px-3">Layanan</th>
-                                <th class="py-3 px-3">Diagnosis Utama</th>
-                                <th class="py-3 px-3">Status</th>
-                                <th class="py-3 px-3">Tanggal</th>
-                                <th class="py-3 px-3 text-right">Aksi</th>
+                            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+                                <th scope="col" class="py-3 px-3.5 whitespace-nowrap">No. Rekam Medis</th>
+                                <th scope="col" class="py-3 px-3.5 min-w-[150px]">Pasien Kucing</th>
+                                <th scope="col" class="py-3 px-3.5 min-w-[140px]">Pemilik</th>
+                                <th scope="col" class="py-3 px-3.5 whitespace-nowrap min-w-[130px]">Layanan</th>
+                                <th scope="col" class="py-3 px-3.5 min-w-[180px]">Diagnosis Utama</th>
+                                <th scope="col" class="py-3 px-3.5 whitespace-nowrap min-w-[130px]">Status</th>
+                                <th scope="col" class="py-3 px-3.5 whitespace-nowrap min-w-[120px]">Tanggal</th>
+                                <th scope="col" class="py-3 px-3.5 whitespace-nowrap text-right min-w-[170px]">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                        <tbody class="divide-y divide-slate-100 bg-white text-slate-700">
                             @foreach($records as $rec)
-                                <tr class="hover:bg-slate-50/80 transition">
-                                    <td class="py-3 px-3 font-mono font-semibold text-slate-900">
+                                <tr class="hover:bg-slate-50/70 transition">
+                                    <td class="py-3.5 px-3.5 font-mono font-semibold text-slate-900 whitespace-nowrap">
                                         {{ $rec->record_number }}
                                     </td>
-                                    <td class="py-3 px-3">
+                                    <td class="py-3.5 px-3.5">
                                         <div class="font-bold text-slate-900">{{ $rec->cat->name ?? '-' }}</div>
-                                        <div class="text-[11px] text-slate-400">{{ $rec->cat->breed ?? '-' }}</div>
+                                        <div class="text-[11px] text-slate-500">{{ $rec->cat->breed ?? '-' }}</div>
                                     </td>
-                                    <td class="py-3 px-3">
+                                    <td class="py-3.5 px-3.5">
                                         <div class="font-medium text-slate-800">{{ $rec->member->name ?? ($rec->cat->owner->name ?? '-') }}</div>
                                         <div class="text-[10px] text-slate-400 font-mono">{{ $rec->member->formatted_nbm ?? ($rec->cat->owner->formatted_nbm ?? '-') }}</div>
                                     </td>
-                                    <td class="py-3 px-3">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold {{ $rec->service_type === 'online' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-teal-50 text-teal-800 border border-teal-200' }}">
+                                    <td class="py-3.5 px-3.5 whitespace-nowrap">
+                                        <span class="inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-md text-[11px] font-medium leading-none {{ $rec->service_type === 'online' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-teal-50 text-teal-800 border border-teal-200' }}">
                                             {{ $rec->service_type_label }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-3">
+                                    <td class="py-3.5 px-3.5">
                                         @if($rec->primaryDiagnosis)
-                                            <div class="font-semibold text-slate-900">{{ $rec->primaryDiagnosis->diagnosis_name }}</div>
-                                            <div class="text-[10px] text-slate-400 capitalize">{{ $rec->primaryDiagnosis->certainty }}</div>
+                                            <div class="font-semibold text-slate-900 leading-snug">{{ $rec->primaryDiagnosis->diagnosis_name }}</div>
+                                            <div class="text-[10px] text-slate-500 capitalize">{{ $rec->primaryDiagnosis->certainty }}</div>
                                         @elseif($rec->general_condition)
-                                            <div class="text-slate-600">{{ $rec->general_condition }}</div>
+                                            <div class="text-slate-700">{{ $rec->general_condition }}</div>
                                         @else
                                             <span class="text-slate-400 italic">Belum ditetapkan</span>
                                         @endif
                                     </td>
-                                    <td class="py-3 px-3">
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border {{ $rec->status_badge_class }}">
+                                    <td class="py-3.5 px-3.5 whitespace-nowrap">
+                                        <span class="inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium leading-none border {{ $rec->status_badge_class }}">
                                             {{ $rec->status_label }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-3 text-slate-500 whitespace-nowrap">
+                                    <td class="py-3.5 px-3.5 text-slate-500 whitespace-nowrap text-[11px]">
                                         {{ $rec->created_at->format('d M Y, H:i') }}
                                     </td>
-                                    <td class="py-3 px-3 text-right whitespace-nowrap space-x-1.5">
-                                        @if($rec->isCompleted())
-                                            <a href="{{ route('dokter.medical-records.show', $rec) }}" class="inline-flex items-center px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition">
-                                                Lihat Rekam Medis
-                                            </a>
-                                            <a href="{{ route('dokter.medical-records.print', $rec) }}" target="_blank" class="inline-flex items-center px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition">
-                                                🖨️ Cetak
-                                            </a>
-                                        @else
-                                            <a href="{{ route('dokter.medical-records.examine', $rec) }}" class="inline-flex items-center px-2.5 py-1 rounded bg-teal-700 hover:bg-teal-800 text-white font-semibold text-[11px] transition shadow-xs">
-                                                Lanjutkan SOAP &rarr;
-                                            </a>
-                                        @endif
+                                    <td class="py-3.5 px-3.5 text-right whitespace-nowrap">
+                                        <div class="inline-flex items-center justify-end gap-1.5">
+                                            @if($rec->isCompleted())
+                                                <a href="{{ route('dokter.medical-records.show', $rec) }}" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition" title="Lihat Rekam Medis">
+                                                    <span>Lihat</span>
+                                                </a>
+                                                <a href="{{ route('dokter.medical-records.print', $rec) }}" target="_blank" class="inline-flex items-center px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition" title="Cetak Ringkasan Medis">
+                                                    <span>🖨️</span>
+                                                </a>
+                                            @else
+                                                <a href="{{ route('dokter.medical-records.examine', $rec) }}" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold text-[11px] transition shadow-2xs" title="Lanjutkan SOAP">
+                                                    <span>Lanjut SOAP &rarr;</span>
+                                                </a>
+                                            @endif
+
+                                            @if($rec->canBeDeletedBy(Auth::user()))
+                                                <button type="button" 
+                                                        @click="openDeleteModal({{ $rec->id }}, '{{ $rec->record_number }}', '{{ addslashes($rec->cat->name ?? 'Pasien') }}', '{{ route('dokter.medical-records.destroy', $rec) }}')" 
+                                                        class="inline-flex items-center px-2 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-200 hover:border-rose-300 font-semibold text-[11px] transition shadow-2xs" 
+                                                        title="Hapus Rekam Medis (Soft Delete)">
+                                                    <span class="sr-only">Hapus</span>
+                                                    <span>🗑️</span>
+                                                </button>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -266,10 +301,146 @@
                     </table>
                 </div>
 
+                <!-- Mobile Responsive Card View -->
+                <div class="block md:hidden space-y-3">
+                    @foreach($records as $rec)
+                        <div class="rounded-xl border border-slate-200 p-4 bg-white shadow-2xs space-y-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="font-mono text-xs font-bold text-slate-900 block">{{ $rec->record_number }}</span>
+                                    <span class="text-[11px] text-slate-500">{{ $rec->created_at->format('d M Y, H:i') }}</span>
+                                </div>
+                                <span class="inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-[10px] font-medium border shrink-0 {{ $rec->status_badge_class }}">
+                                    {{ $rec->status_label }}
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-3 pt-2 border-t border-slate-100">
+                                @if($rec->cat && $rec->cat->primary_photo_url)
+                                    <img src="{{ $rec->cat->primary_photo_url }}" alt="{{ $rec->cat->name }}" class="w-10 h-10 rounded-lg object-cover border border-slate-200 shrink-0">
+                                @else
+                                    <div class="w-10 h-10 rounded-lg bg-teal-50 text-teal-800 font-bold text-sm flex items-center justify-center shrink-0 border border-teal-100">
+                                        {{ substr($rec->cat->name ?? 'K', 0, 1) }}
+                                    </div>
+                                @endif
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="font-bold text-slate-900 text-sm truncate">{{ $rec->cat->name ?? '-' }}</h3>
+                                    <p class="text-xs text-slate-500 truncate">{{ $rec->cat->breed ?? '-' }} &bull; {{ $rec->member->name ?? ($rec->cat->owner->name ?? '-') }}</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50/70 p-2.5 rounded-lg border border-slate-100 space-y-1.5 text-xs">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-slate-500 text-[11px]">Layanan:</span>
+                                    <span class="inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded text-[10px] font-medium {{ $rec->service_type === 'online' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-teal-50 text-teal-800 border border-teal-200' }}">
+                                        {{ $rec->service_type_label }}
+                                    </span>
+                                </div>
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="text-slate-500 text-[11px] shrink-0">Diagnosis:</span>
+                                    <span class="font-semibold text-slate-800 text-right text-[11px]">
+                                        @if($rec->primaryDiagnosis)
+                                            {{ $rec->primaryDiagnosis->diagnosis_name }}
+                                        @elseif($rec->general_condition)
+                                            {{ $rec->general_condition }}
+                                        @else
+                                            <span class="text-slate-400 italic">Belum ditetapkan</span>
+                                        @endif
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                                <div class="flex items-center gap-1.5">
+                                    @if($rec->isCompleted())
+                                        <a href="{{ route('dokter.medical-records.show', $rec) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition">
+                                            Lihat Rekam Medis
+                                        </a>
+                                        <a href="{{ route('dokter.medical-records.print', $rec) }}" target="_blank" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition" title="Cetak">
+                                            🖨️
+                                        </a>
+                                    @else
+                                        <a href="{{ route('dokter.medical-records.examine', $rec) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition shadow-2xs">
+                                            Lanjut SOAP &rarr;
+                                        </a>
+                                    @endif
+                                </div>
+
+                                @if($rec->canBeDeletedBy(Auth::user()))
+                                    <button type="button" 
+                                            @click="openDeleteModal({{ $rec->id }}, '{{ $rec->record_number }}', '{{ addslashes($rec->cat->name ?? 'Pasien') }}', '{{ route('dokter.medical-records.destroy', $rec) }}')" 
+                                            class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-white hover:bg-rose-50 text-rose-600 hover:text-rose-700 border border-slate-200 hover:border-rose-300 font-semibold text-xs transition"
+                                            title="Hapus Rekam Medis">
+                                        <span>🗑️ Hapus</span>
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
                 <div class="pt-4 border-t border-slate-100">
                     {{ $records->links() }}
                 </div>
             @endif
+        </div>
+
+        <!-- Delete Confirmation Modal (Soft Delete) -->
+        <div x-cloak x-show="deleteModalOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Backdrop -->
+                <div x-show="deleteModalOpen" 
+                     x-transition:enter="ease-out duration-200" 
+                     x-transition:enter-start="opacity-0" 
+                     x-transition:enter-end="opacity-100" 
+                     x-transition:leave="ease-in duration-150" 
+                     x-transition:leave-start="opacity-100" 
+                     x-transition:leave-end="opacity-0" 
+                     class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" 
+                     @click="closeDeleteModal()" 
+                     aria-hidden="true"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <!-- Modal Dialog -->
+                <div x-show="deleteModalOpen" 
+                     x-transition:enter="ease-out duration-200" 
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                     x-transition:leave="ease-in duration-150" 
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                     class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-200 p-6 space-y-4">
+                    
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 flex items-center justify-center shrink-0 text-lg">
+                            🗑️
+                        </div>
+                        <div class="space-y-1">
+                            <h3 class="font-outfit font-bold text-slate-900 text-lg" id="modal-title">
+                                Hapus Rekam Medis?
+                            </h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Anda akan menghapus rekam medis <span class="font-mono font-bold text-slate-900" x-text="deleteRecordNumber"></span> untuk pasien <span class="font-bold text-slate-900" x-text="deleteCatName"></span>.
+                            </p>
+                            <p class="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                                Rekam medis ini akan diarsipkan (soft delete). Catatan audit dan riwayat tetap aman dan dapat dipulihkan oleh administrator jika diperlukan.
+                            </p>
+                        </div>
+                    </div>
+
+                    <form :action="deleteActionUrl" method="POST" class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                        @csrf
+                        @method('DELETE')
+                        <button type="button" @click="closeDeleteModal()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition shadow-xs focus:ring-2 focus:ring-rose-500 focus:outline-hidden">
+                            Ya, Hapus Rekam Medis
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
 
     </div>

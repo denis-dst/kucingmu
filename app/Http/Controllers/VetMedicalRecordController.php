@@ -587,6 +587,47 @@ class VetMedicalRecordController extends Controller
     }
 
     /**
+     * Soft delete medical record and audit the deletion.
+     */
+    public function destroy(MedicalRecord $record)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if (!$record->canBeDeletedBy($user)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menghapus rekam medis ini.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $recordNumber = $record->record_number;
+
+            // Revert appointment status if it was completed by this record
+            if ($record->appointment && $record->appointment->status === 'completed') {
+                $record->appointment->update(['status' => 'checked_in']);
+            }
+
+            MedicalRecordAuditLog::log(
+                $record,
+                $user,
+                'deleted',
+                "Rekam medis #{$recordNumber} dihapus (soft delete) oleh {$user->name}."
+            );
+
+            $record->delete();
+
+            DB::commit();
+
+            return redirect()->route('dokter.medical-records.index')
+                ->with('success', "Rekam medis #{$recordNumber} berhasil dihapus.");
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Gagal menghapus rekam medis: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menghapus rekam medis: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Show member-facing medical summary (PRD Section 9).
      * Internal notes and audit logs are strictly excluded.
      */
