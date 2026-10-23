@@ -1333,96 +1333,102 @@
              role="dialog"
              aria-modal="true"
              @keydown.escape.window="showCopyModal = false">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <div @click="showCopyModal = false" class="fixed inset-0 bg-slate-900/60 transition-opacity" aria-hidden="true"></div>
+            <div class="min-h-full flex items-end sm:items-center justify-center p-0 sm:p-4 text-center">
+                <div @click="showCopyModal = false" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" aria-hidden="true"></div>
 
-                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full border border-slate-200">
-                    <!-- Modal Header -->
-                    <div class="bg-gradient-to-r from-teal-900 to-slate-900 px-6 py-4 text-white flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <span class="text-2xl">📋</span>
-                            <div>
-                                <h3 id="copy-modal-title" class="font-outfit text-base sm:text-lg font-bold text-white">Salin Resep Pasien Lain (Copy Resep)</h3>
-                                <p class="text-xs text-teal-100">Gunakan resep reguler atau formula racikan dari pemeriksaan SOAP kucing lain</p>
+                <div class="relative w-full max-w-full sm:max-w-3xl bg-white rounded-t-2xl sm:rounded-2xl text-left shadow-2xl transform transition-all border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh] z-10">
+                    <!-- Modal Header (Fixed at top) -->
+                    <div class="bg-gradient-to-r from-teal-900 to-slate-900 px-4 sm:px-6 py-3.5 sm:py-4 text-white flex items-center justify-between gap-3 shrink-0">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="text-xl sm:text-2xl shrink-0">📋</span>
+                            <div class="min-w-0">
+                                <h3 id="copy-modal-title" class="font-outfit text-sm sm:text-lg font-bold text-white truncate">Salin Resep Pasien Lain</h3>
+                                <p class="text-[11px] sm:text-xs text-teal-100 truncate">Gunakan resep reguler atau formula racikan dari kucing lain</p>
                             </div>
                         </div>
-                        <button type="button" @click="showCopyModal = false" class="text-teal-200 hover:text-white font-bold text-base p-1 rounded-lg hover:bg-white/10 transition">✕</button>
+                        <button type="button" 
+                                @click="showCopyModal = false" 
+                                aria-label="Tutup modal"
+                                class="w-10 h-10 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-teal-100 hover:text-white font-bold text-sm transition">
+                            ✕
+                        </button>
                     </div>
 
-                    <!-- Search & Filter Bar -->
-                    <div class="p-4 bg-slate-50 border-b border-slate-200 space-y-3">
+                    <!-- Search & Filter Bar (Fixed under header) -->
+                    <div class="p-3 sm:p-4 bg-slate-50 border-b border-slate-200 space-y-2.5 sm:space-y-3 shrink-0">
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">🔍</span>
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-sm">🔍</span>
                             <input type="text"
                                    x-model="copySearch"
-                                   placeholder="Cari nama kucing, pemilik, nomor resep, diagnosis, nama obat, atau racikan..."
+                                   placeholder="Cari nama kucing, pemilik, no. resep, obat, racikan..."
                                    class="w-full text-xs sm:text-sm pl-9 pr-8 py-2 rounded-xl border border-slate-300 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-teal-600">
                             <button type="button"
                                     x-show="copySearch"
                                     @click="copySearch = ''"
+                                    aria-label="Hapus kata kunci pencarian"
                                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 text-xs">
                                 ✕
                             </button>
                         </div>
 
-                        <div class="flex items-center gap-2 flex-wrap text-xs">
-                            <span class="text-slate-500 font-semibold text-[11px]">Filter Mode:</span>
+                        <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 text-xs scrollbar-none">
+                            <span class="text-slate-500 font-semibold text-[11px] whitespace-nowrap shrink-0">Filter:</span>
                             <button type="button"
                                     @click="copyTypeFilter = 'all'"
-                                    :class="copyTypeFilter === 'all' ? 'bg-teal-700 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
-                                    class="px-3 py-1 rounded-lg transition min-h-[32px]">
-                                Semua Resep (<span x-text="copyablePrescriptions.length"></span>)
+                                    :class="copyTypeFilter === 'all' ? 'bg-teal-700 text-white font-bold shadow-xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
+                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0">
+                                Semua (<span x-text="copyablePrescriptions.length"></span>)
                             </button>
                             <button type="button"
                                     @click="copyTypeFilter = 'regular'"
-                                    :class="copyTypeFilter === 'regular' ? 'bg-teal-700 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
-                                    class="px-3 py-1 rounded-lg transition min-h-[32px]">
+                                    :class="copyTypeFilter === 'regular' ? 'bg-teal-700 text-white font-bold shadow-xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
+                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0">
                                 💊 Resep Reguler
                             </button>
                             <button type="button"
                                     @click="copyTypeFilter = 'compounded'"
-                                    :class="copyTypeFilter === 'compounded' ? 'bg-purple-700 text-white font-bold' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
-                                    class="px-3 py-1 rounded-lg transition min-h-[32px]">
+                                    :class="copyTypeFilter === 'compounded' ? 'bg-purple-700 text-white font-bold shadow-xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 font-medium'"
+                                    class="px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition min-h-[34px] text-xs shrink-0">
                                 🧪 Resep Racikan
                             </button>
                         </div>
                     </div>
 
-                    <!-- List of Prescriptions -->
-                    <div class="p-4 sm:p-6 max-h-[60vh] overflow-y-auto space-y-4">
+                    <!-- Scrollable List of Prescriptions -->
+                    <div class="p-3 sm:p-5 flex-1 overflow-y-auto overscroll-contain space-y-3 sm:space-y-4">
                         <template x-if="filteredCopyablePrescriptions.length === 0">
-                            <div class="text-center py-10 text-slate-500 text-xs space-y-2">
+                            <div class="text-center py-10 sm:py-14 text-slate-500 text-xs space-y-2">
                                 <span class="text-3xl block">🔍</span>
-                                <div class="font-semibold text-slate-700">Tidak ada resep yang sesuai</div>
-                                <p class="text-slate-500 text-[11px]">Coba ubah kata kunci pencarian atau ganti filter mode di atas.</p>
+                                <div class="font-semibold text-slate-700 text-sm">Tidak ada resep yang sesuai</div>
+                                <p class="text-slate-500 text-[11px] max-w-xs mx-auto">Coba ubah kata kunci pencarian atau ganti filter kategori resep di atas.</p>
                             </div>
                         </template>
 
                         <template x-for="rx in filteredCopyablePrescriptions" :key="rx.id">
-                            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-teal-300 transition space-y-3">
+                            <div class="rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-3.5 sm:p-4 shadow-2xs hover:border-teal-300 transition space-y-3">
                                 <!-- Prescription Card Header -->
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                                    <div class="flex items-center gap-3">
+                                    <div class="flex items-start sm:items-center gap-3 min-w-0">
                                         <template x-if="rx.cat_photo">
-                                            <img :src="rx.cat_photo" :alt="rx.cat_name" class="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0">
+                                            <img :src="rx.cat_photo" :alt="rx.cat_name" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover border border-slate-200 shrink-0">
                                         </template>
                                         <template x-if="!rx.cat_photo">
-                                            <div class="w-11 h-11 rounded-xl bg-teal-800 text-white font-bold text-base flex items-center justify-center shrink-0" x-text="rx.cat_name.substring(0, 1)"></div>
+                                            <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-teal-800 text-white font-bold text-sm sm:text-base flex items-center justify-center shrink-0" x-text="rx.cat_name.substring(0, 1)"></div>
                                         </template>
-                                        <div>
-                                            <div class="flex items-center gap-2 flex-wrap">
-                                                <h4 class="font-bold text-sm text-slate-900" x-text="rx.cat_name"></h4>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                                <h4 class="font-bold text-xs sm:text-sm text-slate-900" x-text="rx.cat_name"></h4>
                                                 <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-slate-100 text-slate-700" x-text="rx.prescription_number"></span>
                                                 <span class="text-[10px] px-2 py-0.5 rounded font-bold"
                                                       :class="rx.type === 'compounded' ? 'bg-purple-100 text-purple-800' : 'bg-teal-100 text-teal-800'"
                                                       x-text="rx.type_label"></span>
                                             </div>
-                                            <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                                            <div class="text-[11px] text-slate-500 mt-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
                                                 <span>Pemilik: <strong class="text-slate-700" x-text="rx.owner_name"></strong></span>
                                                 <span>&bull;</span>
                                                 <span x-text="rx.date_formatted"></span>
-                                                <span>&bull;</span>
-                                                <span>Dokter: <span x-text="rx.doctor_name"></span></span>
+                                                <span class="hidden sm:inline">&bull;</span>
+                                                <span class="hidden sm:inline">Dokter: <span x-text="rx.doctor_name"></span></span>
                                             </div>
                                             <div class="text-[11px] text-teal-800 font-medium mt-0.5">
                                                 Diagnosis: <span class="font-semibold" x-text="rx.diagnosis_name"></span>
@@ -1431,13 +1437,13 @@
                                     </div>
 
                                     <!-- Action: Copy Entire Prescription -->
-                                    <form method="POST" action="{{ route('dokter.medical-records.prescription.copy', $record) }}" class="shrink-0">
+                                    <form method="POST" action="{{ route('dokter.medical-records.prescription.copy', $record) }}" class="w-full sm:w-auto shrink-0">
                                         @csrf
                                         <input type="hidden" name="prescription_id" :value="rx.id">
                                         <button type="submit"
-                                                class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-800 hover:bg-teal-900 text-white font-bold text-xs shadow-xs transition min-h-[44px]">
+                                                class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-teal-800 hover:bg-teal-900 text-white font-bold text-xs shadow-xs transition min-h-[44px]">
                                             <span>📥</span>
-                                            <span>Salin Seluruh Resep (<span x-text="rx.items_count"></span> Item)</span>
+                                            <span>Salin Semua (<span x-text="rx.items_count"></span> Item)</span>
                                         </button>
                                     </form>
                                 </div>
@@ -1447,8 +1453,8 @@
                                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-600 block">Daftar Item Obat / Formula:</span>
                                     <div class="grid gap-2">
                                         <template x-for="item in rx.items" :key="item.id">
-                                            <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                                                <div class="space-y-0.5">
+                                            <div class="p-2.5 sm:p-3 rounded-xl border border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                                                <div class="space-y-1 min-w-0 flex-1">
                                                     <div class="flex items-center gap-1.5 flex-wrap">
                                                         <template x-if="item.is_racikan">
                                                             <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 text-purple-800">🧪 Racikan</span>
@@ -1461,25 +1467,25 @@
                                                     </div>
 
                                                     <template x-if="item.is_racikan && item.composition">
-                                                        <div class="text-[11px] text-purple-950 font-mono bg-purple-50 p-1.5 rounded border border-purple-100">
+                                                        <div class="text-[11px] text-purple-950 font-mono bg-purple-50 p-2 rounded-lg border border-purple-100 break-words">
                                                             <strong>Formula:</strong> <span x-text="item.composition"></span>
                                                         </div>
                                                     </template>
 
-                                                    <div class="text-[11px] text-slate-600" x-text="item.summary"></div>
+                                                    <div class="text-[11px] text-slate-600 leading-relaxed" x-text="item.summary"></div>
                                                     <template x-if="item.instructions">
-                                                        <div class="text-[11px] text-slate-500 italic">
+                                                        <div class="text-[11px] text-slate-500 italic leading-snug">
                                                             Aturan pakai: "<span x-text="item.instructions"></span>"
                                                         </div>
                                                     </template>
                                                 </div>
 
                                                 <!-- Copy Single Item Button -->
-                                                <form method="POST" action="{{ route('dokter.medical-records.prescription.copy', $record) }}" class="shrink-0 self-end sm:self-center">
+                                                <form method="POST" action="{{ route('dokter.medical-records.prescription.copy', $record) }}" class="w-full sm:w-auto shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-200/60">
                                                     @csrf
                                                     <input type="hidden" name="prescription_item_id" :value="item.id">
                                                     <button type="submit"
-                                                            class="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-800 font-semibold text-xs border border-slate-200 hover:border-teal-300 shadow-2xs transition min-h-[44px]">
+                                                            class="w-full sm:w-auto inline-flex items-center justify-center gap-1 px-3 py-2 rounded-lg bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-800 font-semibold text-xs border border-slate-200 hover:border-teal-300 shadow-2xs transition min-h-[40px] sm:min-h-[36px]">
                                                         <span>+</span>
                                                         <span>Salin Item Ini</span>
                                                     </button>
@@ -1492,13 +1498,15 @@
                         </template>
                     </div>
 
-                    <!-- Modal Footer -->
-                    <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <!-- Modal Footer (Fixed at bottom) -->
+                    <div class="bg-slate-50 px-4 sm:px-6 py-3 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs shrink-0">
                         <div class="text-slate-500 text-[11px] flex items-center gap-1.5">
                             <span>💡</span>
-                            <span>Item yang disalin akan masuk ke draf resep aktif pasien dan dapat disesuaikan kembali dosisnya.</span>
+                            <span>Item yang disalin akan masuk ke draf resep aktif pasien saat ini.</span>
                         </div>
-                        <button type="button" @click="showCopyModal = false" class="px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 font-semibold text-xs transition min-h-[40px]">
+                        <button type="button" 
+                                @click="showCopyModal = false" 
+                                class="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 font-semibold text-xs transition min-h-[44px] flex items-center justify-center">
                             Tutup
                         </button>
                     </div>
