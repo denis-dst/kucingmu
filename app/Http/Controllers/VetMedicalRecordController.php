@@ -288,12 +288,74 @@ class VetMedicalRecordController extends Controller
         // Active master medicines for autocomplete
         $medicines = Medicine::active()->orderBy('name', 'asc')->get();
 
+        // Copyable prescriptions from other medical records (excluding current record)
+        $copyablePrescriptions = Prescription::whereHas('items')
+            ->where('medical_record_id', '!=', $record->id)
+            ->with([
+                'medicalRecord.cat.photos',
+                'medicalRecord.cat.owner',
+                'medicalRecord.primaryDiagnosis',
+                'items.medicine',
+                'doctor',
+            ])
+            ->latest('id')
+            ->take(60)
+            ->get();
+
+        $copyablePrescriptionsData = $copyablePrescriptions->map(function ($rx) {
+            $cat = $rx->medicalRecord->cat ?? null;
+            $primaryDiag = $rx->medicalRecord->primaryDiagnosis ?? null;
+            return [
+                'id' => $rx->id,
+                'prescription_number' => $rx->prescription_number,
+                'type' => $rx->prescription_type ?: 'regular',
+                'type_label' => $rx->type_label,
+                'cat_name' => $cat->name ?? 'Pasien Kucing',
+                'cat_breed' => $cat->breed ?? 'Domestik',
+                'cat_gender' => $cat ? ($cat->gender === 'male' ? 'Jantan' : 'Betina') : '-',
+                'cat_photo' => $cat ? $cat->primary_photo_url : null,
+                'owner_name' => $cat->owner->name ?? '-',
+                'doctor_name' => $rx->doctor->name ?? '-',
+                'diagnosis_name' => $primaryDiag->diagnosis_name ?? 'Pemeriksaan Klinis',
+                'date_formatted' => $rx->created_at ? $rx->created_at->format('d M Y') : '-',
+                'items_count' => $rx->items->count(),
+                'items' => $rx->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'name' => $item->is_racikan ? ($item->racikan_name ?: $item->medicine_name_snapshot) : $item->medicine_name_snapshot,
+                        'is_racikan' => (bool) $item->is_racikan,
+                        'dosage_form' => $item->dosage_form,
+                        'composition' => $item->composition,
+                        'instructions' => $item->usage_instructions,
+                        'summary' => ($item->is_racikan ? 'Racikan: ' : 'Dosis: ') .
+                                     ($item->is_racikan ? $item->dosage_form : ($item->dose_value . ' ' . $item->dose_unit)) .
+                                     ' • ' . $item->frequency_value . ' • ' . $item->duration_value,
+                    ];
+                }),
+                'search_text' => strtolower(
+                    ($cat->name ?? '') . ' ' .
+                    ($cat->owner->name ?? '') . ' ' .
+                    $rx->prescription_number . ' ' .
+                    ($primaryDiag->diagnosis_name ?? '') . ' ' .
+                    $rx->items->pluck('medicine_name_snapshot')->join(' ') . ' ' .
+                    $rx->items->pluck('racikan_name')->join(' ') . ' ' .
+                    $rx->items->pluck('composition')->join(' ')
+                ),
+            ];
+        })->values();
+
         $activeStep = $request->query('step');
         if (!$activeStep || !in_array((int)$activeStep, [1, 2, 3, 4, 5])) {
             $activeStep = $record->determineLastFilledStep();
         }
 
-        return view('dokter.medical-records.examine', compact('record', 'previousRecords', 'medicines', 'activeStep'));
+        return view('dokter.medical-records.examine', compact(
+            'record',
+            'previousRecords',
+            'medicines',
+            'activeStep',
+            'copyablePrescriptionsData'
+        ));
     }
 
     /**
@@ -578,6 +640,127 @@ class VetMedicalRecordController extends Controller
         return redirect()->route('dokter.medical-records.examine', ['record' => $record->id, 'step' => 4])
             ->with('success', "Obat '{$name}' berhasil dihapus dari resep.");
     }
+
+    /**
+     * Copy an entire prescription or single prescription item into this record's draft prescription.
+     */
+    public function copyPrescription(Request $request, MedicalRecord $record)
+    {
+        $this->authorizeEdit($record);
+
+        $request->validate([
+            'prescription_id' => 'nullable|exists:prescriptions,id',
+            'prescription_item_id' => 'nullable|exists:prescription_items,id',
+        ]);
+
+        if (!$request->prescription_id && !$request->prescription_item_id) {
+            return redirect()->route('dokter.medical-records.examine', ['record' => $record->id, 'step' => 4])
+                ->with('error', 'Pilih resep atau item resep yang ingin disalin.');
+        }
+
+        $targetPrescription = Prescription::firstOrCreate(
+            ['medical_record_id' => $record->id, 'status' => 'draft'],
+            [
+                'prescription_number' => Prescription::generatePrescriptionNumber(),
+                'prescribed_by' => Auth::id(),
+                'prescription_type' => Prescription::TYPE_REGULAR,
+            ]
+        );
+
+        $copiedCount = 0;
+        $msg = 'Resep berhasil disalin.';
+
+        if ($request->filled('prescription_item_id')) {
+            $sourceItem = PrescriptionItem::findOrFail($request->prescription_item_id);
+            $this->duplicatePrescriptionItem($sourceItem, $targetPrescription);
+            $copiedCount = 1;
+
+            if ($sourceItem->is_racikan && $targetPrescription->isRegular()) {
+                $targetPrescription->update(['prescription_type' => Prescription::TYPE_COMPOUNDED]);
+            } elseif ($targetPrescription->isManual()) {
+                $targetPrescription->update([
+                    'prescription_type' => $sourceItem->is_racikan ? Prescription::TYPE_COMPOUNDED : Prescription::TYPE_REGULAR
+                ]);
+            }
+
+            $sourceLabel = $sourceItem->is_racikan ? ($sourceItem->racikan_name ?: 'Racikan') : $sourceItem->medicine_name_snapshot;
+            $msg = "Item resep '{$sourceLabel}' berhasil disalin ke resep pasien.";
+        } elseif ($request->filled('prescription_id')) {
+            $sourcePrescription = Prescription::with(['items', 'medicalRecord.cat'])->findOrFail($request->prescription_id);
+            $hasRacikan = false;
+
+            foreach ($sourcePrescription->items as $item) {
+                $this->duplicatePrescriptionItem($item, $targetPrescription);
+                if ($item->is_racikan) {
+                    $hasRacikan = true;
+                }
+                $copiedCount++;
+            }
+
+            if ($hasRacikan || $sourcePrescription->isCompounded()) {
+                $targetPrescription->update(['prescription_type' => Prescription::TYPE_COMPOUNDED]);
+            } elseif ($targetPrescription->isManual()) {
+                $targetPrescription->update(['prescription_type' => Prescription::TYPE_REGULAR]);
+            }
+
+            $catName = $sourcePrescription->medicalRecord->cat->name ?? 'pasien lain';
+            $msg = "Resep ({$copiedCount} item) dari {$catName} ({$sourcePrescription->prescription_number}) berhasil disalin.";
+        }
+
+        $record->updateLastActiveStep(4);
+
+        MedicalRecordAuditLog::log(
+            $record,
+            Auth::user(),
+            'prescription_copied',
+            $msg
+        );
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $msg,
+                'copied_count' => $copiedCount,
+            ]);
+        }
+
+        return redirect()->route('dokter.medical-records.examine', ['record' => $record->id, 'step' => 4])
+            ->with('success', $msg);
+    }
+
+    /**
+     * Duplicate a prescription item into target prescription.
+     */
+    protected function duplicatePrescriptionItem(PrescriptionItem $sourceItem, Prescription $targetPrescription): PrescriptionItem
+    {
+        $attributes = $sourceItem->only([
+            'medicine_id',
+            'medicine_name_snapshot',
+            'is_racikan',
+            'racikan_name',
+            'composition',
+            'active_ingredient',
+            'dosage_form',
+            'concentration_value',
+            'concentration_unit',
+            'dose_value',
+            'dose_unit',
+            'dose_basis',
+            'administration_route',
+            'frequency_value',
+            'frequency_unit',
+            'duration_value',
+            'duration_unit',
+            'quantity_value',
+            'quantity_unit',
+            'usage_instructions',
+            'warnings',
+        ]);
+        $attributes['prescription_id'] = $targetPrescription->id;
+
+        return PrescriptionItem::create($attributes);
+    }
+
 
     /**
      * Finalize the medical record (Step 5). Locks record from further direct edits.

@@ -199,49 +199,105 @@
                     @if($recentRecords->isEmpty())
                         <p class="text-sm text-slate-500 py-6 text-center">Belum ada pemeriksaan medis yang tersimpan.</p>
                     @else
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse">
+                        <!-- Desktop / Tablet Table View (horizontal scrollable with min-w, no button wrapping) -->
+                        <div class="hidden sm:block overflow-x-auto rounded-xl border border-slate-100">
+                            <table class="w-full min-w-[660px] text-left text-xs border-collapse">
                                 <thead>
-                                    <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase text-[10px]">
-                                        <th class="py-3 px-2">No. RM / Tanggal</th>
-                                        <th class="py-3 px-2">Kucing</th>
-                                        <th class="py-3 px-2">Pemilik</th>
-                                        <th class="py-3 px-2">Diagnosis / Kondisi</th>
-                                        <th class="py-3 px-2">Berat / Suhu</th>
-                                        <th class="py-3 px-2 text-right">Aksi</th>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px]">
+                                        <th scope="col" class="py-3 px-3.5 whitespace-nowrap">No. RM / Tanggal</th>
+                                        <th scope="col" class="py-3 px-3.5 min-w-[130px]">Kucing</th>
+                                        <th scope="col" class="py-3 px-3.5 min-w-[130px]">Pemilik</th>
+                                        <th scope="col" class="py-3 px-3.5 min-w-[150px]">Diagnosis / Kondisi</th>
+                                        <th scope="col" class="py-3 px-3.5 whitespace-nowrap min-w-[110px]">Berat / Suhu</th>
+                                        <th scope="col" class="py-3 px-3.5 text-right whitespace-nowrap min-w-[110px]">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100 text-slate-700">
+                                <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
                                     @foreach($recentRecords as $rec)
-                                        <tr class="hover:bg-slate-50 transition">
-                                            <td class="py-3 px-2">
+                                        <tr class="hover:bg-slate-50/80 transition">
+                                            <td class="py-3 px-3.5 whitespace-nowrap">
                                                 <div class="font-mono font-bold text-slate-900">{{ $rec->record_number }}</div>
                                                 <div class="text-[10px] text-slate-400">{{ $rec->created_at->format('d M Y, H:i') }}</div>
                                             </td>
-                                            <td class="py-3 px-2 font-bold text-slate-900">{{ $rec->cat->name ?? '-' }}</td>
-                                            <td class="py-3 px-2 text-slate-500">{{ $rec->cat->owner->name ?? '-' }}</td>
-                                            <td class="py-3 px-2">
-                                                @if($rec->primaryDiagnosis)
-                                                    <span class="font-semibold text-slate-800">{{ $rec->primaryDiagnosis->diagnosis_name }}</span>
-                                                @else
-                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 border border-teal-100 text-teal-800">
-                                                        {{ $rec->general_condition }}
-                                                    </span>
+                                            <td class="py-3 px-3.5 font-bold text-slate-900">
+                                                {{ $rec->cat->name ?? '-' }}
+                                                @if(isset($rec->cat->breed))
+                                                    <span class="block font-normal text-[10px] text-slate-500">{{ $rec->cat->breed }}</span>
                                                 @endif
                                             </td>
-                                            <td class="py-3 px-2 font-mono text-[11px]">{{ $rec->weight }}kg / {{ $rec->temperature }}°C</td>
-                                            <td class="py-3 px-2 text-right space-x-1">
-                                                <a href="{{ route('dokter.medical-records.show', $rec) }}" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition">
-                                                    Detail
-                                                </a>
-                                                <a href="{{ route('dokter.medical-records.print', $rec) }}" target="_blank" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] transition">
-                                                    🖨️
-                                                </a>
+                                            <td class="py-3 px-3.5 text-slate-600">{{ $rec->cat->owner->name ?? ($rec->member->name ?? '-') }}</td>
+                                            <td class="py-3 px-3.5">
+                                                @if($rec->primaryDiagnosis)
+                                                    <span class="font-semibold text-slate-800 block">{{ $rec->primaryDiagnosis->diagnosis_name }}</span>
+                                                @elseif($rec->general_condition)
+                                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 border border-teal-100 text-teal-800 inline-block">
+                                                        {{ $rec->general_condition }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-slate-400 italic">Pemeriksaan</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-3 px-3.5 font-mono text-[11px] whitespace-nowrap text-slate-800">
+                                                {{ $rec->weight }} kg &bull; {{ $rec->temperature }} °C
+                                            </td>
+                                            <td class="py-3 px-3.5 text-right whitespace-nowrap">
+                                                <div class="inline-flex items-center justify-end gap-1.5">
+                                                    <a href="{{ route('dokter.medical-records.show', $rec) }}" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition" title="Lihat Detail Rekam Medis">
+                                                        Detail
+                                                    </a>
+                                                    <a href="{{ route('dokter.medical-records.print', $rec) }}" target="_blank" class="inline-flex items-center px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition" title="Cetak Ringkasan Medis">
+                                                        🖨️
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Mobile Responsive Card View (< 640px) -->
+                        <div class="block sm:hidden space-y-3">
+                            @foreach($recentRecords as $rec)
+                                <div class="rounded-xl border border-slate-200 p-4 bg-slate-50/50 hover:bg-white transition space-y-3">
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div>
+                                            <div class="font-mono font-bold text-xs text-slate-900">{{ $rec->record_number }}</div>
+                                            <div class="text-[10px] text-slate-400">{{ $rec->created_at->format('d M Y, H:i') }}</div>
+                                        </div>
+                                        @if($rec->primaryDiagnosis)
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-50 border border-teal-200 text-teal-800 max-w-[160px] truncate">
+                                                {{ $rec->primaryDiagnosis->diagnosis_name }}
+                                            </span>
+                                        @elseif($rec->general_condition)
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+                                                {{ $rec->general_condition }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex items-center justify-between gap-3 text-xs pt-2 border-t border-slate-100">
+                                        <div>
+                                            <div class="font-bold text-slate-900">{{ $rec->cat->name ?? '-' }}</div>
+                                            <div class="text-[11px] text-slate-500">Pemilik: {{ $rec->cat->owner->name ?? ($rec->member->name ?? '-') }}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="font-mono text-slate-800 text-[11px] font-semibold">{{ $rec->weight }} kg</div>
+                                            <div class="font-mono text-slate-500 text-[10px]">{{ $rec->temperature }} °C</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                                        <a href="{{ route('dokter.medical-records.show', $rec) }}" class="flex-1 text-center py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition min-h-[44px] flex items-center justify-center">
+                                            Lihat Detail &rarr;
+                                        </a>
+                                        <a href="{{ route('dokter.medical-records.print', $rec) }}" target="_blank" class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition min-h-[44px] flex items-center justify-center gap-1 shrink-0" title="Cetak Ringkasan Medis">
+                                            <span>🖨️</span>
+                                            <span>Cetak</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     @endif
                 </div>
