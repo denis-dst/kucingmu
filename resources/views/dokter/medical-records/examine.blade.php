@@ -26,6 +26,14 @@
                  const url = new URL(window.location.href);
                  url.searchParams.set('step', step);
                  window.history.replaceState({}, '', url.toString());
+                 fetch('{{ route('dokter.medical-records.touch-step', $record) }}', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                     },
+                     body: JSON.stringify({ step: step })
+                 }).catch(() => {});
              },
              showHistoryModal: false,
              rxMedicineSearch: '',

@@ -288,9 +288,30 @@ class VetMedicalRecordController extends Controller
         // Active master medicines for autocomplete
         $medicines = Medicine::active()->orderBy('name', 'asc')->get();
 
-        $activeStep = $request->query('step', 1);
+        $activeStep = $request->query('step');
+        if (!$activeStep || !in_array((int)$activeStep, [1, 2, 3, 4, 5])) {
+            $activeStep = $record->determineLastFilledStep();
+        }
 
         return view('dokter.medical-records.examine', compact('record', 'previousRecords', 'medicines', 'activeStep'));
+    }
+
+    /**
+     * Track active step in workspace (invoked via background fetch on tab click).
+     */
+    public function touchStep(Request $request, MedicalRecord $record)
+    {
+        $this->authorizeAccess($record);
+
+        $step = (int) $request->input('step', 1);
+        if ($step >= 1 && $step <= 5) {
+            $record->updateLastActiveStep($step);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'step' => $step,
+        ]);
     }
 
     /**
@@ -330,16 +351,6 @@ class VetMedicalRecordController extends Controller
                 "Dokter memperbarui catatan step '{$step}'."
             );
 
-            DB::commit();
-
-            if ($request->expectsJson() || $request->ajax()) {
-                return response()->json([
-                    'status' => 'success',
-                    'message' => "Data {$step} berhasil disimpan sebagai draft.",
-                    'record' => $record->fresh(),
-                ]);
-            }
-
             $nextStep = match ($step) {
                 'subjective' => 2,
                 'objective' => 3,
@@ -347,6 +358,19 @@ class VetMedicalRecordController extends Controller
                 'plan' => 5,
                 default => 5,
             };
+
+            $record->updateLastActiveStep($nextStep);
+
+            DB::commit();
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => "Data {$step} berhasil disimpan sebagai draft.",
+                    'record' => $record->fresh(),
+                    'next_step' => $nextStep,
+                ]);
+            }
 
             return redirect()->route('dokter.medical-records.examine', ['record' => $record->id, 'step' => $nextStep])
                 ->with('success', "Data step " . ucfirst($step) . " tersimpan. Melanjutkan ke langkah {$nextStep}.");
@@ -473,6 +497,8 @@ class VetMedicalRecordController extends Controller
             MedicalRecordAuditLog::log($record, Auth::user(), 'prescription_item_added', "Menambahkan resep: {$item->medicine_name_snapshot}.");
         }
 
+        $record->updateLastActiveStep(4);
+
         if ($request->expectsJson() || $request->ajax()) {
             return response()->json([
                 'status' => 'success',
@@ -516,6 +542,8 @@ class VetMedicalRecordController extends Controller
             default => 'Resep Reguler',
         };
 
+        $record->updateLastActiveStep(4);
+
         MedicalRecordAuditLog::log($record, Auth::user(), 'prescription_mode_updated', "Mengubah mode resep menjadi {$typeLabel}.");
 
         if ($request->expectsJson() || $request->ajax()) {
@@ -542,6 +570,8 @@ class VetMedicalRecordController extends Controller
 
         $name = $item->medicine_name_snapshot;
         $item->delete();
+
+        $record->updateLastActiveStep(4);
 
         MedicalRecordAuditLog::log($record, Auth::user(), 'prescription_item_deleted', "Menghapus obat '{$name}' dari draft resep.");
 

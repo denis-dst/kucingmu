@@ -359,5 +359,68 @@ class PrescriptionModeAndTabRetentionTest extends TestCase
         $this->assertEquals('Klinik Hewan Mandiri drh. Rahmat', $record->clinic_name);
         $response->assertRedirect(route('dokter.medical-records.examine', $record));
     }
+
+    public function test_stepper_defaults_to_last_filled_step_when_reopened(): void
+    {
+        // 1. Save subjective step (Step 1)
+        $this->actingAs($this->doctor)->post(
+            route('dokter.medical-records.save-step', ['record' => $this->record->id, 'step' => 'subjective']),
+            [
+                'member_complaint' => 'Kucing lemas tidak mau makan',
+                'symptom_onset' => '2 hari lalu',
+                'appetite_history' => 'Menurun drastis',
+            ]
+        );
+
+        // Record should advance last_active_step to 2
+        $this->assertEquals(2, $this->record->fresh()->determineLastFilledStep());
+
+        // 2. Save objective step (Step 2)
+        $this->actingAs($this->doctor)->post(
+            route('dokter.medical-records.save-step', ['record' => $this->record->id, 'step' => 'objective']),
+            [
+                'weight' => 4.2,
+                'temperature' => 39.2,
+                'general_condition' => 'Letargis',
+                'systems' => [
+                    'eyes' => ['status' => 'normal', 'notes' => ''],
+                ],
+            ]
+        );
+
+        // Record should advance last_active_step to 3
+        $this->assertEquals(3, $this->record->fresh()->determineLastFilledStep());
+
+        // 3. Reopening /examine without step param should start at Step 3, NOT Step 1
+        $response = $this->actingAs($this->doctor)->get(
+            route('dokter.medical-records.examine', $this->record)
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('activeStep', 3);
+        $response->assertSee('currentStep: 3', false);
+    }
+
+    public function test_touch_step_persists_tab_when_doctor_switches_tabs(): void
+    {
+        $response = $this->actingAs($this->doctor)->postJson(
+            route('dokter.medical-records.touch-step', $this->record),
+            ['step' => 4]
+        );
+
+        $response->assertOk();
+        $response->assertJson(['status' => 'success', 'step' => 4]);
+
+        $this->assertEquals(4, $this->record->fresh()->determineLastFilledStep());
+
+        // Reopen /examine without ?step= query
+        $reopenResponse = $this->actingAs($this->doctor)->get(
+            route('dokter.medical-records.examine', $this->record)
+        );
+
+        $reopenResponse->assertOk();
+        $reopenResponse->assertViewHas('activeStep', 4);
+        $reopenResponse->assertSee('currentStep: 4', false);
+    }
 }
 

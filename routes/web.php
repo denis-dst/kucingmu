@@ -65,6 +65,7 @@ Route::middleware(['auth', 'role:dokter,admin,superadmin'])->prefix('dokter')->n
     Route::get('/medical-records/{record}', [VetMedicalRecordController::class, 'show'])->name('medical-records.show');
     Route::get('/medical-records/{record}/examine', [VetMedicalRecordController::class, 'stepper'])->name('medical-records.examine');
     Route::post('/medical-records/{record}/step/{step}', [VetMedicalRecordController::class, 'saveStep'])->name('medical-records.save-step');
+    Route::post('/medical-records/{record}/touch-step', [VetMedicalRecordController::class, 'touchStep'])->name('medical-records.touch-step');
     Route::post('/medical-records/{record}/prescriptions', [VetMedicalRecordController::class, 'addPrescriptionItem'])->name('medical-records.prescription.add');
     Route::post('/medical-records/{record}/prescription-mode', [VetMedicalRecordController::class, 'setPrescriptionMode'])->name('medical-records.prescription.mode');
     Route::delete('/prescription-items/{item}', [VetMedicalRecordController::class, 'deletePrescriptionItem'])->name('medical-records.prescription.delete');

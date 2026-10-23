@@ -23,6 +23,7 @@ class MedicalRecord extends Model
         'service_type',
         'clinic_name',
         'status',
+        'last_active_step',
         'chief_complaint',
         'weight',
         'temperature',
@@ -245,5 +246,55 @@ class MedicalRecord extends Model
         }
 
         return $candidate;
+    }
+
+    /**
+     * Determine the step where the doctor left off or last filled data.
+     */
+    public function determineLastFilledStep(): int
+    {
+        if (!empty($this->last_active_step) && $this->last_active_step >= 1 && $this->last_active_step <= 5) {
+            return (int) $this->last_active_step;
+        }
+
+        // Infer from actual saved data in database
+        if ($this->isCompleted() || $this->advices()->exists() || $this->followups()->exists()) {
+            return 5;
+        }
+
+        $hasPrescriptionItems = $this->prescriptions()->whereHas('items')->exists();
+        $hasManualRx = $this->prescriptions()->where('prescription_type', Prescription::TYPE_MANUAL)->exists();
+        $hasCompoundedRx = $this->prescriptions()->where('prescription_type', Prescription::TYPE_COMPOUNDED)->exists();
+        if ($this->plans()->exists() || !empty($this->treatment_notes) || $hasPrescriptionItems || $hasManualRx || $hasCompoundedRx) {
+            return 4;
+        }
+
+        if ($this->diagnoses()->exists() || $this->primaryDiagnosis()->exists()) {
+            return 3;
+        }
+
+        if ($this->objectives()->exists() || (float)$this->weight > 0 || (float)$this->temperature > 0) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    /**
+     * Safely persist the last active or filled step for this medical record.
+     */
+    public function updateLastActiveStep(int $step): void
+    {
+        if ($step < 1 || $step > 5) {
+            return;
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('medical_records', 'last_active_step')) {
+                $this->update(['last_active_step' => $step]);
+            }
+        } catch (\Throwable $e) {
+            // Gracefully ignore if column does not exist yet on remote host
+        }
     }
 }
