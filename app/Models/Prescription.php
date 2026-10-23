@@ -98,16 +98,27 @@ class Prescription extends Model
     public static function generatePrescriptionNumber(): string
     {
         $prefix = 'RX-' . date('Ym') . '-';
-        $latest = self::where('prescription_number', 'like', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->first();
+        $records = self::where('prescription_number', 'like', $prefix . '%')
+            ->pluck('prescription_number');
 
-        if ($latest && preg_match('/RX-\d{6}-(\d+)/', $latest->prescription_number, $matches)) {
-            $seq = intval($matches[1]) + 1;
-        } else {
-            $seq = 1;
+        $maxSeq = 0;
+        foreach ($records as $number) {
+            if (preg_match('/RX-\d{6}-(\d+)/', $number, $matches)) {
+                $val = intval($matches[1]);
+                if ($val > $maxSeq) {
+                    $maxSeq = $val;
+                }
+            }
         }
 
-        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
+        $nextSeq = $maxSeq + 1;
+        $candidate = $prefix . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
+
+        while (self::where('prescription_number', $candidate)->exists()) {
+            $nextSeq++;
+            $candidate = $prefix . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 }

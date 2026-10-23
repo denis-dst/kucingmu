@@ -283,4 +283,48 @@ class MedicalRecordSoftDeleteTest extends TestCase
 
         $this->assertEquals('cancelled', $appointment->fresh()->status);
     }
+
+    public function test_generating_record_number_accounts_for_soft_deleted_records_and_prevents_duplicate_collision(): void
+    {
+        $prefix = 'MR-' . date('Ym') . '-';
+        $number7 = $prefix . '0007';
+        $number8 = $prefix . '0008';
+
+        // Create record 7
+        $record7 = MedicalRecord::create([
+            'record_number' => $number7,
+            'cat_id' => $this->cat->id,
+            'member_id' => $this->memberUser->id,
+            'vet_id' => $this->doctorA->id,
+            'service_type' => 'clinic',
+            'status' => 'completed',
+            'chief_complaint' => 'Vaksin',
+            'weight' => 3.5,
+            'temperature' => 38.5,
+            'general_condition' => 'Sehat',
+            'created_by' => $this->doctorA->id,
+        ]);
+
+        // Soft delete record 7
+        $record7->delete();
+        $this->assertSoftDeleted('medical_records', ['id' => $record7->id]);
+
+        // Next generated record number MUST be 0008, NOT 0007
+        $nextNumber = MedicalRecord::generateRecordNumber();
+        $this->assertEquals($number8, $nextNumber);
+
+        // Submitting store for new record should succeed without duplicate entry error
+        $response = $this->actingAs($this->doctorA)
+            ->post(route('dokter.medical-records.store'), [
+                'cat_id' => $this->cat->id,
+                'service_type' => 'clinic',
+                'chief_complaint' => 'Diare',
+                'clinic_name' => 'Klinik Hewan KucingMu',
+            ]);
+
+        $response->assertSessionDoesntHaveErrors();
+        $newRecord = MedicalRecord::where('record_number', $number8)->first();
+        $this->assertNotNull($newRecord);
+        $response->assertRedirect(route('dokter.medical-records.examine', $newRecord));
+    }
 }

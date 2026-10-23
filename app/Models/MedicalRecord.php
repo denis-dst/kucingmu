@@ -222,16 +222,28 @@ class MedicalRecord extends Model
     public static function generateRecordNumber(): string
     {
         $prefix = 'MR-' . date('Ym') . '-';
-        $latest = self::where('record_number', 'like', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->first();
+        $records = self::withTrashed()
+            ->where('record_number', 'like', $prefix . '%')
+            ->pluck('record_number');
 
-        if ($latest && preg_match('/MR-\d{6}-(\d+)/', $latest->record_number, $matches)) {
-            $seq = intval($matches[1]) + 1;
-        } else {
-            $seq = 1;
+        $maxSeq = 0;
+        foreach ($records as $number) {
+            if (preg_match('/MR-\d{6}-(\d+)/', $number, $matches)) {
+                $val = intval($matches[1]);
+                if ($val > $maxSeq) {
+                    $maxSeq = $val;
+                }
+            }
         }
 
-        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
+        $nextSeq = $maxSeq + 1;
+        $candidate = $prefix . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
+
+        while (self::withTrashed()->where('record_number', $candidate)->exists()) {
+            $nextSeq++;
+            $candidate = $prefix . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 }
