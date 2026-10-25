@@ -365,14 +365,12 @@ class DashboardController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        $inProgressDrafts = MedicalRecord::where('vet_id', Auth::id())
-            ->whereIn('status', ['draft', 'in_progress'])
-            ->with(['cat.owner', 'cat.photos'])
+        $inProgressDrafts = MedicalRecord::whereIn('status', ['draft', 'in_progress'])
+            ->with(['cat.owner', 'cat.photos', 'doctor', 'creator'])
             ->latest()
             ->get();
 
-        $recentRecords = MedicalRecord::whereHas('cat')->with(['cat.owner', 'cat.photos', 'appointment', 'primaryDiagnosis', 'prescriptions'])
-            ->where('vet_id', Auth::id())
+        $recentRecords = MedicalRecord::whereHas('cat')->with(['cat.owner', 'cat.photos', 'appointment', 'primaryDiagnosis', 'prescriptions', 'doctor', 'creator'])
             ->latest()
             ->take(10)
             ->get();
@@ -380,8 +378,8 @@ class DashboardController extends Controller
         $stats = [
             'today_queue' => $queue->count(),
             'in_progress' => $inProgressDrafts->count(),
-            'completed' => MedicalRecord::where('vet_id', Auth::id())->where('status', 'completed')->count(),
-            'total_prescriptions' => \App\Models\Prescription::where('prescribed_by', Auth::id())->where('status', 'issued')->count(),
+            'completed' => MedicalRecord::where('status', 'completed')->count(),
+            'total_prescriptions' => \App\Models\Prescription::where('status', 'issued')->count(),
         ];
 
         return view('dokter.dashboard', compact('queue', 'inProgressDrafts', 'recentRecords', 'stats'));

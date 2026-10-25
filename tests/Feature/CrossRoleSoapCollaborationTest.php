@@ -259,4 +259,70 @@ class CrossRoleSoapCollaborationTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_doctor_dashboard_shows_in_progress_draft_started_by_verifikator()
+    {
+        $record = MedicalRecord::create([
+            'record_number' => MedicalRecord::generateRecordNumber(),
+            'cat_id' => $this->cat->id,
+            'member_id' => $this->member->id,
+            'vet_id' => $this->verifikator->id,
+            'created_by' => $this->verifikator->id,
+            'service_type' => 'clinic',
+            'status' => MedicalRecord::STATUS_IN_PROGRESS,
+            'chief_complaint' => 'Draft inisiasi verifikator',
+            'weight' => 0.00,
+            'temperature' => 0.0,
+            'general_condition' => 'Sedang diperiksa',
+            'started_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->doctorA)
+            ->withSession(['active_role' => 'dokter'])
+            ->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Pemeriksaan Berjalan (Draft Belum Selesai)');
+        $response->assertSee($this->cat->name);
+        $response->assertSee($record->record_number);
+        $response->assertSee("Inisiator: {$this->verifikator->name}");
+        $response->assertSee(route('dokter.medical-records.examine', $record));
+    }
+
+    public function test_doctor_dashboard_queue_shows_lanjut_soap_when_draft_already_exists()
+    {
+        $appointment = \App\Models\Appointment::create([
+            'user_id' => $this->member->id,
+            'cat_id' => $this->cat->id,
+            'date' => now()->toDateString(),
+            'time_slot' => '09:00 - 10:00',
+            'status' => 'checked_in',
+            'notes' => 'Pemeriksaan rutin berkala',
+        ]);
+
+        $record = MedicalRecord::create([
+            'record_number' => MedicalRecord::generateRecordNumber(),
+            'appointment_id' => $appointment->id,
+            'cat_id' => $this->cat->id,
+            'member_id' => $this->member->id,
+            'vet_id' => $this->verifikator->id,
+            'created_by' => $this->verifikator->id,
+            'service_type' => 'clinic',
+            'status' => MedicalRecord::STATUS_IN_PROGRESS,
+            'chief_complaint' => 'Keluhan',
+            'weight' => 0.00,
+            'temperature' => 0.0,
+            'general_condition' => 'Sedang diperiksa',
+            'started_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->doctorA)
+            ->withSession(['active_role' => 'dokter'])
+            ->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Lanjut SOAP');
+        $response->assertSee(route('dokter.medical-records.examine', $record));
+    }
 }
+

@@ -89,6 +89,11 @@
                             <div>
                                 <div class="font-bold text-slate-900">{{ $draft->cat->name }}</div>
                                 <div class="text-[11px] text-slate-500 font-mono">{{ $draft->record_number }} &bull; {{ $draft->created_at->diffForHumans() }}</div>
+                                @if($draft->created_by && $draft->creator && (int) $draft->created_by !== (int) Auth::id())
+                                    <div class="text-[10px] text-amber-800 font-semibold mt-0.5">
+                                        Inisiator: {{ $draft->creator->name }}
+                                    </div>
+                                @endif
                             </div>
                             <a href="{{ route('dokter.medical-records.examine', $draft) }}" class="px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold text-[11px] transition shrink-0 shadow-2xs">
                                 Lanjutkan SOAP &rarr;
@@ -151,16 +156,22 @@
                                     <div class="flex flex-row md:flex-col items-end gap-2 shrink-0">
                                         <!-- Primary action: Full SOAP Stepper -->
                                         <div class="flex items-center gap-1.5">
-                                            <form method="POST" action="{{ route('dokter.medical-records.store') }}">
-                                                @csrf
-                                                <input type="hidden" name="cat_id" value="{{ $app->cat_id }}">
-                                                <input type="hidden" name="appointment_id" value="{{ $app->id }}">
-                                                <input type="hidden" name="service_type" value="clinic">
-                                                <input type="hidden" name="chief_complaint" value="{{ $app->notes ?: 'Pemeriksaan antrian klinik' }}">
-                                                <button type="submit" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition shadow-xs flex items-center gap-1.5">
-                                                    <span>🩺 Mulai SOAP</span>
-                                                </button>
-                                            </form>
+                                            @if($app->medicalRecord && in_array($app->medicalRecord->status, ['draft', 'in_progress']))
+                                                <a href="{{ route('dokter.medical-records.examine', $app->medicalRecord) }}" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition shadow-xs flex items-center gap-1.5">
+                                                    <span>✍️ Lanjut SOAP</span>
+                                                </a>
+                                            @else
+                                                <form method="POST" action="{{ route('dokter.medical-records.store') }}">
+                                                    @csrf
+                                                    <input type="hidden" name="cat_id" value="{{ $app->cat_id }}">
+                                                    <input type="hidden" name="appointment_id" value="{{ $app->id }}">
+                                                    <input type="hidden" name="service_type" value="clinic">
+                                                    <input type="hidden" name="chief_complaint" value="{{ $app->notes ?: 'Pemeriksaan antrian klinik' }}">
+                                                    <button type="submit" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs transition shadow-xs flex items-center gap-1.5">
+                                                        <span>🩺 Mulai SOAP</span>
+                                                    </button>
+                                                </form>
+                                            @endif
 
                                             <form method="POST" action="{{ route('dokter.appointments.cancel', $app) }}" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan antrian pasien {{ $app->cat->name }} dari daftar antrian hari ini?');">
                                                 @csrf
@@ -188,8 +199,8 @@
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-4">
                         <div>
-                            <h2 class="font-outfit text-xl font-bold text-slate-900">Riwayat Pemeriksaan Terakhir Anda</h2>
-                            <p class="text-xs text-slate-500">10 pasien terakhir yang Anda tangani.</p>
+                            <h2 class="font-outfit text-xl font-bold text-slate-900">Riwayat Pemeriksaan Terkini</h2>
+                            <p class="text-xs text-slate-500">10 pasien terakhir yang tercatat dalam rekam medis klinik.</p>
                         </div>
                         <a href="{{ route('dokter.medical-records.index') }}" class="text-xs font-bold text-teal-700 hover:underline">
                             Lihat Semua &rarr;
