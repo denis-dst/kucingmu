@@ -53,6 +53,7 @@ Route::middleware(['auth', 'role:member'])->group(function () {
     Route::post('/cat', [DashboardController::class, 'storeCat'])->name('cat.store');
     Route::post('/appointment', [DashboardController::class, 'storeAppointment'])->name('appointment.store');
     Route::get('/member/medical-records/{record}/summary', [\App\Http\Controllers\VetMedicalRecordController::class, 'memberSummary'])->name('member.medical-records.summary');
+    Route::get('/member/medical-records/{record}/pdf', [\App\Http\Controllers\VetMedicalRecordController::class, 'memberPdf'])->name('member.medical-records.pdf');
 });
 
 use App\Http\Controllers\VetMedicalRecordController;

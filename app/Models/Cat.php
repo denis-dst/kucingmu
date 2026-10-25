@@ -203,6 +203,20 @@ class Cat extends Model
         return $this->hasMany(MedicalRecord::class);
     }
 
+    public function completedMedicalRecords()
+    {
+        return $this->hasMany(MedicalRecord::class)
+            ->where('status', MedicalRecord::STATUS_COMPLETED)
+            ->orderByRaw('COALESCE(completed_at, created_at) DESC');
+    }
+
+    public function latestCompletedMedicalRecord()
+    {
+        return $this->hasOne(MedicalRecord::class)
+            ->where('status', MedicalRecord::STATUS_COMPLETED)
+            ->latestOfMany('completed_at');
+    }
+
     public function ktamCard()
     {
         return $this->hasOne(KtamCard::class);

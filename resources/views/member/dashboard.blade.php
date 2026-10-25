@@ -261,6 +261,76 @@
                                                     </div>
                                                 @endif
                                             </div>
+
+                                            <!-- Status Rekam Medis (Hanya Rekam Medis Final Sesuai Kucing) -->
+                                            @php
+                                                $completedRecords = $cat->completedMedicalRecords;
+                                                $latestCompletedRecord = $completedRecords->first();
+                                                $inProgressRecord = $cat->medicalRecords->first(fn($r) => in_array($r->status, ['draft', 'in_progress']));
+                                            @endphp
+
+                                            @if($latestCompletedRecord)
+                                                <div class="mt-2.5 p-3 rounded-xl bg-teal-50/80 border border-teal-200 text-xs space-y-1.5" x-data="{ showPrevRecords: false }">
+                                                    <div class="flex items-center justify-between gap-2">
+                                                        <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 flex items-center gap-1">
+                                                            <span>🩺</span> Rekam Medis Resmi (Final)
+                                                        </span>
+                                                        <span class="text-[10px] font-mono text-slate-500">
+                                                            {{ $latestCompletedRecord->completed_at ? $latestCompletedRecord->completed_at->format('d M Y') : $latestCompletedRecord->created_at->format('d M Y') }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-[11px] text-slate-700">
+                                                        <span class="text-slate-500">Diagnosis:</span>
+                                                        <strong class="text-slate-900">
+                                                            {{ $latestCompletedRecord->primaryDiagnosis->diagnosis_name ?? ($latestCompletedRecord->general_condition ?: 'Pemeriksaan Rutin') }}
+                                                        </strong>
+                                                    </div>
+                                                    <div class="flex items-center justify-between gap-2 pt-1 border-t border-teal-100 text-[11px]">
+                                                        <span class="text-slate-500 text-[10px]">
+                                                            Dokter: {{ $latestCompletedRecord->doctor->name ?? '-' }}
+                                                        </span>
+                                                        <div class="flex items-center gap-2">
+                                                            <a href="{{ route('member.medical-records.summary', $latestCompletedRecord->id) }}" class="inline-flex items-center gap-1 font-bold text-teal-700 hover:text-teal-900 hover:underline">
+                                                                <span>👁️ Lihat</span>
+                                                            </a>
+                                                            <span class="text-slate-300">&bull;</span>
+                                                            <a href="{{ route('member.medical-records.pdf', $latestCompletedRecord->id) }}" class="inline-flex items-center gap-1 font-bold text-teal-700 hover:text-teal-900 hover:underline" target="_blank">
+                                                                <span>📄 Cetak PDF</span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+
+                                                    @if($completedRecords->count() > 1)
+                                                        <div class="pt-1 border-t border-teal-100/70">
+                                                            <button type="button" @click="showPrevRecords = !showPrevRecords" class="text-[10px] text-teal-700 hover:underline font-semibold flex items-center gap-1">
+                                                                <span>Riwayat pemeriksaan lainnya ({{ $completedRecords->count() - 1 }} kunjungan terdahulu)</span>
+                                                                <span x-text="showPrevRecords ? '▲' : '▼'"></span>
+                                                            </button>
+                                                            <div x-show="showPrevRecords" x-cloak class="mt-2 space-y-1.5 bg-white p-2.5 rounded-lg border border-teal-200">
+                                                                @foreach($completedRecords->slice(1) as $prevRec)
+                                                                    <div class="flex items-center justify-between text-[11px] pb-1 border-b border-slate-100 last:border-0 last:pb-0 gap-2">
+                                                                        <div>
+                                                                            <div class="font-bold text-slate-800">{{ $prevRec->completed_at ? $prevRec->completed_at->format('d M Y') : $prevRec->created_at->format('d M Y') }}</div>
+                                                                            <div class="text-[10px] text-slate-500 truncate max-w-[150px]">{{ $prevRec->primaryDiagnosis->diagnosis_name ?? 'Pemeriksaan Rutin' }}</div>
+                                                                        </div>
+                                                                        <div class="flex items-center gap-1.5 shrink-0">
+                                                                            <a href="{{ route('member.medical-records.summary', $prevRec->id) }}" class="px-2 py-0.5 rounded bg-teal-50 text-teal-800 text-[10px] font-bold hover:bg-teal-100">Lihat</a>
+                                                                            <a href="{{ route('member.medical-records.pdf', $prevRec->id) }}" class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-bold hover:bg-slate-200" target="_blank">PDF</a>
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @elseif($inProgressRecord)
+                                                <div class="mt-2.5 p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs flex items-center gap-2">
+                                                    <span class="text-base shrink-0">⏳</span>
+                                                    <div class="text-[11px] text-amber-900 leading-tight">
+                                                        <strong>Sedang Dalam Pemeriksaan:</strong> Kucing ini sedang diperiksa dokter/tim medis. Hasil rekam medis akan dapat dilihat dan dicetak setelah selesai difinalisasi.
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
 
                                         <!-- Card Footer: Status & Action Buttons -->
@@ -277,16 +347,19 @@
                                                     @endif
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
-                                                    @if($cat->medicalRecords->isNotEmpty())
-                                                        <a href="{{ route('member.medical-records.summary', $cat->medicalRecords->last()->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100">
-                                                            🩺 Ringkasan Medis
+                                                    @if($latestCompletedRecord)
+                                                        <a href="{{ route('member.medical-records.summary', $latestCompletedRecord->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100" title="Lihat Ringkasan Rekam Medis">
+                                                            🩺 Rekam Medis
+                                                        </a>
+                                                        <a href="{{ route('member.medical-records.pdf', $latestCompletedRecord->id) }}" target="_blank" class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100" title="Unduh Cetak PDF Rekam Medis">
+                                                            📄 Cetak RM
                                                         </a>
                                                     @endif
                                                     <a href="{{ route('cat.edit', $cat->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold">
                                                         ✏️ Ubah
                                                     </a>
-                                                    <a href="{{ route('ktam.download', $cat->id) }}" class="button-primary px-3 py-1.5 text-xs font-bold">
-                                                        📄 Unduh PDF
+                                                    <a href="{{ route('ktam.download', $cat->id) }}" class="button-primary px-3 py-1.5 text-xs font-bold" title="Unduh Kartu KTAKuMu Resmi">
+                                                        📄 KTAKuMu PDF
                                                     </a>
                                                     <form action="{{ route('cat.destroy', $cat->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data kucing {{ $cat->name }}?')">
                                                         @csrf
@@ -296,14 +369,17 @@
                                                         </button>
                                                     </form>
                                                 </div>
-                                            @elseif($cat->medicalRecords->isNotEmpty())
+                                            @elseif($latestCompletedRecord)
                                                 <div class="text-left">
-                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">VERIFIKASI ADMIN</span>
-                                                    <span class="text-[11px] text-slate-600 font-medium">Periksa Dokter Selesai &bull; Menunggu Admin</span>
+                                                    <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 block">HASIL PERIKSA RESMI</span>
+                                                    <span class="text-[11px] text-slate-600 font-medium">Periksa Dokter Selesai &bull; Menunggu KTAKuMu</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
-                                                    <a href="{{ route('member.medical-records.summary', $cat->medicalRecords->last()->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100">
-                                                        🩺 Hasil Rekam Medis
+                                                    <a href="{{ route('member.medical-records.summary', $latestCompletedRecord->id) }}" class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100">
+                                                        🩺 Rekam Medis
+                                                    </a>
+                                                    <a href="{{ route('member.medical-records.pdf', $latestCompletedRecord->id) }}" target="_blank" class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100">
+                                                        📄 Cetak PDF
                                                     </a>
                                                     <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-secondary px-3 py-1.5 text-xs border-amber-300 text-amber-900 bg-amber-50 hover:bg-amber-100 font-semibold">
                                                         Lihat Draft
@@ -322,7 +398,7 @@
                                             @else
                                                 <div class="text-left">
                                                     <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">STATUS KTAKuMu</span>
-                                                    <span class="text-[11px] text-amber-700 font-medium">Menunggu Verifikasi Admin</span>
+                                                    <span class="text-[11px] text-amber-700 font-medium">Menunggu Verifikasi Booth/Event</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
                                                     <button type="button" @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true" class="button-secondary px-3 py-1.5 text-xs font-semibold">
@@ -367,7 +443,7 @@
                                                 <th class="py-2.5 px-3">Tanggal</th>
                                                 <th class="py-2.5 px-3">Sesi Waktu</th>
                                                 <th class="py-2.5 px-3">Status</th>
-                                                <th class="py-2.5 px-3">Catatan Medis</th>
+                                                <th class="py-2.5 px-3">Hasil / Catatan Medis</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-slate-200 text-slate-700">
@@ -388,10 +464,22 @@
                                                         @endif
                                                     </td>
                                                     <td class="py-3 px-3">
-                                                        @if($app->medicalRecord)
-                                                            <div class="text-[11px]">
-                                                                <p><strong class="text-slate-800">Kondisi:</strong> {{ $app->medicalRecord->general_condition }}</p>
+                                                        @if($app->medicalRecord && $app->medicalRecord->isCompleted())
+                                                            <div class="text-[11px] space-y-1">
+                                                                <p><strong class="text-slate-800">Diagnosis:</strong> {{ $app->medicalRecord->primaryDiagnosis->diagnosis_name ?? ($app->medicalRecord->general_condition ?: 'Pemeriksaan Rutin') }}</p>
                                                                 <p><strong class="text-slate-800">BB/Suhu:</strong> {{ $app->medicalRecord->weight }}kg / {{ $app->medicalRecord->temperature }}°C</p>
+                                                                <div class="flex items-center gap-1.5 pt-0.5">
+                                                                    <a href="{{ route('member.medical-records.summary', $app->medicalRecord) }}" class="px-2 py-0.5 rounded bg-teal-50 border border-teal-200 text-teal-800 font-bold text-[10px] hover:bg-teal-100">
+                                                                        🩺 Lihat
+                                                                    </a>
+                                                                    <a href="{{ route('member.medical-records.pdf', $app->medicalRecord) }}" target="_blank" class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-bold text-[10px] hover:bg-slate-200">
+                                                                        📄 Cetak PDF
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        @elseif($app->medicalRecord && in_array($app->medicalRecord->status, ['draft', 'in_progress']))
+                                                            <div class="text-[11px] text-amber-700 font-medium">
+                                                                <span>⏳ Sedang diperiksa dokter</span>
                                                             </div>
                                                         @else
                                                             <span class="text-slate-400">Menunggu pemeriksaan</span>

@@ -21,7 +21,8 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class VetMedicalRecordController extends Controller
 {
@@ -1049,6 +1050,55 @@ class VetMedicalRecordController extends Controller
         ]);
 
         return view('member.medical-summary', compact('record'));
+    }
+
+    /**
+     * Download or stream member-facing medical summary PDF (PRD Section 9).
+     * Strictly read-only patient summary for member self-printing.
+     */
+    public function memberPdf(MedicalRecord $record)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        $isOwner = (int) $record->cat->user_id === (int) $user->id || (int) $record->member_id === (int) $user->id;
+        $activeRole = $user->getActiveRole();
+        $isStaffActive = in_array($activeRole, ['dokter', 'verifikator', 'admin', 'superadmin']);
+
+        if (!$isOwner && !$isStaffActive) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengunduh ringkasan medis kucing ini.');
+        }
+
+        if (!$record->isCompleted() && !$isStaffActive) {
+            abort(403, 'Rekam medis ini masih dalam proses pemeriksaan dan belum selesai.');
+        }
+
+        $record->load([
+            'cat.owner',
+            'cat.photos',
+            'cat.ktamCard',
+            'doctor',
+            'primaryDiagnosis',
+            'prescriptions' => function ($q) {
+                $q->where('status', 'issued')->with('items.medicine');
+            },
+            'advices' => function ($q) {
+                $q->where('visible_to_member', true);
+            },
+            'followups',
+        ]);
+
+        $advices = $record->advices->keyBy('category');
+        $issuedRx = $record->prescriptions->first();
+        $followup = $record->followups->first();
+
+        $pdf = Pdf::loadView('pdf.member_medical_summary', compact('record', 'advices', 'issuedRx', 'followup'));
+        $pdf->setPaper('a4', 'portrait');
+
+        $slugCat = Str::slug($record->cat->name ?? 'kucing');
+        $filename = "rekam_medis_{$slugCat}_{$record->record_number}.pdf";
+
+        return $pdf->stream($filename);
     }
 
     /**

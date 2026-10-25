@@ -5,19 +5,58 @@
         $followup = $record->followups->first();
     @endphp
 
+    <style>
+        @media print {
+            .no-print, header, nav, aside {
+                display: none !important;
+            }
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .max-w-4xl {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .shadow-xs, .shadow-2xs {
+                box-shadow: none !important;
+            }
+            .border {
+                border-color: #cbd5e1 !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 1.5cm;
+            }
+        }
+    </style>
+
     <div class="py-8 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto space-y-6">
         
         <!-- Breadcrumb & Top Bar -->
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
             <div class="flex items-center gap-2 text-xs text-slate-500">
                 <a href="{{ route('dashboard') }}" class="hover:text-teal-700 font-medium">Dashboard</a>
                 <span>&bull;</span>
-                <span class="text-slate-800 font-semibold">Ringkasan Medis Kucing: {{ $record->cat->name }}</span>
+                <span class="text-slate-800 font-semibold">Ringkasan Medis: {{ $record->cat->name }}</span>
             </div>
 
-            <a href="{{ route('dashboard') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition">
-                &larr; Kembali ke Dashboard
-            </a>
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition min-h-[40px]">
+                    &larr; Kembali
+                </a>
+                <button type="button" onclick="window.print()" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-teal-300 bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold shadow-2xs transition min-h-[40px]">
+                    <span>🖨️</span>
+                    <span>Cetak Mandiri</span>
+                </button>
+                <a href="{{ route('member.medical-records.pdf', $record) }}" target="_blank" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-xs transition min-h-[40px]">
+                    <span>📄</span>
+                    <span>Unduh PDF</span>
+                </a>
+            </div>
         </div>
 
         <!-- Main Card -->
@@ -201,8 +240,21 @@
             </div>
 
             <!-- Footer -->
-            <div class="p-6 bg-slate-50 border-t border-slate-200 text-center text-xs text-slate-500">
-                Dokumen ini adalah ringkasan rekam medis resmi untuk pemilik kucing. Simpan catatan ini untuk memantau kesehatan kucing Anda.
+            <div class="p-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-xs text-slate-500 text-center sm:text-left">
+                    <p class="font-medium text-slate-700">Ringkasan Rekam Medis Resmi Pemilik Kucing</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Dokumen ini bersifat Lihat Saja (Read-Only) untuk memantau perawatan dan kesehatan kucing Anda.</p>
+                </div>
+                <div class="flex items-center gap-2 no-print shrink-0">
+                    <button type="button" onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition">
+                        <span>🖨️</span>
+                        <span>Cetak</span>
+                    </button>
+                    <a href="{{ route('member.medical-records.pdf', $record) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-2xs transition">
+                        <span>📄</span>
+                        <span>Unduh PDF</span>
+                    </a>
+                </div>
             </div>
 
         </div>

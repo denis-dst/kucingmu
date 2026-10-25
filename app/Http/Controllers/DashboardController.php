@@ -406,7 +406,14 @@ class DashboardController extends Controller
     protected function memberDashboard(?Request $request = null)
     {
         $request = $request ?: request();
-        $catQuery = Auth::user()->cats()->with(['ktamCard', 'medicalRecords.vet', 'photos', 'wilayah']);
+        $catQuery = Auth::user()->cats()->with([
+            'ktamCard',
+            'medicalRecords',
+            'completedMedicalRecords.doctor',
+            'completedMedicalRecords.primaryDiagnosis',
+            'photos',
+            'wilayah'
+        ]);
 
         // Filter status: all, alive, deceased
         $statusFilter = $request->filled('status') ? strtolower(trim($request->status)) : 'all';
@@ -459,7 +466,7 @@ class DashboardController extends Controller
         $catIds = $cats->pluck('id');
         $appointments = $catIds->isNotEmpty()
             ? Appointment::whereIn('cat_id', $catIds)
-                ->with(['cat.photos'])
+                ->with(['cat.photos', 'medicalRecord.primaryDiagnosis', 'medicalRecord.doctor'])
                 ->latest()
                 ->take(10)
                 ->get()
