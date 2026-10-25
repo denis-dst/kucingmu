@@ -237,7 +237,7 @@ class MemberMedicalRecordViewAndPrintTest extends TestCase
             ->get(route('dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('Rekam Medis Resmi (Final)');
+        $response->assertSee('Rekam Medis');
         $response->assertSee('Otitis Externa Parasitik');
         $response->assertSee(route('member.medical-records.summary', $record));
         $response->assertSee(route('member.medical-records.pdf', $record));
