@@ -194,6 +194,12 @@
 
                 <!-- Filters -->
                 <form method="GET" action="{{ route('dokter.medical-records.index') }}" class="flex flex-col sm:flex-row sm:items-center flex-wrap gap-2.5">
+                    <!-- Ownership Filter -->
+                    <select name="ownership" onchange="this.form.submit()" class="text-xs rounded-xl border-slate-200 py-2 px-3 font-medium text-slate-700 focus:ring-teal-600 focus:border-teal-600 bg-white">
+                        <option value="all" {{ request('ownership') === 'all' || !request('ownership') ? 'selected' : '' }}>Semua Rekam Medis (Tim)</option>
+                        <option value="mine" {{ request('ownership') === 'mine' ? 'selected' : '' }}>Hanya Milik Saya</option>
+                    </select>
+
                     <!-- Status Filter -->
                     <select name="status" onchange="this.form.submit()" class="text-xs rounded-xl border-slate-200 py-2 px-3 font-medium text-slate-700 focus:ring-teal-600 focus:border-teal-600 bg-white">
                         <option value="all" {{ request('status') === 'all' || !request('status') ? 'selected' : '' }}>Semua Status</option>
@@ -217,7 +223,7 @@
                         </button>
                     </div>
 
-                    @if(request()->anyFilled(['status', 'service_type', 'search']))
+                    @if(request()->anyFilled(['status', 'service_type', 'ownership', 'search']))
                         <a href="{{ route('dokter.medical-records.index') }}" class="text-xs text-rose-600 hover:underline font-semibold py-1">Reset Filter</a>
                     @endif
                 </form>
@@ -240,6 +246,7 @@
                                 <th scope="col" class="py-3 px-3.5 whitespace-nowrap min-w-[130px]">Layanan</th>
                                 <th scope="col" class="py-3 px-3.5 min-w-[180px]">Diagnosis Utama</th>
                                 <th scope="col" class="py-3 px-3.5 whitespace-nowrap min-w-[130px]">Status</th>
+                                <th scope="col" class="py-3 px-3.5 whitespace-nowrap min-w-[130px]">Pemeriksa</th>
                                 <th scope="col" class="py-3 px-3.5 whitespace-nowrap min-w-[120px]">Tanggal</th>
                                 <th scope="col" class="py-3 px-3.5 whitespace-nowrap text-right min-w-[170px]">Aksi</th>
                             </tr>
@@ -277,6 +284,12 @@
                                         <span class="inline-flex items-center whitespace-nowrap px-2.5 py-1 rounded-full text-[11px] font-medium leading-none border {{ $rec->status_badge_class }}">
                                             {{ $rec->status_label }}
                                         </span>
+                                    </td>
+                                    <td class="py-3.5 px-3.5 whitespace-nowrap text-[11px]">
+                                        <div class="font-semibold text-slate-900">{{ $rec->doctor->name ?? '-' }}</div>
+                                        @if($rec->created_by && (int) $rec->created_by !== (int) $rec->vet_id && $rec->creator)
+                                            <div class="text-[10px] text-slate-500">Inisiator: {{ $rec->creator->name }}</div>
+                                        @endif
                                     </td>
                                     <td class="py-3.5 px-3.5 text-slate-500 whitespace-nowrap text-[11px]">
                                         {{ $rec->created_at->format('d M Y, H:i') }}

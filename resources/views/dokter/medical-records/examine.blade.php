@@ -136,7 +136,12 @@
 
                 <div class="text-right border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-5 shrink-0 text-xs text-slate-500 space-y-1">
                     <div>No. RM: <span class="font-mono font-bold text-slate-900">{{ $record->record_number }}</span></div>
-                    <div>Dokter: <span class="font-semibold text-slate-800">{{ $record->doctor->name ?? Auth::user()->name }}</span></div>
+                    <div>Dokter/Inisiator: <span class="font-semibold text-slate-800">{{ $record->doctor->name ?? Auth::user()->name }}</span></div>
+                    @if(Auth::id() !== $record->vet_id)
+                        <div class="text-[11px] text-teal-800 font-semibold bg-teal-50 px-2 py-0.5 rounded border border-teal-200 text-left md:text-right">
+                            Dilanjutkan oleh: {{ Auth::user()->name }}
+                        </div>
+                    @endif
                     <div>Mulai: <span class="text-slate-700">{{ $record->created_at->format('d M Y, H:i') }}</span></div>
                 </div>
             </div>

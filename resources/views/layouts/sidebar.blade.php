@@ -107,7 +107,7 @@
             </div>
 
             <!-- Section 2: Dokter Hewan & Rekam Medis -->
-            @if($activeRole === 'dokter' || ($authUser && $authUser->hasRole('dokter') && $activeRole !== 'member'))
+            @if(in_array($activeRole, ['dokter', 'verifikator', 'admin', 'superadmin']) || ($authUser && $authUser->hasRole('dokter', 'verifikator', 'admin', 'superadmin') && $activeRole !== 'member'))
                 <div class="space-y-1">
                     <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                         Klinik & Rekam Medis

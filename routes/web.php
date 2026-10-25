@@ -57,8 +57,8 @@ Route::middleware(['auth', 'role:member'])->group(function () {
 
 use App\Http\Controllers\VetMedicalRecordController;
 
-// Dokter Routes (KucingMu Veterinary Medical Record)
-Route::middleware(['auth', 'role:dokter,admin,superadmin'])->prefix('dokter')->name('dokter.')->group(function () {
+// Dokter & Verifikator Routes (KucingMu Veterinary Medical Record & SOAP)
+Route::middleware(['auth', 'role:dokter,verifikator,admin,superadmin'])->prefix('dokter')->name('dokter.')->group(function () {
     Route::get('/medical-records', [VetMedicalRecordController::class, 'index'])->name('medical-records.index');
     Route::get('/medical-records/create', [VetMedicalRecordController::class, 'create'])->name('medical-records.create');
     Route::post('/medical-records', [VetMedicalRecordController::class, 'store'])->name('medical-records.store');

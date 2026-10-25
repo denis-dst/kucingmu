@@ -50,11 +50,11 @@ class VetMedicalRecordController extends Controller
             ->get();
 
         // 2. Query Medical Records with filters
-        $query = MedicalRecord::with(['cat.owner', 'cat.photos', 'doctor', 'primaryDiagnosis', 'prescriptions'])
+        $query = MedicalRecord::with(['cat.owner', 'cat.photos', 'doctor', 'creator', 'primaryDiagnosis', 'prescriptions'])
             ->latest('created_at');
 
-        // Non-admin doctors only see their assigned or created records by default, unless searching
-        if (!$user->isAdmin()) {
+        // Filter kepemilikan: default terbuka untuk dokter & verifikator di lapangan agar memudahkan kolaborasi
+        if ($request->ownership === 'mine' || (!$user->isAdmin() && !$user->hasRole('dokter', 'verifikator'))) {
             $query->where(function ($q) use ($user) {
                 $q->where('vet_id', $user->id)
                   ->orWhere('created_by', $user->id);
@@ -95,9 +95,9 @@ class VetMedicalRecordController extends Controller
         // Statistics
         $stats = [
             'today_queue' => $queue->count(),
-            'in_progress' => MedicalRecord::where('vet_id', $user->id)->whereIn('status', ['draft', 'in_progress'])->count(),
-            'completed' => MedicalRecord::where('vet_id', $user->id)->where('status', 'completed')->count(),
-            'total_issued_rx' => Prescription::where('prescribed_by', $user->id)->where('status', 'issued')->count(),
+            'in_progress' => MedicalRecord::whereIn('status', ['draft', 'in_progress'])->count(),
+            'completed' => MedicalRecord::where('status', 'completed')->count(),
+            'total_issued_rx' => Prescription::where('status', 'issued')->count(),
         ];
 
         return view('dokter.medical-records.index', compact('queue', 'records', 'stats'));
@@ -241,7 +241,8 @@ class VetMedicalRecordController extends Controller
             ]);
 
             // Log Audit
-            MedicalRecordAuditLog::log($record, Auth::user(), 'created', 'Pemeriksaan SOAP baru dimulai oleh dokter hewan.');
+            $creatorRole = Auth::user()->hasRole('dokter') ? 'dokter hewan' : (Auth::user()->hasRole('verifikator') ? 'verifikator' : 'staf');
+            MedicalRecordAuditLog::log($record, Auth::user(), 'created', "Pemeriksaan SOAP baru dimulai oleh {$creatorRole} (" . Auth::user()->name . ").");
 
             DB::commit();
 
@@ -406,11 +407,12 @@ class VetMedicalRecordController extends Controller
                     throw new \InvalidArgumentException("Langkah SOAP '{$step}' tidak dikenali.");
             }
 
+            $actorRole = Auth::user()->hasRole('dokter') ? 'Dokter hewan' : (Auth::user()->hasRole('verifikator') ? 'Verifikator' : 'Staf');
             MedicalRecordAuditLog::log(
                 $record,
                 Auth::user(),
                 'updated_draft',
-                "Dokter memperbarui catatan step '{$step}'."
+                "{$actorRole} (" . Auth::user()->name . ") memperbarui catatan step '{$step}'."
             );
 
             $nextStep = match ($step) {
@@ -805,11 +807,12 @@ class VetMedicalRecordController extends Controller
             }
 
             // Log finalization audit
+            $finalizerRole = Auth::user()->hasRole('dokter') ? 'dokter hewan' : (Auth::user()->hasRole('verifikator') ? 'verifikator' : 'staf');
             MedicalRecordAuditLog::log(
                 $record,
                 Auth::user(),
                 'finalized',
-                'Rekam Medis resmi difinalisasi dan diterbitkan oleh dokter hewan.'
+                "Rekam Medis resmi difinalisasi dan diterbitkan oleh {$finalizerRole} (" . Auth::user()->name . ")."
             );
 
             DB::commit();
@@ -861,8 +864,8 @@ class VetMedicalRecordController extends Controller
             return redirect()->back()->with('error', 'Amendemen hanya dapat dibuat untuk rekam medis yang telah difinalisasi.');
         }
 
-        if (!$user->isAdmin() && (int) $record->vet_id !== (int) $user->id) {
-            abort(403, 'Anda tidak berwenang mengamendemen rekam medis dokter lain.');
+        if (!$user->isAdmin() && !$user->hasRole('dokter', 'verifikator') && (int) $record->vet_id !== (int) $user->id) {
+            abort(403, 'Anda tidak berwenang mengamendemen rekam medis ini.');
         }
 
         $request->validate([
@@ -974,8 +977,8 @@ class VetMedicalRecordController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        if (!$user->hasRole('dokter') && !$user->isAdmin()) {
-            abort(403, 'Akses terbatas untuk Dokter Hewan atau Administrator.');
+        if (!$user->hasRole('dokter', 'verifikator') && !$user->isAdmin()) {
+            abort(403, 'Akses terbatas untuk Dokter Hewan, Verifikator, atau Administrator.');
         }
 
         DB::beginTransaction();
@@ -1020,7 +1023,7 @@ class VetMedicalRecordController extends Controller
         // Security check: Only the cat owner or clinic staff in staff workspace can view
         $isOwner = (int) $record->cat->user_id === (int) $user->id || (int) $record->member_id === (int) $user->id;
         $activeRole = $user->getActiveRole();
-        $isStaffActive = in_array($activeRole, ['dokter', 'admin', 'superadmin']);
+        $isStaffActive = in_array($activeRole, ['dokter', 'verifikator', 'admin', 'superadmin']);
 
         if (!$isOwner && !$isStaffActive) {
             abort(403, 'Anda tidak memiliki hak akses untuk ringkasan medis kucing ini.');
@@ -1336,14 +1339,15 @@ class VetMedicalRecordController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        if ($user->isAdmin()) return;
-
-        if ($user->hasRole('dokter')) {
-            // Doctors can access records assigned to them or their clinic
+        if ($user->isAdmin()) {
             return;
         }
 
-        abort(403, 'Akses terbatas untuk Dokter Hewan berwenang.');
+        if ($user->hasRole('dokter', 'verifikator')) {
+            return;
+        }
+
+        abort(403, 'Akses terbatas untuk Dokter Hewan dan Verifikator berwenang.');
     }
 
     private function authorizeEdit(MedicalRecord $record): void

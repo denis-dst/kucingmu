@@ -176,10 +176,24 @@ class MedicalRecord extends Model
 
     public function canBeEditedBy(?User $user): bool
     {
-        if (!$user) return false;
-        if ($user->isAdmin()) return true;
-        if ($this->isCompleted() || $this->isCancelled()) return false;
-        return (int) $this->vet_id === (int) $user->id;
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($this->isCompleted() || $this->isCancelled()) {
+            return false;
+        }
+
+        // Pengisian SOAP dapat dilanjutkan lintas dokter hewan dan verifikator di lapangan
+        if ($user->hasRole('dokter', 'verifikator')) {
+            return true;
+        }
+
+        return (int) $this->vet_id === (int) $user->id || (int) $this->created_by === (int) $user->id;
     }
 
     public function canBeDeletedBy(?User $user): bool

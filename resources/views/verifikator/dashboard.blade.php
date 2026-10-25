@@ -52,6 +52,9 @@
                         <a href="{{ route('dashboard') }}#cat-registry-table" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm">
                             <span>📋</span> Database Seluruh Kucing
                         </a>
+                        <a href="{{ route('dokter.medical-records.index') }}" class="button-secondary text-xs font-bold px-4 py-2.5 shadow-sm hover:border-teal-400 hover:text-teal-800">
+                            <span>🩺</span> Rekam Medis (SOAP)
+                        </a>
                     </div>
                 </div>
                 <div class="hidden md:block text-5xl">
@@ -375,12 +378,19 @@
                                         @endif
                                     </td>
 
-                                    <!-- Rekam Medis Count -->
+                                    <!-- Rekam Medis Count & Action -->
                                     <td class="py-3 px-4 text-center">
-                                        @if($cat->medicalRecords->isNotEmpty())
-                                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-bold text-[11px] border border-emerald-200">
+                                        @php
+                                            $activeDraft = $cat->medicalRecords->first(fn($r) => in_array($r->status, ['draft', 'in_progress']));
+                                        @endphp
+                                        @if($activeDraft)
+                                            <a href="{{ route('dokter.medical-records.examine', $activeDraft) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 font-bold text-[11px] border border-amber-300 hover:bg-amber-200 transition" title="Lanjutkan pengisian SOAP">
+                                                <span>✍️</span> Lanjut SOAP
+                                            </a>
+                                        @elseif($cat->medicalRecords->isNotEmpty())
+                                            <a href="{{ route('dokter.medical-records.index', ['search' => $cat->name]) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 font-bold text-[11px] border border-emerald-200 hover:bg-emerald-100 transition" title="Lihat rekam medis kucing ini">
                                                 🩺 {{ $cat->medicalRecords->count() }} Kali
-                                            </span>
+                                            </a>
                                         @else
                                             <span class="text-slate-400 text-[11px]">-</span>
                                         @endif
@@ -412,6 +422,14 @@
                                                title="Lihat Pratinjau Kartu">
                                                 <span>👁️</span> Pratinjau
                                             </a>
+
+                                            @if($cat->hasKtakumu())
+                                                <a href="{{ route('dokter.medical-records.create', ['cat_id' => $cat->id]) }}" 
+                                                   class="btn-action-secondary py-1 px-2 text-[11px] font-semibold text-teal-800 hover:bg-teal-50" 
+                                                   title="Buka atau buat pemeriksaan SOAP untuk kucing ini">
+                                                    <span>🩺</span> SOAP
+                                                </a>
+                                            @endif
 
                                             <a href="{{ route('cat.edit', $cat->id) }}" 
                                                class="btn-action-secondary py-1 px-2 text-[11px] font-semibold" 
