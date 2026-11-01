@@ -111,6 +111,19 @@
             min-width: 250px;
             max-width: 300px;
         }
+
+        /* Fix Leaflet default blue link overriding button text */
+        .leaflet-container a.popup-btn,
+        .leaflet-popup-content a.popup-btn,
+        .leaflet-popup-content-wrapper a.popup-btn {
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+        .leaflet-container a.popup-btn *,
+        .leaflet-popup-content a.popup-btn *,
+        .leaflet-popup-content-wrapper a.popup-btn * {
+            color: #ffffff !important;
+        }
     </style>
 
     <div class="py-4 sm:py-6" x-data="petaAnabulApp()">
@@ -535,7 +548,7 @@
                             <div class="font-sans text-slate-800">
                                 <div class="relative w-full h-32 bg-slate-100 overflow-hidden">
                                     <img src="${cat.thumbnail_url}" alt="${cat.name}" class="w-full h-full object-cover">
-                                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isPet ? 'bg-teal-700 text-white' : 'bg-orange-600 text-white'}">
+                                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isPet ? 'bg-teal-700 text-white' : 'bg-orange-600 text-white'}" style="color: #ffffff !important;">
                                         ${cat.ownership_label}
                                     </span>
                                 </div>
@@ -552,8 +565,9 @@
                                         📍 ${cat.formatted_address || cat.city || 'Lokasi tercatat'}
                                     </div>
                                     <div class="pt-1.5 border-t border-slate-100">
-                                        <a href="${cat.detail_url}" class="w-full inline-flex items-center justify-center gap-1 py-2 px-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-xs transition">
-                                            Lihat Detail Anabul &rarr;
+                                        <a href="${cat.detail_url}" class="popup-btn w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-xs transition" style="color: #ffffff !important; text-decoration: none !important; background-color: #0f766e !important;">
+                                            <span style="color: #ffffff !important; font-weight: 700;">Lihat Detail Anabul</span>
+                                            <span style="color: #ffffff !important; font-weight: 700;">&rarr;</span>
                                         </a>
                                     </div>
                                 </div>

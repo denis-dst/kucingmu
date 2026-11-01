@@ -103,6 +103,19 @@
             70% { box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
             100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
         }
+
+        /* Fix Leaflet default blue link overriding button text */
+        .leaflet-container a.popup-btn,
+        .leaflet-popup-content a.popup-btn,
+        .leaflet-popup-content-wrapper a.popup-btn {
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+        .leaflet-container a.popup-btn *,
+        .leaflet-popup-content a.popup-btn *,
+        .leaflet-popup-content-wrapper a.popup-btn * {
+            color: #ffffff !important;
+        }
     </style>
 
     <div class="py-4 sm:py-6" x-data="petaTemuApp()">
@@ -270,7 +283,7 @@
                             <div class="font-sans text-slate-800">
                                 <div class="relative w-full h-28 bg-slate-100 overflow-hidden">
                                     <img src="${r.thumbnail_url}" alt="${r.cat_name}" class="w-full h-full object-cover">
-                                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isReunited ? 'bg-emerald-600 text-white' : (isLost ? 'bg-rose-600 text-white' : 'bg-indigo-600 text-white')}">
+                                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isReunited ? 'bg-emerald-600 text-white' : (isLost ? 'bg-rose-600 text-white' : 'bg-indigo-600 text-white')}" style="color: #ffffff !important;">
                                         ${r.type_label}
                                     </span>
                                 </div>
@@ -286,8 +299,9 @@
                                         Waktu: ${r.incident_date_human}
                                     </div>
                                     <div class="pt-1.5 border-t border-slate-100 flex items-center gap-1.5">
-                                        <a href="${r.detail_url}" class="flex-1 py-1.5 px-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold text-center transition">
-                                            Lihat Laporan &rarr;
+                                        <a href="${r.detail_url}" class="popup-btn flex-1 py-2 px-3.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold text-center transition" style="color: #ffffff !important; text-decoration: none !important; background-color: #0f766e !important;">
+                                            <span style="color: #ffffff !important; font-weight: 700;">Lihat Laporan</span>
+                                            <span style="color: #ffffff !important; font-weight: 700;">&rarr;</span>
                                         </a>
                                         ${r.whatsapp_url ? `
                                             <a href="${r.whatsapp_url}" target="_blank" class="p-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition" title="WhatsApp">
