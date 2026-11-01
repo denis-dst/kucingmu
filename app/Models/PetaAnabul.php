@@ -83,8 +83,8 @@ class PetaAnabul extends Model
             return $primary->url;
         }
 
-        if ($this->cat && $this->cat->photo_path) {
-            return asset('storage/' . $this->cat->photo_path);
+        if ($this->cat) {
+            return $this->cat->primary_photo_url;
         }
 
         return asset('images/default-cat.png');

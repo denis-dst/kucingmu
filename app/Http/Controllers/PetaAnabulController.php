@@ -226,7 +226,27 @@ class PetaAnabulController extends Controller
     public function create(Request $request)
     {
         $user = Auth::user();
-        $myCats = $user ? Cat::where('user_id', $user->id)->whereNull('deleted_at')->get() : collect();
+        $myCats = $user ? Cat::where('user_id', $user->id)
+            ->whereNull('deleted_at')
+            ->with(['photos'])
+            ->latest('id')
+            ->get() : collect();
+
+        $myCatsFormatted = $myCats->map(function ($cat) {
+            return [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'breed' => $cat->breed ?: 'Domestik',
+                'color' => $cat->color ?: 'Warna tidak tercatat',
+                'gender' => $cat->gender,
+                'gender_label' => in_array(strtolower($cat->gender ?? ''), ['male', 'jantan']) ? 'Jantan (♂)' : (in_array(strtolower($cat->gender ?? ''), ['female', 'betina']) ? 'Betina (♀)' : 'Belum Diketahui'),
+                'age_text' => $cat->age_text,
+                'unique_code' => $cat->unique_code,
+                'photo_url' => $cat->primary_photo_url,
+                'notes' => $cat->notes,
+            ];
+        })->values();
+
         $provinces = IndonesiaWilayahService::getProvinces();
         $regenciesMap = IndonesiaWilayahService::getRegenciesMap();
 
@@ -236,7 +256,7 @@ class PetaAnabulController extends Controller
             $selectedCat = $myCats->firstWhere('id', (int) $request->cat_id);
         }
 
-        return view('peta-anabul.create', compact('myCats', 'provinces', 'regenciesMap', 'selectedCat'));
+        return view('peta-anabul.create', compact('myCats', 'myCatsFormatted', 'provinces', 'regenciesMap', 'selectedCat'));
     }
 
     /**
@@ -244,17 +264,11 @@ class PetaAnabulController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $user = Auth::user();
+        $isPet = $request->input('ownership_type') === 'pet';
+
+        $rules = [
             'ownership_type' => 'required|in:pet,stray',
-            'name' => 'required|string|max:255',
-            'cat_id' => 'nullable|exists:cats,id',
-            'coat_pattern' => 'nullable|string|max:100',
-            'coat_color' => 'nullable|string|max:100',
-            'gender' => 'required|in:jantan,betina,tidak_diketahui',
-            'age_estimate' => 'nullable|string|max:100',
-            'characteristics' => 'nullable|string|max:1000',
-            'condition' => 'required|in:sehat,sakit,terluka,butuh_pertolongan,tidak_diketahui',
-            'sterilization_status' => 'required|in:sudah,belum,tidak_diketahui',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'province' => 'nullable|string|max:100',
@@ -267,21 +281,63 @@ class PetaAnabulController extends Controller
             'photos' => 'nullable|array',
             'photos.*' => 'nullable|file|mimes:jpeg,png,jpg,webp|max:10240',
             'photos_cam' => 'nullable|array',
-        ], [
+        ];
+
+        if ($isPet) {
+            $rules['cat_id'] = 'required|exists:cats,id';
+            $rules['name'] = 'nullable|string|max:255';
+            $rules['gender'] = 'nullable|in:jantan,betina,tidak_diketahui';
+            $rules['condition'] = 'nullable|in:sehat,sakit,terluka,butuh_pertolongan,tidak_diketahui';
+            $rules['sterilization_status'] = 'nullable|in:sudah,belum,tidak_diketahui';
+            $rules['coat_pattern'] = 'nullable|string|max:100';
+            $rules['coat_color'] = 'nullable|string|max:100';
+            $rules['age_estimate'] = 'nullable|string|max:100';
+            $rules['characteristics'] = 'nullable|string|max:1000';
+        } else {
+            $rules['name'] = 'required|string|max:255';
+            $rules['gender'] = 'required|in:jantan,betina,tidak_diketahui';
+            $rules['condition'] = 'required|in:sehat,sakit,terluka,butuh_pertolongan,tidak_diketahui';
+            $rules['sterilization_status'] = 'required|in:sudah,belum,tidak_diketahui';
+            $rules['coat_pattern'] = 'nullable|string|max:100';
+            $rules['coat_color'] = 'nullable|string|max:100';
+            $rules['age_estimate'] = 'nullable|string|max:100';
+            $rules['characteristics'] = 'nullable|string|max:1000';
+        }
+
+        $validated = $request->validate($rules, [
             'ownership_type.required' => 'Pilih kategori anabul (Peliharaan atau Liar di sekitar).',
-            'name.required' => 'Nama panggilan atau kode anabul wajib diisi.',
+            'cat_id.required' => 'Pilih anabul peliharaan Anda yang sudah terdaftar.',
+            'cat_id.exists' => 'Data kucing terdaftar tidak valid.',
+            'name.required' => 'Nama panggilan atau kode anabul liar wajib diisi.',
             'latitude.required' => 'Titik lokasi peta wajib ditentukan.',
             'longitude.required' => 'Titik lokasi peta wajib ditentukan.',
             'photos.*.max' => 'Ukuran setiap foto maksimal 10 MB.',
         ]);
 
-        $user = Auth::user();
         $validated['user_id'] = $user->id;
         $validated['unique_code'] = PetaAnabul::generateUniqueCode();
         $validated['last_seen_at'] = !empty($validated['last_seen_at']) ? date('Y-m-d H:i:s', strtotime($validated['last_seen_at'])) : now();
         $validated['status'] = 'aktif';
         $validated['is_verified'] = true;
         $validated['moderation_status'] = 'approved';
+
+        $registeredCat = null;
+        if ($isPet) {
+            $registeredCat = Cat::where('id', $validated['cat_id'])
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+
+            $validated['name'] = $registeredCat->name;
+            $validated['gender'] = in_array(strtolower($registeredCat->gender ?? ''), ['male', 'jantan']) 
+                ? 'jantan' 
+                : (in_array(strtolower($registeredCat->gender ?? ''), ['female', 'betina']) ? 'betina' : 'tidak_diketahui');
+            $validated['coat_color'] = $registeredCat->color ?: ($request->input('coat_color') ?: '-');
+            $validated['coat_pattern'] = $registeredCat->breed ?: ($request->input('coat_pattern') ?: '-');
+            $validated['age_estimate'] = $registeredCat->age_text ?: ($request->input('age_estimate') ?: '-');
+            $validated['characteristics'] = $registeredCat->notes ?: ($request->input('characteristics') ?: null);
+            $validated['condition'] = $validated['condition'] ?? 'sehat';
+            $validated['sterilization_status'] = $validated['sterilization_status'] ?? 'tidak_diketahui';
+        }
 
         $petaAnabul = PetaAnabul::create($validated);
 
@@ -308,13 +364,16 @@ class PetaAnabulController extends Controller
         }
 
         // If no photo uploaded but linked to member pet cat, copy existing cat photo path
-        if ($isFirst && $petaAnabul->cat && $petaAnabul->cat->photo_path) {
-            PetaAnabulPhoto::create([
-                'peta_anabul_id' => $petaAnabul->id,
-                'photo_path' => $petaAnabul->cat->photo_path,
-                'caption' => 'Foto Kucing Saya',
-                'is_primary' => true,
-            ]);
+        if ($isFirst && $registeredCat) {
+            $catPhotoPath = $registeredCat->primary_photo_path ?? $registeredCat->photo_path;
+            if ($catPhotoPath) {
+                PetaAnabulPhoto::create([
+                    'peta_anabul_id' => $petaAnabul->id,
+                    'photo_path' => $catPhotoPath,
+                    'caption' => 'Foto ' . $registeredCat->name,
+                    'is_primary' => true,
+                ]);
+            }
         }
 
         return redirect()->route('peta-anabul.show', $petaAnabul->id)

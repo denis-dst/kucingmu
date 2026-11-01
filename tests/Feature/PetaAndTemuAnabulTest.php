@@ -176,19 +176,13 @@ class PetaAndTemuAnabulTest extends TestCase
             'date_of_birth' => '2023-01-01',
         ]);
 
+        // 2. Create Member Pet Cat with ONLY cat_id and GIS coordinates (no manual identity)
         $petData = [
             'ownership_type' => 'pet',
             'cat_id' => $petCat->id,
-            'name' => 'Mimi',
-            'gender' => 'betina',
-            'coat_color' => 'Abu-abu',
-            'coat_pattern' => 'Solid',
-            'condition' => 'sehat',
-            'sterilization_status' => 'sudah',
             'latitude' => -7.7900,
             'longitude' => 110.3600,
             'city' => 'Kota Yogyakarta',
-            'characteristics' => 'Bulu tebal, mata kuning',
         ];
 
         $responsePet = $this->actingAs($this->member)->post(route('peta-anabul.store'), $petData);
@@ -196,8 +190,11 @@ class PetaAndTemuAnabulTest extends TestCase
 
         $this->assertDatabaseHas('peta_anabuls', [
             'name' => 'Mimi',
+            'gender' => 'betina',
+            'coat_color' => 'Abu-abu',
             'ownership_type' => 'pet',
             'cat_id' => $petCat->id,
+            'condition' => 'sehat',
         ]);
 
         // 3. Verify Markers API visual pin distinction
