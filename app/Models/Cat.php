@@ -370,6 +370,22 @@ class Cat extends Model
 
         return in_array($activeRole, ['verifikator', 'admin', 'superadmin', 'dokter', 'volunteer']);
     }
+
+    /**
+     * Peta Anabul records linked to this cat.
+     */
+    public function petaAnabuls()
+    {
+        return $this->hasMany(PetaAnabul::class);
+    }
+
+    /**
+     * Temu Anabul reports linked to this cat.
+     */
+    public function temuAnabuls()
+    {
+        return $this->hasMany(TemuAnabul::class);
+    }
 }
 
 

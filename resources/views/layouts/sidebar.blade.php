@@ -60,22 +60,38 @@
             </button>
         </div>
 
-        <!-- Active Workspace Banner -->
-        <div
-            class="p-3 mx-3 my-3 rounded-2xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100/80 flex items-center justify-between shadow-2xs">
-            <div class="flex items-center gap-2.5 min-w-0">
+        <!-- Active Workspace Banner / Guest Login Card -->
+        @if($authUser)
+            <div
+                class="p-3 mx-3 my-3 rounded-2xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100/80 flex items-center justify-between shadow-2xs">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <span
+                        class="text-xl shrink-0 p-1.5 bg-white rounded-xl shadow-2xs border border-teal-100">{{ $activeMeta['icon'] }}</span>
+                    <div class="min-w-0">
+                        <div class="text-[10px] font-bold text-teal-700 uppercase tracking-wider">Ruang Kerja</div>
+                        <div class="text-xs font-bold text-slate-800 truncate">{{ $activeMeta['name'] }}</div>
+                    </div>
+                </div>
                 <span
-                    class="text-xl shrink-0 p-1.5 bg-white rounded-xl shadow-2xs border border-teal-100">{{ $activeMeta['icon'] }}</span>
-                <div class="min-w-0">
-                    <div class="text-[10px] font-bold text-teal-700 uppercase tracking-wider">Ruang Kerja</div>
-                    <div class="text-xs font-bold text-slate-800 truncate">{{ $activeMeta['name'] }}</div>
+                    class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-700 text-white shadow-2xs">
+                    {{ $activeMeta['short_name'] }}
+                </span>
+            </div>
+        @else
+            <div class="p-3.5 mx-3 my-3 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-xl">🐱</span>
+                    <div class="text-xs font-bold text-slate-800">Komunitas KucingMU</div>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-relaxed">
+                    Masuk sebagai member untuk menambahkan data anabul dan pelaporan.
+                </p>
+                <div class="flex items-center gap-2 pt-1">
+                    <a href="{{ route('login') }}" class="w-full button-secondary text-center py-1.5 text-xs font-semibold">Masuk</a>
+                    <a href="{{ route('register') }}" class="w-full button-primary text-center py-1.5 text-xs font-bold">Daftar</a>
                 </div>
             </div>
-            <span
-                class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-700 text-white shadow-2xs">
-                {{ $activeMeta['short_name'] }}
-            </span>
-        </div>
+        @endif
 
         <!-- Navigation Links List -->
         <nav class="flex-1 px-3 py-2 space-y-5">
@@ -86,13 +102,39 @@
                     Menu Utama
                 </div>
 
-                <!-- Dashboard / Kucing Saya -->
-                <a href="{{ route('dashboard') }}" @click="mobileSidebarOpen = false"
-                    class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
-                    <span class="text-base {{ request()->routeIs('dashboard') ? 'text-white' : 'text-slate-500' }}">
-                        {{ $activeRole === 'member' ? '🐱' : '📊' }}
+                <!-- Dashboard / Kucing Saya (Khusus Pengguna Terdaftar) -->
+                @if($authUser)
+                    <a href="{{ route('dashboard') }}" @click="mobileSidebarOpen = false"
+                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <span class="text-base {{ request()->routeIs('dashboard') ? 'text-white' : 'text-slate-500' }}">
+                            {{ $activeRole === 'member' ? '🐱' : '📊' }}
+                        </span>
+                        <span>{{ $activeRole === 'member' ? 'Kucing Saya' : 'Dashboard' }}</span>
+                    </a>
+                @endif
+
+                <!-- Peta Anabul -->
+                <a href="{{ route('peta-anabul.index') }}" @click="mobileSidebarOpen = false"
+                    class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('peta-anabul.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                    <span class="text-base {{ request()->routeIs('peta-anabul.*') ? 'text-white' : 'text-slate-500' }}">
+                        🗺️
                     </span>
-                    <span>{{ $activeRole === 'member' ? 'Kucing Saya' : 'Dashboard' }}</span>
+                    <span class="flex-1">Peta Anabul</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider {{ request()->routeIs('peta-anabul.*') ? 'bg-teal-600 text-teal-100' : 'bg-teal-50 text-teal-700' }}">
+                        GIS
+                    </span>
+                </a>
+
+                <!-- Temu Anabul -->
+                <a href="{{ route('temu-anabul.index') }}" @click="mobileSidebarOpen = false"
+                    class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('temu-anabul.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                    <span class="text-base {{ request()->routeIs('temu-anabul.*') ? 'text-white' : 'text-slate-500' }}">
+                        📢
+                    </span>
+                    <span class="flex-1">Temu Anabul</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider {{ request()->routeIs('temu-anabul.*') ? 'bg-teal-600 text-teal-100' : 'bg-rose-50 text-rose-700' }}">
+                        Hilang/Temu
+                    </span>
                 </a>
 
                 <!-- Hubungi Kami (for Member) -->
@@ -321,6 +363,13 @@
                         </svg>
                     </button>
                 </form>
+            </div>
+        @else
+            <div class="p-2.5 rounded-xl bg-white border border-slate-200 text-center space-y-1.5 shadow-2xs">
+                <div class="text-[11px] text-slate-500 font-medium">Sudah memiliki akun?</div>
+                <a href="{{ route('login') }}" class="button-primary w-full py-1.5 text-xs font-bold flex items-center justify-center">
+                    Masuk Sebagai Member
+                </a>
             </div>
         @endif
 

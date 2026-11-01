@@ -281,4 +281,20 @@ class User extends Authenticatable
     {
         $this->attributes['muhammadiyah_id'] = self::formatNbm($value);
     }
+
+    /**
+     * Peta Anabul contributions by this member.
+     */
+    public function petaAnabuls()
+    {
+        return $this->hasMany(PetaAnabul::class);
+    }
+
+    /**
+     * Temu Anabul reports (lost/found) by this member.
+     */
+    public function temuAnabuls()
+    {
+        return $this->hasMany(TemuAnabul::class);
+    }
 }

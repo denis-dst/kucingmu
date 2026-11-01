@@ -1057,8 +1057,7 @@
                         </div>
                     @endif
                     <p class="text-xs sm:text-sm text-slate-700 leading-relaxed max-w-md mx-auto pt-1 font-medium">
-                        Selamat Kucing Anda telah terdaftar pada KucingMu, untuk mendapatkan KTAKuMu perlu dilakukan
-                        Verifikasi secara langsung pada Event KucingMu.
+                        Selamat Kucing Anda telah terdaftar pada KucingMu, untuk mendapatkan KTAKuMu perlu dilakukan Verifikasi secara langsung pada Event KucingMu.
                         <a href="#events-section"
                             @click="showRegistrationSuccessModal = false; $nextTick(() => { document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); })"
                             class="text-teal-700 font-bold underline hover:text-teal-900 focus:outline-hidden focus:ring-2 focus:ring-teal-500 rounded-sm">

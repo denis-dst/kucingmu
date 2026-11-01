@@ -231,4 +231,47 @@ Route::get('/lang/{locale}', function ($locale) {
     return redirect()->back();
 })->name('lang.switch');
 
+// ── Peta Anabul Routes (GIS-based Cat Mapping) ──
+use App\Http\Controllers\PetaAnabulController;
+
+// Akses Publik: Bisa dilihat tanpa login
+Route::get('/peta-anabul', [PetaAnabulController::class, 'index'])->name('peta-anabul.index');
+Route::get('/peta-anabul/markers', [PetaAnabulController::class, 'markers'])->name('peta-anabul.markers');
+
+// Akses Member: Wajib login sebagai member untuk menambah & memperbarui
+Route::middleware(['auth', 'role:member'])->group(function () {
+    Route::get('/peta-anabul/tambah', [PetaAnabulController::class, 'create'])->name('peta-anabul.create');
+    Route::post('/peta-anabul', [PetaAnabulController::class, 'store'])->name('peta-anabul.store');
+    Route::post('/peta-anabul/{petaAnabul}/update-info', [PetaAnabulController::class, 'storeUpdate'])->name('peta-anabul.update-info');
+    Route::get('/peta-anabul/{petaAnabul}/edit', [PetaAnabulController::class, 'edit'])->name('peta-anabul.edit');
+    Route::put('/peta-anabul/{petaAnabul}', [PetaAnabulController::class, 'update'])->name('peta-anabul.update');
+    Route::delete('/peta-anabul/{petaAnabul}', [PetaAnabulController::class, 'destroy'])->name('peta-anabul.destroy');
+});
+
+// Detail anabul dapat diakses publik tanpa login
+Route::get('/peta-anabul/{petaAnabul}', [PetaAnabulController::class, 'show'])->name('peta-anabul.show');
+
+// ── Temu Anabul Routes (Lost & Found Platform) ──
+use App\Http\Controllers\TemuAnabulController;
+
+// Akses Publik: Bisa dilihat & dicari tanpa login
+Route::get('/temu-anabul', [TemuAnabulController::class, 'index'])->name('temu-anabul.index');
+Route::get('/temu-anabul/peta', [TemuAnabulController::class, 'map'])->name('temu-anabul.map');
+Route::get('/temu-anabul/markers', [TemuAnabulController::class, 'markers'])->name('temu-anabul.markers');
+
+// Akses Member: Wajib login sebagai member untuk membuat laporan, jejak, dan reuni
+Route::middleware(['auth', 'role:member'])->group(function () {
+    Route::get('/temu-anabul/lapor', [TemuAnabulController::class, 'create'])->name('temu-anabul.create');
+    Route::post('/temu-anabul', [TemuAnabulController::class, 'store'])->name('temu-anabul.store');
+    Route::post('/temu-anabul/{temuAnabul}/sighting', [TemuAnabulController::class, 'storeSighting'])->name('temu-anabul.sighting');
+    Route::post('/temu-anabul/{temuAnabul}/reunited', [TemuAnabulController::class, 'markReunited'])->name('temu-anabul.reunited');
+    Route::get('/temu-anabul/{temuAnabul}/edit', [TemuAnabulController::class, 'edit'])->name('temu-anabul.edit');
+    Route::put('/temu-anabul/{temuAnabul}', [TemuAnabulController::class, 'update'])->name('temu-anabul.update');
+    Route::delete('/temu-anabul/{temuAnabul}', [TemuAnabulController::class, 'destroy'])->name('temu-anabul.destroy');
+});
+
+// Poster pencarian & detail laporan dapat dilihat publik tanpa login
+Route::get('/temu-anabul/{temuAnabul}/poster', [TemuAnabulController::class, 'poster'])->name('temu-anabul.poster');
+Route::get('/temu-anabul/{temuAnabul}', [TemuAnabulController::class, 'show'])->name('temu-anabul.show');
+
 require __DIR__.'/auth.php';

@@ -56,8 +56,14 @@
             </a>
 
             <!-- Desktop Nav Links -->
-            <nav class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-700" aria-label="Navigasi Halaman">
+            <nav class="hidden md:flex items-center gap-5 text-sm font-semibold text-slate-700" aria-label="Navigasi Halaman">
                 <a href="#tentang" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
+                <a href="{{ route('peta-anabul.index') }}" class="text-teal-800 hover:text-teal-950 font-bold transition flex items-center gap-1 px-1.5 py-1">
+                    <span>🗺️</span> <span>Peta Anabul</span>
+                </a>
+                <a href="{{ route('temu-anabul.index') }}" class="text-rose-700 hover:text-rose-900 font-bold transition flex items-center gap-1 px-1.5 py-1">
+                    <span>📢</span> <span>Temu Anabul</span>
+                </a>
                 <a href="#fitur" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
                 @if(isset($events) && $events->isNotEmpty())
                     <a href="#events" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</a>
@@ -110,6 +116,12 @@
 
         <!-- Mobile Navigation Drawer -->
         <div x-show="mobileNavOpen" x-transition class="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1">
+            <a href="{{ route('peta-anabul.index') }}" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 flex items-center gap-2">
+                <span>🗺️</span> <span>Peta Anabul (GIS)</span>
+            </a>
+            <a href="{{ route('temu-anabul.index') }}" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-bold text-rose-800 bg-rose-50 hover:bg-rose-100 flex items-center gap-2">
+                <span>📢</span> <span>Temu Anabul (Hilang & Ditemukan)</span>
+            </a>
             <a href="#tentang" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
             <a href="#fitur" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
             @if(isset($events) && $events->isNotEmpty())
