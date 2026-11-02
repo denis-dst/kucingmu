@@ -213,43 +213,50 @@
                         class="inline-flex items-center gap-1.5 py-1 px-1.5 rounded-lg font-bold text-teal-800 hover:text-teal-950 transition focus-visible:ring-2 focus-visible:ring-teal-700">
                         <span>🗺️</span>
                         <span>Peta & Anabul</span>
-                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-teal-700" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-teal-700"
+                            :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
 
-                    <div x-show="open"
-                        x-transition:enter="transition ease-out duration-150"
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 translate-y-1"
-                        @click.away="open = false"
-                        x-cloak
+                        x-transition:leave-end="opacity-0 translate-y-1" @click.away="open = false" x-cloak
                         class="absolute left-0 mt-1 w-64 rounded-2xl bg-white border border-slate-200 shadow-xl p-2 z-50 space-y-1">
-                        
-                        <a href="#peta-sebaran" @click="open = false" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-teal-50 transition group">
+
+                        <a href="#peta-sebaran" @click="open = false"
+                            class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-teal-50 transition group">
                             <span class="text-base shrink-0 mt-0.5">🗺️</span>
                             <div>
-                                <div class="text-xs font-bold text-slate-800 group-hover:text-teal-800">Peta Sebaran</div>
-                                <div class="text-[11px] text-slate-500 leading-tight">Peta kader & anabul di beranda</div>
+                                <div class="text-xs font-bold text-slate-800 group-hover:text-teal-800">Peta Sebaran
+                                </div>
+                                <div class="text-[11px] text-slate-500 leading-tight">Peta kader & anabul di beranda
+                                </div>
                             </div>
                         </a>
 
-                        <a href="{{ route('peta-anabul.index') }}" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-teal-50 transition group">
+                        <a href="{{ route('peta-anabul.index') }}"
+                            class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-teal-50 transition group">
                             <span class="text-base shrink-0 mt-0.5">🐱</span>
                             <div>
-                                <div class="text-xs font-bold text-slate-800 group-hover:text-teal-800">Peta Anabul (GIS)</div>
+                                <div class="text-xs font-bold text-slate-800 group-hover:text-teal-800">Peta Anabul
+                                    (GIS)</div>
                                 <div class="text-[11px] text-slate-500 leading-tight">Direktori & pemetaan kucing</div>
                             </div>
                         </a>
 
-                        <a href="{{ route('temu-anabul.index') }}" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-rose-50 transition group">
+                        <a href="{{ route('temu-anabul.index') }}"
+                            class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-rose-50 transition group">
                             <span class="text-base shrink-0 mt-0.5">📢</span>
                             <div>
-                                <div class="text-xs font-bold text-slate-800 group-hover:text-rose-700">Temu Anabul</div>
-                                <div class="text-[11px] text-slate-500 leading-tight">Lapor kucing hilang & ditemukan</div>
+                                <div class="text-xs font-bold text-slate-800 group-hover:text-rose-700">Temu Anabul
+                                </div>
+                                <div class="text-[11px] text-slate-500 leading-tight">Lapor kucing hilang & ditemukan
+                                </div>
                             </div>
                         </a>
                     </div>
@@ -266,33 +273,36 @@
                     <button type="button" @click="open = !open"
                         class="inline-flex items-center gap-1.5 py-1 px-1.5 rounded-lg hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700">
                         <span>{{ app()->getLocale() == 'en' ? 'Info' : 'Informasi' }}</span>
-                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-slate-400" :class="open ? 'rotate-180 text-teal-700' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-slate-400"
+                            :class="open ? 'rotate-180 text-teal-700' : ''" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
 
-                    <div x-show="open"
-                        x-transition:enter="transition ease-out duration-150"
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 translate-y-1"
                         x-transition:enter-end="opacity-100 translate-y-0"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 translate-y-1"
-                        @click.away="open = false"
-                        x-cloak
+                        x-transition:leave-end="opacity-0 translate-y-1" @click.away="open = false" x-cloak
                         class="absolute left-0 mt-1 w-52 rounded-2xl bg-white border border-slate-200 shadow-xl p-2 z-50 space-y-1">
-                        
+
                         @if(isset($events) && $events->isNotEmpty())
-                            <a href="#events" @click="open = false" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
+                            <a href="#events" @click="open = false"
+                                class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
                                 <span>📅</span> <span>{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</span>
                             </a>
                         @endif
 
-                        <a href="#faq" @click="open = false" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
+                        <a href="#faq" @click="open = false"
+                            class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
                             <span>❓</span> <span>FAQ (Tanya Jawab)</span>
                         </a>
 
-                        <a href="#kontak" @click="open = false" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
+                        <a href="#kontak" @click="open = false"
+                            class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
                             <span>📞</span> <span>{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</span>
                         </a>
                     </div>
@@ -356,7 +366,8 @@
         <div x-show="mobileNavOpen" x-transition
             class="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-3">
             <div>
-                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5">Peta & Komunitas</div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5">Peta & Komunitas
+                </div>
                 <div class="space-y-1">
                     <a href="#peta-sebaran" @click="mobileNavOpen = false"
                         class="block min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 flex items-center gap-2.5">
@@ -364,7 +375,7 @@
                     </a>
                     <a href="{{ route('peta-anabul.index') }}"
                         class="block min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-bold text-teal-800 hover:bg-slate-50 flex items-center gap-2.5">
-                        <span>🐱</span> <span>Peta Anabul (GIS)</span>
+                        <span>🐱</span> <span>Peta Anabul</span>
                     </a>
                     <a href="{{ route('temu-anabul.index') }}"
                         class="block min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-bold text-rose-700 hover:bg-rose-50 flex items-center gap-2.5">
@@ -1012,7 +1023,7 @@
                                 class="flex-1 sm:flex-initial min-h-[44px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer"
                                 :class="activeTab === 'representative' ? 'bg-teal-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'">
                                 <span class="text-base">🎖️</span>
-                                <span>Peta Representatif Disetujui</span>
+                                <span>Representatif KucingMu</span>
                                 <span class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
                                     :class="activeTab === 'representative' ? 'bg-teal-700 text-teal-100' : 'bg-slate-100 text-slate-600'"
                                     x-text="repCount !== null ? repCount : '...'">
@@ -1024,7 +1035,7 @@
                                 class="flex-1 sm:flex-initial min-h-[44px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer"
                                 :class="activeTab === 'anabul' ? 'bg-teal-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'">
                                 <span class="text-base">🗺️</span>
-                                <span>Peta Anabul (GIS)</span>
+                                <span>Peta Anabul</span>
                                 <span class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
                                     :class="activeTab === 'anabul' ? 'bg-teal-700 text-teal-100' : 'bg-slate-100 text-slate-600'"
                                     x-text="catCount !== null ? catCount : '...'">

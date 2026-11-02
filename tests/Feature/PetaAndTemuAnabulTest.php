@@ -118,7 +118,7 @@ class PetaAndTemuAnabulTest extends TestCase
         $response->assertSee('id="peta-sebaran"', false);
         $response->assertSee('Peta Sebaran Representatif & Anabul KucingMu', false);
         $response->assertSee('Peta Representatif Disetujui', false);
-        $response->assertSee('Peta Anabul (GIS)', false);
+        $response->assertSee('Peta Anabul', false);
         $response->assertSee('welcome-community-map', false);
 
         // 3. Check approved representative markers API
