@@ -1003,8 +1003,13 @@
                         Peta Sebaran Representatif & Anabul KucingMu
                     </h2>
                     <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
-                        Pantau sebaran kader penggerak KucingMu di seluruh Indonesia serta titik pendataan anabul di
-                        sekitar lingkungan Anda dalam satu visualisasi spasial interaktif.
+                        @auth
+                            Pantau sebaran kader penggerak KucingMu di seluruh Indonesia serta titik pendataan anabul di
+                            sekitar lingkungan Anda dalam satu visualisasi spasial interaktif.
+                        @else
+                            Pantau sebaran kader penggerak KucingMu di seluruh Indonesia serta titik pendataan kucing liar di
+                            sekitar lingkungan Anda dalam satu visualisasi spasial interaktif.
+                        @endauth
                     </p>
                 </div>
 
@@ -1023,7 +1028,7 @@
                                 class="flex-1 sm:flex-initial min-h-[44px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer"
                                 :class="activeTab === 'representative' ? 'bg-teal-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'">
                                 <span class="text-base">🎖️</span>
-                                <span>Representatif KucingMu</span>
+                                <span>Peta Representatif Disetujui</span>
                                 <span class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
                                     :class="activeTab === 'representative' ? 'bg-teal-700 text-teal-100' : 'bg-slate-100 text-slate-600'"
                                     x-text="repCount !== null ? repCount : '...'">
@@ -1035,7 +1040,7 @@
                                 class="flex-1 sm:flex-initial min-h-[44px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer"
                                 :class="activeTab === 'anabul' ? 'bg-teal-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'">
                                 <span class="text-base">🗺️</span>
-                                <span>Peta Anabul</span>
+                                <span>Peta Anabul (GIS)</span>
                                 <span class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
                                     :class="activeTab === 'anabul' ? 'bg-teal-700 text-teal-100' : 'bg-slate-100 text-slate-600'"
                                     x-text="catCount !== null ? catCount : '...'">
@@ -1064,15 +1069,24 @@
                                 <!-- Legend Badges -->
                                 <div class="hidden md:flex items-center gap-2 text-[11px] font-semibold">
                                     <span
-                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200">
-                                        <span class="w-2 h-2 rounded-full bg-teal-700"></span>
-                                        <span>Peliharaan Member (🏠)</span>
-                                    </span>
-                                    <span
                                         class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-800 border border-orange-200">
                                         <span class="w-2 h-2 rounded-full bg-orange-600"></span>
                                         <span>Liar / Sekitar (🐾)</span>
                                     </span>
+                                    @auth
+                                        <span
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200">
+                                            <span class="w-2 h-2 rounded-full bg-teal-700"></span>
+                                            <span>Peliharaan Member (🏠)</span>
+                                        </span>
+                                    @else
+                                        <a href="{{ route('login') }}"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 hover:text-teal-800 hover:bg-slate-200 border border-slate-200 transition text-[11px]"
+                                            title="Masuk sebagai member untuk melihat titik anabul peliharaan">
+                                            <span class="text-xs">🔒</span>
+                                            <span>Peliharaan Member (Khusus Member)</span>
+                                        </a>
+                                    @endauth
                                 </div>
                                 <a href="{{ route('peta-anabul.index') }}"
                                     class="button-secondary min-h-[40px] px-3 py-1.5 text-xs font-bold inline-flex items-center gap-1">
@@ -1109,13 +1123,13 @@
                             class="absolute bottom-4 left-4 z-[900] bg-white/95 backdrop-blur-md p-3 sm:p-3.5 rounded-2xl border border-slate-200/90 shadow-md max-w-xs sm:max-w-sm space-y-1.5 text-xs">
                             <div class="font-outfit font-black text-slate-800 flex items-center justify-between gap-2">
                                 <span
-                                    x-text="activeTab === 'representative' ? 'Sebaran Representatif' : 'Sebaran Anabul'"></span>
+                                    x-text="activeTab === 'representative' ? 'Sebaran Representatif' : (isMember ? 'Sebaran Anabul (Peliharaan & Liar)' : 'Sebaran Kucing Liar Sekitar')"></span>
                                 <span
                                     class="text-[10px] font-mono font-bold text-teal-800 bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md"
                                     x-text="activeTab === 'representative' ? (repCount + ' Titik') : (catCount + ' Titik')"></span>
                             </div>
                             <p class="text-[11px] text-slate-500 leading-relaxed"
-                                x-text="activeTab === 'representative' ? 'Menampilkan kader representatif KucingMu di tingkat PWM, PDM, atau PCM yang telah disetujui secara resmi.' : 'Menampilkan titik sebaran anabul milik member serta kucing liar yang didata oleh komunitas pecinta kucing.'">
+                                x-text="activeTab === 'representative' ? 'Menampilkan kader representatif KucingMu di tingkat PWM, PDM, atau PCM yang telah disetujui secara resmi.' : (isMember ? 'Menampilkan titik sebaran anabul peliharaan member serta kucing liar yang didata oleh komunitas pecinta kucing.' : 'Menampilkan titik sebaran kucing liar di lingkungan sekitar. Titik kucing peliharaan hanya dapat dilihat oleh member terdaftar demi privasi.')">
                             </p>
                         </div>
                     </div>
@@ -1491,6 +1505,7 @@
                 loadingText: 'Memuat data...',
                 repCount: {{ $stats['approved_representatives'] ?? 0 }},
                 catCount: {{ $stats['mapped_cats'] ?? 0 }},
+                isMember: {{ Auth::check() ? 'true' : 'false' }},
                 repData: null,
                 catData: null,
 
@@ -1664,6 +1679,9 @@
                         if (!cat.lat || !cat.lng) return;
 
                         const isPet = cat.ownership_type === 'pet';
+                        // Guard: Pengunjung yang belum login hanya dapat melihat sebaran kucing liar
+                        if (isPet && !this.isMember) return;
+
                         const badgeIcon = isPet ? '🏠' : '🐾';
                         const avatarUrl = cat.thumbnail_url || '{{ asset('images/default-cat.png') }}';
 

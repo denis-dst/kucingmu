@@ -45,8 +45,10 @@ class PetaAnabulController extends Controller
 
         $query = PetaAnabul::with(['photos', 'user', 'cat'])->where('status', '!=', 'arsip');
 
-        // Filter: Tipe Kucing (Peliharaan vs Liar)
-        if ($request->filled('ownership_type') && in_array($request->ownership_type, ['pet', 'stray'])) {
+        // Requirement: Untuk kucing peliharaan, hanya member yg dapat melihatnya (jika belum login ga muncul)
+        if (!Auth::check()) {
+            $query->where('ownership_type', 'stray');
+        } elseif ($request->filled('ownership_type') && in_array($request->ownership_type, ['pet', 'stray'])) {
             $query->where('ownership_type', $request->ownership_type);
         }
 
@@ -103,12 +105,16 @@ class PetaAnabulController extends Controller
             $query->latest('id');
         }
 
-        // Statistics Summary
+        // Statistics Summary (Scoping for guests: only stray counts for total & needs_help)
+        $isLoggedIn = Auth::check();
         $stats = [
-            'total' => PetaAnabul::where('status', '!=', 'arsip')->count(),
+            'total' => $isLoggedIn
+                ? PetaAnabul::where('status', '!=', 'arsip')->count()
+                : PetaAnabul::where('ownership_type', 'stray')->where('status', '!=', 'arsip')->count(),
             'pets' => PetaAnabul::where('ownership_type', 'pet')->where('status', '!=', 'arsip')->count(),
             'strays' => PetaAnabul::where('ownership_type', 'stray')->where('status', '!=', 'arsip')->count(),
-            'needs_help' => PetaAnabul::whereIn('condition', ['sakit', 'terluka', 'butuh_pertolongan'])->where('status', '!=', 'arsip')->count(),
+            'needs_help' => ($isLoggedIn ? PetaAnabul::query() : PetaAnabul::where('ownership_type', 'stray'))
+                ->whereIn('condition', ['sakit', 'terluka', 'butuh_pertolongan'])->where('status', '!=', 'arsip')->count(),
         ];
 
         $provinces = IndonesiaWilayahService::getProvinces();
@@ -134,7 +140,10 @@ class PetaAnabulController extends Controller
 
         $query = PetaAnabul::with(['photos', 'cat'])->where('status', '!=', 'arsip');
 
-        if ($request->filled('ownership_type') && in_array($request->ownership_type, ['pet', 'stray'])) {
+        // Requirement: Untuk kucing peliharaan, hanya member yg dapat melihatnya (jika belum login ga muncul)
+        if (!Auth::check()) {
+            $query->where('ownership_type', 'stray');
+        } elseif ($request->filled('ownership_type') && in_array($request->ownership_type, ['pet', 'stray'])) {
             $query->where('ownership_type', $request->ownership_type);
         }
 
@@ -387,17 +396,28 @@ class PetaAnabulController extends Controller
     {
         $this->ensureSqliteTrigFunctions();
 
+        // Requirement: Untuk kucing peliharaan, hanya member yg dapat melihatnya (jika belum login ga muncul)
+        if ($petaAnabul->isPet() && !Auth::check()) {
+            return redirect()->route('login')
+                ->with('info', 'Titik lokasi anabul peliharaan hanya dapat dilihat oleh member terdaftar KucingMu.');
+        }
+
         $petaAnabul->load(['photos', 'user', 'cat', 'updates.user', 'updates.moderator']);
         
         // Nearby cats within 5km for context
         $haversine = "(6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))";
-        $nearbyCats = PetaAnabul::with('photos')
+        $nearbyCatsQuery = PetaAnabul::with('photos')
             ->select('peta_anabuls.*')
             ->selectRaw("{$haversine} AS distance_km", [$petaAnabul->latitude, $petaAnabul->longitude, $petaAnabul->latitude])
             ->where('id', '!=', $petaAnabul->id)
             ->where('status', '!=', 'arsip')
-            ->whereRaw("{$haversine} <= 10", [$petaAnabul->latitude, $petaAnabul->longitude, $petaAnabul->latitude])
-            ->orderBy('distance_km', 'asc')
+            ->whereRaw("{$haversine} <= 10", [$petaAnabul->latitude, $petaAnabul->longitude, $petaAnabul->latitude]);
+
+        if (!Auth::check()) {
+            $nearbyCatsQuery->where('ownership_type', 'stray');
+        }
+
+        $nearbyCats = $nearbyCatsQuery->orderBy('distance_km', 'asc')
             ->take(4)
             ->get();
 

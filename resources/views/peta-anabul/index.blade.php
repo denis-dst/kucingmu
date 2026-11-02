@@ -148,17 +148,17 @@
                             🗺️
                         </div>
                         <div>
-                            <div class="text-xs sm:text-sm font-bold text-teal-950">Peta Anabul Terbuka untuk Umum</div>
+                            <div class="text-xs sm:text-sm font-bold text-teal-950">Peta Kucing Liar Terbuka untuk Umum</div>
                             <div class="text-[11px] sm:text-xs text-teal-800 mt-0.5">
-                                Anda dapat melihat dan mencari data kucing tanpa harus login. Untuk menambahkan data kucing baru di lingkungan sekitar, silakan masuk dengan akun member KucingMU.
+                                Anda dapat melihat dan mencari data sebaran kucing liar sekitar tanpa harus login. Untuk melihat titik kucing peliharaan atau menambahkan data anabul, silakan masuk sebagai member KucingMu.
                             </div>
                         </div>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        <a href="{{ route('login') }}" class="button-secondary min-h-[38px] px-3.5 text-xs font-semibold">
+                        <a href="{{ route('login') }}" class="button-secondary min-h-[44px] px-3.5 text-xs font-semibold">
                             Masuk
                         </a>
-                        <a href="{{ route('register') }}" class="button-primary min-h-[38px] px-3.5 text-xs font-bold">
+                        <a href="{{ route('register') }}" class="button-primary min-h-[44px] px-3.5 text-xs font-bold">
                             Daftar Member
                         </a>
                     </div>
@@ -186,7 +186,11 @@
                     <div class="min-w-0">
                         <div class="text-[11px] font-bold text-teal-600 uppercase tracking-wider">Kucing Peliharaan</div>
                         <div class="text-lg sm:text-xl font-outfit font-black text-slate-800 leading-tight">
-                            {{ number_format($stats['pets']) }}
+                            @auth
+                                {{ number_format($stats['pets']) }}
+                            @else
+                                <span class="text-xs font-semibold text-slate-400">🔒 Khusus Member</span>
+                            @endauth
                         </div>
                     </div>
                 </div>
@@ -242,11 +246,19 @@
                         <!-- Tipe Kategori Kucing (Pin Distinction) -->
                         <div>
                             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Kategori Anabul</label>
-                            <select name="ownership_type" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs sm:text-sm bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 outline-none">
-                                <option value="">Semua (Peliharaan & Liar)</option>
-                                <option value="pet" {{ request('ownership_type') === 'pet' ? 'selected' : '' }}>🏠 Kucing Peliharaan Member</option>
-                                <option value="stray" {{ request('ownership_type') === 'stray' ? 'selected' : '' }}>🐾 Kucing Liar / Sekitar</option>
-                            </select>
+                            @auth
+                                <select name="ownership_type" class="w-full py-2 px-3 rounded-xl border border-slate-300 text-xs sm:text-sm bg-white focus:border-teal-600 focus:ring-2 focus:ring-teal-100 outline-none">
+                                    <option value="">Semua (Peliharaan & Liar)</option>
+                                    <option value="pet" {{ request('ownership_type') === 'pet' ? 'selected' : '' }}>🏠 Kucing Peliharaan Member</option>
+                                    <option value="stray" {{ request('ownership_type') === 'stray' ? 'selected' : '' }}>🐾 Kucing Liar / Sekitar</option>
+                                </select>
+                            @else
+                                <div class="relative">
+                                    <select name="ownership_type" disabled class="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm bg-slate-100 text-slate-500 cursor-not-allowed outline-none" title="Titik kucing peliharaan hanya dapat diakses oleh member terdaftar demi privasi">
+                                        <option value="stray" selected>🐾 Kucing Liar Saja (Publik)</option>
+                                    </select>
+                                </div>
+                            @endauth
                         </div>
 
                         <!-- Kondisi -->

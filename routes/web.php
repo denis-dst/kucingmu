@@ -30,7 +30,11 @@ Route::get('/', function () {
         'census_count' => \App\Models\PtmaCatCensus::count() + \App\Models\StrayCatSurvey::count(),
         'total_users' => \App\Models\User::count(),
         'approved_representatives' => \App\Models\RepresentativeRegistration::where('status', 'approved')->count(),
-        'mapped_cats' => \App\Models\PetaAnabul::where('status', '!=', 'arsip')->count(),
+        'mapped_cats' => \App\Models\PetaAnabul::where('status', '!=', 'arsip')
+            ->when(!Auth::check(), function ($q) {
+                $q->where('ownership_type', 'stray');
+            })
+            ->count(),
     ];
 
     return view('welcome', compact('events', 'activityAlbums', 'stats'));

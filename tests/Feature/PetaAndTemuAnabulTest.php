@@ -486,4 +486,96 @@ class PetaAndTemuAnabulTest extends TestCase
         $showHelpingResponse->assertStatus(200);
         $showHelpingResponse->assertSee('Laporan Kucing Hilang Komunitas (Belum Terdaftar / Membantu Orang Lain)', false);
     }
+
+    /**
+     * Requirement: Untuk Peta Anabul, hanya tampilkan sebaran kucing liar saja untuk publik.
+     * Untuk kucing peliharaan, hanya member yang dapat melihatnya (jika belum login tidak muncul).
+     */
+    public function test_peta_anabul_pet_cats_hidden_from_guest_and_visible_to_member()
+    {
+        $memberCat = Cat::create([
+            'user_id' => $this->member->id,
+            'name' => 'Luna Princess',
+            'breed' => 'British Shorthair',
+            'gender' => 'female',
+            'status' => 'alive',
+            'color' => 'Abu-abu Solid',
+            'date_of_birth' => '2023-01-01',
+        ]);
+
+        $petMapping = PetaAnabul::create([
+            'user_id' => $this->member->id,
+            'cat_id' => $memberCat->id,
+            'ownership_type' => 'pet',
+            'name' => 'Luna Princess',
+            'unique_code' => PetaAnabul::generateUniqueCode(),
+            'gender' => 'betina',
+            'condition' => 'sehat',
+            'sterilization_status' => 'sudah',
+            'latitude' => -7.7915,
+            'longitude' => 110.3680,
+            'status' => 'aktif',
+            'formatted_address' => 'Jl. Kaliurang No. 10, Sleman',
+        ]);
+
+        $strayMapping = PetaAnabul::create([
+            'user_id' => $this->otherMember->id,
+            'cat_id' => null,
+            'ownership_type' => 'stray',
+            'name' => 'Kucing Pasar Kranggan',
+            'unique_code' => PetaAnabul::generateUniqueCode(),
+            'gender' => 'jantan',
+            'condition' => 'sehat',
+            'sterilization_status' => 'belum',
+            'latitude' => -7.7820,
+            'longitude' => 110.3670,
+            'status' => 'aktif',
+            'formatted_address' => 'Pasar Kranggan, Yogyakarta',
+        ]);
+
+        // A. Sebagai Guest (Belum Login)
+        // 1. API Markers hanya boleh mereturn kucing liar
+        $guestMarkers = $this->getJson(route('peta-anabul.markers'));
+        $guestMarkers->assertStatus(200);
+        $markerNames = collect($guestMarkers->json('data'))->pluck('name')->toArray();
+        $this->assertContains('Kucing Pasar Kranggan', $markerNames);
+        $this->assertNotContains('Luna Princess', $markerNames);
+
+        // 2. Index / Peta Anabul hanya memuat kucing liar
+        $guestIndex = $this->get(route('peta-anabul.index', ['view' => 'list']));
+        $guestIndex->assertStatus(200);
+        $guestIndex->assertSee('Kucing Pasar Kranggan');
+        $guestIndex->assertDontSee('Luna Princess');
+
+        // 3. Detail kucing liar bisa diakses publik
+        $guestStrayShow = $this->get(route('peta-anabul.show', $strayMapping->id));
+        $guestStrayShow->assertStatus(200);
+
+        // 4. Detail kucing peliharaan diarahkan ke login
+        $guestPetShow = $this->get(route('peta-anabul.show', $petMapping->id));
+        $guestPetShow->assertRedirect(route('login'));
+
+        // 5. Homepage hanya menghitung kucing liar pada stats jika guest
+        $guestWelcome = $this->get(url('/'));
+        $guestWelcome->assertStatus(200);
+        $guestWelcome->assertSee('Sebaran Kucing Liar Sekitar');
+
+        // B. Sebagai Member (Sudah Login)
+        // 1. API Markers mereturn kucing liar DAN kucing peliharaan
+        $memberMarkers = $this->actingAs($this->member)->getJson(route('peta-anabul.markers'));
+        $memberMarkers->assertStatus(200);
+        $memberMarkerNames = collect($memberMarkers->json('data'))->pluck('name')->toArray();
+        $this->assertContains('Kucing Pasar Kranggan', $memberMarkerNames);
+        $this->assertContains('Luna Princess', $memberMarkerNames);
+
+        // 2. Index / Peta Anabul memuat kucing peliharaan
+        $memberIndex = $this->actingAs($this->member)->get(route('peta-anabul.index', ['view' => 'list']));
+        $memberIndex->assertStatus(200);
+        $memberIndex->assertSee('Luna Princess');
+
+        // 3. Detail kucing peliharaan dapat diakses oleh member
+        $memberPetShow = $this->actingAs($this->member)->get(route('peta-anabul.show', $petMapping->id));
+        $memberPetShow->assertStatus(200);
+        $memberPetShow->assertSee('Luna Princess');
+    }
 }
