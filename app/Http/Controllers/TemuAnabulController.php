@@ -164,7 +164,22 @@ class TemuAnabulController extends Controller
             $initialType = 'lost';
         }
 
-        $myCats = $user ? Cat::where('user_id', $user->id)->whereNull('deleted_at')->get() : collect();
+        $myCats = $user ? Cat::where('user_id', $user->id)->whereNull('deleted_at')->with('photos')->latest('id')->get() : collect();
+        $myCatsFormatted = $myCats->map(function ($cat) {
+            return [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'breed' => $cat->breed ?: 'Domestik',
+                'color' => $cat->color ?: 'Warna tidak tercatat',
+                'gender' => in_array(strtolower($cat->gender ?? ''), ['male', 'jantan']) ? 'jantan' : (in_array(strtolower($cat->gender ?? ''), ['female', 'betina']) ? 'betina' : 'tidak_diketahui'),
+                'gender_label' => in_array(strtolower($cat->gender ?? ''), ['male', 'jantan']) ? 'Jantan (♂)' : (in_array(strtolower($cat->gender ?? ''), ['female', 'betina']) ? 'Betina (♀)' : 'Belum Diketahui'),
+                'age_text' => $cat->age_text,
+                'unique_code' => $cat->unique_code,
+                'photo_url' => $cat->primary_photo_url,
+                'notes' => $cat->notes,
+            ];
+        })->values();
+
         $provinces = IndonesiaWilayahService::getProvinces();
         $regenciesMap = IndonesiaWilayahService::getRegenciesMap();
 
@@ -173,7 +188,7 @@ class TemuAnabulController extends Controller
             $selectedCat = $myCats->firstWhere('id', (int) $request->cat_id);
         }
 
-        return view('temu-anabul.create', compact('initialType', 'myCats', 'provinces', 'regenciesMap', 'selectedCat'));
+        return view('temu-anabul.create', compact('initialType', 'myCats', 'myCatsFormatted', 'provinces', 'regenciesMap', 'selectedCat'));
     }
 
     /**
@@ -181,6 +196,43 @@ class TemuAnabulController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        // If cat_id provided, verify ownership and backfill missing data
+        if ($request->filled('cat_id')) {
+            $registeredCat = Cat::where('id', $request->cat_id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($registeredCat) {
+                if (!$request->filled('cat_name')) {
+                    $request->merge(['cat_name' => $registeredCat->name]);
+                }
+                if (!$request->filled('distinctive_features')) {
+                    $features = $registeredCat->notes ?: ("Kucing peliharaan terdaftar KTAKuMu " . ($registeredCat->unique_code ? "({$registeredCat->unique_code})" : $registeredCat->name));
+                    $request->merge(['distinctive_features' => $features]);
+                }
+                if (!$request->filled('gender') || $request->input('gender') === 'tidak_diketahui') {
+                    $gen = in_array(strtolower($registeredCat->gender ?? ''), ['male', 'jantan']) ? 'jantan' : (in_array(strtolower($registeredCat->gender ?? ''), ['female', 'betina']) ? 'betina' : 'tidak_diketahui');
+                    $request->merge(['gender' => $gen]);
+                }
+                if (!$request->filled('coat_color') && $registeredCat->color) {
+                    $request->merge(['coat_color' => $registeredCat->color]);
+                }
+                if (!$request->filled('coat_pattern') && $registeredCat->breed) {
+                    $request->merge(['coat_pattern' => $registeredCat->breed]);
+                }
+                if (!$request->filled('age_estimate') && $registeredCat->age_text && $registeredCat->age_text !== '-') {
+                    $request->merge(['age_estimate' => $registeredCat->age_text]);
+                }
+                if (!$request->filled('title')) {
+                    $request->merge(['title' => 'Dicari: Kucing ' . $registeredCat->name . ' Hilang']);
+                }
+            } else {
+                $request->merge(['cat_id' => null]);
+            }
+        }
+
         $validated = $request->validate([
             'type' => 'required|in:lost,found',
             'title' => 'required|string|max:255',
@@ -221,7 +273,6 @@ class TemuAnabulController extends Controller
             'contact_phone.required' => 'Nomor WhatsApp atau telepon kontak wajib diisi.',
         ]);
 
-        $user = Auth::user();
         $validated['user_id'] = $user->id;
         $validated['status'] = 'active';
         $validated['search_radius_km'] = $validated['search_radius_km'] ?? 3.0;
@@ -252,12 +303,15 @@ class TemuAnabulController extends Controller
         }
 
         // If no photo was uploaded but linked to member pet cat, copy existing photo
-        if ($isFirst && $temuAnabul->cat && $temuAnabul->cat->photo_path) {
-            TemuAnabulPhoto::create([
-                'temu_anabul_id' => $temuAnabul->id,
-                'photo_path' => $temuAnabul->cat->photo_path,
-                'is_primary' => true,
-            ]);
+        if ($isFirst && $temuAnabul->cat) {
+            $existingPhotoPath = $temuAnabul->cat->primary_photo_path ?: $temuAnabul->cat->photo_path;
+            if ($existingPhotoPath) {
+                TemuAnabulPhoto::create([
+                    'temu_anabul_id' => $temuAnabul->id,
+                    'photo_path' => $existingPhotoPath,
+                    'is_primary' => true,
+                ]);
+            }
         }
 
         $typeLabel = $temuAnabul->isLost() ? 'Kucing Hilang' : 'Kucing Ditemukan';

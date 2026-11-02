@@ -100,6 +100,11 @@ class TemuAnabul extends Model
         return $this->status === 'active';
     }
 
+    public function isRegisteredCat(): bool
+    {
+        return !empty($this->cat_id);
+    }
+
     /**
      * Type label.
      */

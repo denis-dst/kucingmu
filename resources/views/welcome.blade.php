@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $app_settings['app_name'] ?? 'KucingMu' }} - {{ $app_settings['app_description'] ?? 'E-Surveillance & Kesehatan Kucing Komunitas' }}</title>
+    <title>{{ $app_settings['app_name'] ?? 'KucingMu' }} -
+        {{ $app_settings['app_description'] ?? 'E-Surveillance & Kesehatan Kucing Komunitas' }}
+    </title>
 
     @if(isset($app_settings['app_description']))
         <meta name="description" content="{{ $app_settings['app_description'] }}">
@@ -16,15 +19,153 @@
     <!-- Google Fonts DNS & Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap">
 
     @if(isset($activityAlbums) && count($activityAlbums) > 0)
         <!-- LCP Image Preload -->
         <link rel="preload" as="image" href="{{ $activityAlbums->first()->image_url }}" fetchpriority="high">
     @endif
 
+    <!-- Leaflet & MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
     <style>
-        [x-cloak] { display: none !important; }
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Representative Marker Pin */
+        .rep-marker-pin {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .rep-marker-pin:hover {
+            transform: scale(1.15) translateY(-4px);
+            z-index: 1000 !important;
+        }
+
+        .rep-marker-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 3px solid #f59e0b;
+            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 2px #fff, 0 4px 12px rgba(15, 118, 110, 0.45);
+            font-size: 18px;
+        }
+
+        .rep-marker-badge {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background-color: #059669;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            border: 1.5px solid #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Cat Marker Pin */
+        .cat-marker-pin {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .cat-marker-pin:hover {
+            transform: scale(1.15) translateY(-4px);
+            z-index: 1000 !important;
+        }
+
+        .cat-marker-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            background-color: #f1f5f9;
+        }
+
+        .cat-marker-pet .cat-marker-avatar {
+            border-color: #0f766e;
+            box-shadow: 0 0 0 2px #fff, 0 4px 12px rgba(15, 118, 110, 0.45);
+        }
+
+        .cat-marker-stray .cat-marker-avatar {
+            border-color: #ea580c;
+            box-shadow: 0 0 0 2px #fff, 0 4px 12px rgba(234, 88, 12, 0.45);
+        }
+
+        .cat-marker-badge {
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            border: 1.5px solid #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            color: #fff;
+        }
+
+        .cat-marker-pet .cat-marker-badge {
+            background-color: #0f766e;
+        }
+
+        .cat-marker-stray .cat-marker-badge {
+            background-color: #ea580c;
+        }
+
+        /* Leaflet popup styling & link fix */
+        .leaflet-popup-content-wrapper {
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+            line-height: 1.5;
+            min-width: 250px;
+            max-width: 300px;
+        }
+
+        /* Fix Leaflet default blue link overriding button text */
+        .leaflet-container a.popup-btn,
+        .leaflet-popup-content a.popup-btn,
+        .leaflet-popup-content-wrapper a.popup-btn {
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+
+        .leaflet-container a.popup-btn *,
+        .leaflet-popup-content a.popup-btn *,
+        .leaflet-popup-content-wrapper a.popup-btn * {
+            color: #ffffff !important;
+        }
     </style>
 
     <!-- Styles / Scripts -->
@@ -33,12 +174,14 @@
     <!-- Tracking & Analytics Scripts (GTM & Google Analytics) -->
     @include('partials.tracking-head')
 </head>
+
 <body class="bg-slate-50 font-sans antialiased text-slate-800 overflow-x-hidden" x-data="{ mobileNavOpen: false }">
     <!-- Tracking Body (GTM Noscript) -->
     @include('partials.tracking-body')
 
     <!-- Skip Link for Keyboard Accessibility -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-teal-800 focus:text-white focus:rounded-md focus:shadow-md focus:font-semibold">
+    <a href="#main-content"
+        class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-teal-800 focus:text-white focus:rounded-md focus:shadow-md focus:font-semibold">
         Lewati ke konten utama
     </a>
 
@@ -46,58 +189,150 @@
     <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <!-- Brand Logo -->
-            <a href="#" class="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-700 rounded-lg p-1 shrink-0">
+            <a href="#"
+                class="flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-teal-700 rounded-lg p-1 shrink-0">
                 @if(isset($app_settings['app_logo']))
-                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="32" height="32" class="h-7 sm:h-8 w-auto object-contain" decoding="async">
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="32"
+                        height="32" class="h-7 sm:h-8 w-auto object-contain" decoding="async">
                 @else
                     <span class="text-xl sm:text-2xl" aria-hidden="true">🐱</span>
                 @endif
-                <span class="font-outfit font-extrabold text-teal-900 text-lg sm:text-xl tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
+                <span
+                    class="font-outfit font-extrabold text-teal-900 text-lg sm:text-xl tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
             </a>
 
             <!-- Desktop Nav Links -->
-            <nav class="hidden md:flex items-center gap-5 text-sm font-semibold text-slate-700" aria-label="Navigasi Halaman">
-                <a href="#tentang" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
-                <a href="{{ route('peta-anabul.index') }}" class="text-teal-800 hover:text-teal-950 font-bold transition flex items-center gap-1 px-1.5 py-1">
-                    <span>🗺️</span> <span>Peta Anabul</span>
+            <nav class="hidden md:flex items-center gap-4 lg:gap-6 text-sm font-semibold text-slate-700"
+                aria-label="Navigasi Halaman">
+                <a href="#tentang"
+                    class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
+
+                <!-- Dropdown: Peta & Anabul -->
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" @click="open = !open"
+                        class="inline-flex items-center gap-1.5 py-1 px-1.5 rounded-lg font-bold text-teal-800 hover:text-teal-950 transition focus-visible:ring-2 focus-visible:ring-teal-700">
+                        <span>🗺️</span>
+                        <span>Peta & Anabul</span>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-teal-700" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="open"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 translate-y-1"
+                        @click.away="open = false"
+                        x-cloak
+                        class="absolute left-0 mt-1 w-64 rounded-2xl bg-white border border-slate-200 shadow-xl p-2 z-50 space-y-1">
+                        
+                        <a href="#peta-sebaran" @click="open = false" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-teal-50 transition group">
+                            <span class="text-base shrink-0 mt-0.5">🗺️</span>
+                            <div>
+                                <div class="text-xs font-bold text-slate-800 group-hover:text-teal-800">Peta Sebaran</div>
+                                <div class="text-[11px] text-slate-500 leading-tight">Peta kader & anabul di beranda</div>
+                            </div>
+                        </a>
+
+                        <a href="{{ route('peta-anabul.index') }}" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-teal-50 transition group">
+                            <span class="text-base shrink-0 mt-0.5">🐱</span>
+                            <div>
+                                <div class="text-xs font-bold text-slate-800 group-hover:text-teal-800">Peta Anabul (GIS)</div>
+                                <div class="text-[11px] text-slate-500 leading-tight">Direktori & pemetaan kucing</div>
+                            </div>
+                        </a>
+
+                        <a href="{{ route('temu-anabul.index') }}" class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-rose-50 transition group">
+                            <span class="text-base shrink-0 mt-0.5">📢</span>
+                            <div>
+                                <div class="text-xs font-bold text-slate-800 group-hover:text-rose-700">Temu Anabul</div>
+                                <div class="text-[11px] text-slate-500 leading-tight">Lapor kucing hilang & ditemukan</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <a href="#fitur"
+                    class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
+
+                <a href="#verifikasi"
+                    class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Verification' : 'Verifikasi KTA' }}</a>
+
+                <!-- Dropdown: Info & Bantuan -->
+                <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                    <button type="button" @click="open = !open"
+                        class="inline-flex items-center gap-1.5 py-1 px-1.5 rounded-lg hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700">
+                        <span>{{ app()->getLocale() == 'en' ? 'Info' : 'Informasi' }}</span>
+                        <svg class="w-3.5 h-3.5 transition-transform duration-200 text-slate-400" :class="open ? 'rotate-180 text-teal-700' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <div x-show="open"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 translate-y-1"
+                        @click.away="open = false"
+                        x-cloak
+                        class="absolute left-0 mt-1 w-52 rounded-2xl bg-white border border-slate-200 shadow-xl p-2 z-50 space-y-1">
+                        
+                        @if(isset($events) && $events->isNotEmpty())
+                            <a href="#events" @click="open = false" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
+                                <span>📅</span> <span>{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</span>
+                            </a>
+                        @endif
+
+                        <a href="#faq" @click="open = false" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
+                            <span>❓</span> <span>FAQ (Tanya Jawab)</span>
+                        </a>
+
+                        <a href="#kontak" @click="open = false" class="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-xs font-semibold text-slate-700 hover:text-teal-800 transition">
+                            <span>📞</span> <span>{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Representatif Badge Link -->
+                <a href="{{ route('representative.register') }}"
+                    class="text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3 py-1 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-2xs">
+                    <span>🎖️</span> <span>Representatif</span>
                 </a>
-                <a href="{{ route('temu-anabul.index') }}" class="text-rose-700 hover:text-rose-900 font-bold transition flex items-center gap-1 px-1.5 py-1">
-                    <span>📢</span> <span>Temu Anabul</span>
-                </a>
-                <a href="#fitur" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
-                @if(isset($events) && $events->isNotEmpty())
-                    <a href="#events" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</a>
-                @endif
-                <a href="#faq" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">FAQ</a>
-                <a href="#verifikasi" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'KTAKuMu Verification' : 'Verifikasi KTAKuMu' }}</a>
-                <a href="{{ route('representative.register') }}" class="text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2.5 py-1 rounded-lg text-xs font-bold transition">
-                    🎖️ Representatif
-                </a>
-                <a href="#kontak" class="hover:text-teal-800 transition focus-visible:ring-2 focus-visible:ring-teal-700 rounded px-1.5 py-1">{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</a>
             </nav>
 
             <!-- Language Switcher & Auth Buttons -->
             <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-                <div class="flex border border-slate-300 rounded-lg overflow-hidden text-xs bg-slate-100 font-semibold shadow-xs" role="group" aria-label="Pilih Bahasa">
-                    <a href="{{ route('lang.switch', 'id') }}" aria-label="Bahasa Indonesia" class="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 flex items-center gap-1 {{ app()->getLocale() == 'id' ? 'bg-teal-800 text-white font-bold' : 'text-slate-700 hover:bg-slate-200' }}">
+                <div class="flex border border-slate-300 rounded-lg overflow-hidden text-xs bg-slate-100 font-semibold shadow-xs"
+                    role="group" aria-label="Pilih Bahasa">
+                    <a href="{{ route('lang.switch', 'id') }}" aria-label="Bahasa Indonesia"
+                        class="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 flex items-center gap-1 {{ app()->getLocale() == 'id' ? 'bg-teal-800 text-white font-bold' : 'text-slate-700 hover:bg-slate-200' }}">
                         <span aria-hidden="true">🇮🇩</span> <span>ID</span>
                     </a>
-                    <a href="{{ route('lang.switch', 'en') }}" aria-label="English Language" class="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 flex items-center gap-1 {{ app()->getLocale() == 'en' ? 'bg-teal-800 text-white font-bold' : 'text-slate-700 hover:bg-slate-200' }}">
+                    <a href="{{ route('lang.switch', 'en') }}" aria-label="English Language"
+                        class="min-h-[36px] sm:min-h-[38px] px-2 sm:px-2.5 flex items-center gap-1 {{ app()->getLocale() == 'en' ? 'bg-teal-800 text-white font-bold' : 'text-slate-700 hover:bg-slate-200' }}">
                         <span aria-hidden="true">🇬🇧</span> <span>EN</span>
                     </a>
                 </div>
 
                 @if (Route::has('login'))
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="button-primary min-h-[36px] sm:min-h-[40px] px-3 sm:px-4 py-1.5 sm:py-2 text-xs">
+                        <a href="{{ url('/dashboard') }}"
+                            class="button-primary min-h-[36px] sm:min-h-[40px] px-3 sm:px-4 py-1.5 sm:py-2 text-xs">
                             Dashboard
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="button-secondary hidden sm:inline-flex min-h-[40px] px-3.5 py-2 text-xs">
+                        <a href="{{ route('login') }}"
+                            class="button-secondary hidden sm:inline-flex min-h-[40px] px-3.5 py-2 text-xs">
                             {{ app()->getLocale() == 'en' ? 'Login' : 'Masuk' }}
                         </a>
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="button-primary hidden sm:inline-flex min-h-[40px] px-3.5 py-2 text-xs">
+                            <a href="{{ route('register') }}"
+                                class="button-primary hidden sm:inline-flex min-h-[40px] px-3.5 py-2 text-xs">
                                 {{ app()->getLocale() == 'en' ? 'Register' : 'Daftar' }}
                             </a>
                         @endif
@@ -105,35 +340,65 @@
                 @endif
 
                 <!-- Mobile Hamburger -->
-                <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Buka Menu" class="md:hidden inline-flex min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] items-center justify-center p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-teal-700">
+                <button type="button" @click="mobileNavOpen = !mobileNavOpen" aria-label="Buka Menu"
+                    class="md:hidden inline-flex min-h-[40px] min-w-[40px] sm:min-h-[44px] sm:min-w-[44px] items-center justify-center p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-teal-700">
                     <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path :class="{'hidden': mobileNavOpen, 'inline-flex': !mobileNavOpen}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': !mobileNavOpen, 'inline-flex': mobileNavOpen}" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path :class="{'hidden': mobileNavOpen, 'inline-flex': !mobileNavOpen}" stroke-linecap="round"
+                            stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        <path :class="{'hidden': !mobileNavOpen, 'inline-flex': mobileNavOpen}" class="hidden"
+                            stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
         </div>
 
         <!-- Mobile Navigation Drawer -->
-        <div x-show="mobileNavOpen" x-transition class="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-1">
-            <a href="{{ route('peta-anabul.index') }}" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 flex items-center gap-2">
-                <span>🗺️</span> <span>Peta Anabul (GIS)</span>
-            </a>
-            <a href="{{ route('temu-anabul.index') }}" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-bold text-rose-800 bg-rose-50 hover:bg-rose-100 flex items-center gap-2">
-                <span>📢</span> <span>Temu Anabul (Hilang & Ditemukan)</span>
-            </a>
-            <a href="#tentang" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
-            <a href="#fitur" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
-            @if(isset($events) && $events->isNotEmpty())
-                <a href="#events" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</a>
-            @endif
-            <a href="#faq" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">FAQ</a>
-            <a href="#verifikasi" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'KTAKuMu Verification' : 'Verifikasi KTAKuMu' }}</a>
-            <a href="{{ route('representative.register') }}" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200">🎖️ Jadi Representatif di Daerahmu</a>
-            <a href="#kontak" @click="mobileNavOpen = false" class="block min-h-[44px] px-3 py-2.5 rounded-lg text-sm font-semibold text-slate-800 hover:bg-slate-100">{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</a>
-            
+        <div x-show="mobileNavOpen" x-transition
+            class="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-3">
+            <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5">Peta & Komunitas</div>
+                <div class="space-y-1">
+                    <a href="#peta-sebaran" @click="mobileNavOpen = false"
+                        class="block min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-bold text-teal-900 bg-teal-50 hover:bg-teal-100 flex items-center gap-2.5">
+                        <span>🗺️</span> <span>Peta Sebaran (Beranda)</span>
+                    </a>
+                    <a href="{{ route('peta-anabul.index') }}"
+                        class="block min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-bold text-teal-800 hover:bg-slate-50 flex items-center gap-2.5">
+                        <span>🐱</span> <span>Peta Anabul (GIS)</span>
+                    </a>
+                    <a href="{{ route('temu-anabul.index') }}"
+                        class="block min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-bold text-rose-700 hover:bg-rose-50 flex items-center gap-2.5">
+                        <span>📢</span> <span>Temu Anabul (Hilang & Ditemukan)</span>
+                    </a>
+                    <a href="{{ route('representative.register') }}" @click="mobileNavOpen = false"
+                        class="block min-h-[44px] px-3 py-2.5 rounded-xl text-sm font-bold text-amber-900 bg-amber-50/80 hover:bg-amber-100 border border-amber-200 flex items-center gap-2.5">
+                        <span>🎖️</span> <span>Jadi Representatif di Daerahmu</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-2">
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-1.5">Informasi</div>
+                <div class="space-y-0.5">
+                    <a href="#tentang" @click="mobileNavOpen = false"
+                        class="block min-h-[44px] px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center">{{ app()->getLocale() == 'en' ? 'About' : 'Tentang' }}</a>
+                    <a href="#fitur" @click="mobileNavOpen = false"
+                        class="block min-h-[44px] px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center">{{ app()->getLocale() == 'en' ? 'Services' : 'Layanan' }}</a>
+                    <a href="#verifikasi" @click="mobileNavOpen = false"
+                        class="block min-h-[44px] px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center">{{ app()->getLocale() == 'en' ? 'KTAKuMu Verification' : 'Verifikasi KTAKuMu' }}</a>
+                    @if(isset($events) && $events->isNotEmpty())
+                        <a href="#events" @click="mobileNavOpen = false"
+                            class="block min-h-[44px] px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center">{{ app()->getLocale() == 'en' ? 'Events' : 'Kegiatan' }}</a>
+                    @endif
+                    <a href="#faq" @click="mobileNavOpen = false"
+                        class="block min-h-[44px] px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center">FAQ</a>
+                    <a href="#kontak" @click="mobileNavOpen = false"
+                        class="block min-h-[44px] px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 flex items-center">{{ app()->getLocale() == 'en' ? 'Contact' : 'Kontak' }}</a>
+                </div>
+            </div>
+
             @if (Route::has('login'))
-                <div class="pt-3 mt-2 border-t border-slate-100 flex flex-col gap-2">
+                <div class="pt-3 border-t border-slate-100 flex flex-col gap-2">
                     @auth
                         <a href="{{ url('/dashboard') }}" class="w-full button-primary text-center py-2.5 text-xs font-bold">
                             Dashboard
@@ -155,26 +420,32 @@
 
     <main id="main-content" tabindex="-1" class="focus:outline-none">
         <!-- Hero Section -->
-        <section class="bg-gradient-to-br from-teal-900 via-teal-800 to-sky-800 text-white py-12 sm:py-16 lg:py-24 border-b border-teal-950 overflow-hidden">
+        <section
+            class="bg-gradient-to-br from-teal-900 via-teal-800 to-sky-800 text-white py-12 sm:py-16 lg:py-24 border-b border-teal-950 overflow-hidden">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-8 lg:gap-12 lg:grid-cols-12 items-center">
                 <div class="lg:col-span-7 space-y-5 sm:space-y-6 min-w-0">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-100 text-xs font-semibold uppercase tracking-wider backdrop-blur">
+                    <span
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-teal-100 text-xs font-semibold uppercase tracking-wider backdrop-blur">
                         Inisiatif Bidang Kesehatan DPD IMM DIY
                     </span>
-                    <h1 class="font-outfit text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
+                    <h1
+                        class="font-outfit text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
                         {{ $app_settings['app_name'] ?? 'KucingMu' }}
                     </h1>
                     <p class="text-base sm:text-lg text-teal-100/90 leading-relaxed max-w-xl">
                         {{ $app_settings['app_description'] ?? 'Platform terpadu untuk pendataan kesehatan kucing, surveilans populasi kucing liar, dan penerbitan Kartu Tanda Anggota KucingMu (KTAKuMu) secara digital.' }}
                     </p>
                     <div class="pt-2 flex flex-wrap gap-3.5">
-                        <a href="{{ route('register') }}" class="min-h-[44px] inline-flex items-center justify-center rounded-xl bg-white text-teal-950 px-6 py-3 text-sm font-bold shadow-md hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-white">
+                        <a href="{{ route('register') }}"
+                            class="min-h-[44px] inline-flex items-center justify-center rounded-xl bg-white text-teal-950 px-6 py-3 text-sm font-bold shadow-md hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-white">
                             Daftarkan Kucing Peliharaan
                         </a>
-                        <a href="{{ route('representative.register') }}" class="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-amber-300/50 bg-amber-400/25 text-amber-100 hover:bg-amber-400/35 hover:text-white px-5 py-3 text-sm font-bold backdrop-blur focus-visible:ring-2 focus-visible:ring-amber-300 transition shadow-sm">
+                        <a href="{{ route('representative.register') }}"
+                            class="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-amber-300/50 bg-amber-400/25 text-amber-100 hover:bg-amber-400/35 hover:text-white px-5 py-3 text-sm font-bold backdrop-blur focus-visible:ring-2 focus-visible:ring-amber-300 transition shadow-sm">
                             🎖️ Jadi Representatif di Daerahmu
                         </a>
-                        <a href="#verifikasi" class="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white px-5 py-3 text-sm font-semibold hover:bg-white/20 backdrop-blur focus-visible:ring-2 focus-visible:ring-white">
+                        <a href="#verifikasi"
+                            class="min-h-[44px] inline-flex items-center justify-center rounded-xl border border-white/30 bg-white/10 text-white px-5 py-3 text-sm font-semibold hover:bg-white/20 backdrop-blur focus-visible:ring-2 focus-visible:ring-white">
                             Periksa Nomor NIAKuMu
                         </a>
                     </div>
@@ -205,13 +476,15 @@
                         this.activeIndex = (this.activeIndex - 1 + this.totalSlides) % this.totalSlides;
                     }
                 }" @mouseenter="autoplay = false" @mouseleave="autoplay = true">
-                    
+
                     <!-- Carousel Container with Responsive Aspect Ratio & Sizing -->
-                    <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 w-full max-w-full aspect-[4/3] sm:aspect-[16/10] md:h-[380px] lg:h-[400px] md:aspect-auto group">
-                        
+                    <div
+                        class="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-900 w-full max-w-full aspect-[4/3] sm:aspect-[16/10] md:h-[380px] lg:h-[400px] md:aspect-auto group">
+
                         <!-- Top Header Pill -->
                         <div class="absolute top-3 sm:top-4 left-3 sm:left-4 z-20 flex items-center gap-1.5 sm:gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-xs font-bold shadow-sm">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-xs font-bold shadow-sm">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                                 <span>Album Kegiatan</span>
                             </span>
@@ -219,46 +492,46 @@
 
                         @if(isset($activityAlbums) && count($activityAlbums) > 0)
                             @foreach($activityAlbums as $index => $album)
-                                <div x-show="activeIndex === {{ $index }}"
-                                     x-transition:enter="transition ease-out duration-700"
-                                     x-transition:enter-start="opacity-0 scale-95"
-                                     x-transition:enter-end="opacity-100 scale-100"
-                                     x-transition:leave="transition ease-in duration-300"
-                                     x-transition:leave-start="opacity-100 scale-100"
-                                     x-transition:leave-end="opacity-0 scale-95"
-                                     class="absolute inset-0 w-full h-full"
-                                     style="{{ $index === 0 ? '' : 'display: none;' }}">
-                                    
-                                    <img src="{{ $album->image_url }}" 
-                                         alt="{{ $album->title }}" 
-                                         width="600" 
-                                         height="400"
-                                         @if($index === 0) fetchpriority="high" loading="eager" @else loading="lazy" @endif
-                                         decoding="async"
-                                         class="w-full h-full object-cover" 
-                                         style="width: 100%; height: 100%; object-fit: cover;" 
-                                         onerror="this.onerror=null; this.src='{{ asset('images/logo-muhammadiyah.svg') }}';">
-                                    
+                                <div x-show="activeIndex === {{ $index }}" x-transition:enter="transition ease-out duration-700"
+                                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-300"
+                                    x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                                    class="absolute inset-0 w-full h-full" style="{{ $index === 0 ? '' : 'display: none;' }}">
+
+                                    <img src="{{ $album->image_url }}" alt="{{ $album->title }}" width="600" height="400"
+                                        @if($index === 0) fetchpriority="high" loading="eager" @else loading="lazy" @endif
+                                        decoding="async" class="w-full h-full object-cover"
+                                        style="width: 100%; height: 100%; object-fit: cover;"
+                                        onerror="this.onerror=null; this.src='{{ asset('images/logo-muhammadiyah.svg') }}';">
+
                                     <!-- Gradient Overlay -->
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent">
+                                    </div>
 
                                     <!-- Category Badge Top Right -->
                                     <div class="absolute top-3 sm:top-4 right-3 sm:right-4 z-20">
-                                        <span class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-teal-500/80 backdrop-blur-md text-white border border-teal-300/30 max-w-[120px] sm:max-w-none truncate block">
+                                        <span
+                                            class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-teal-500/80 backdrop-blur-md text-white border border-teal-300/30 max-w-[120px] sm:max-w-none truncate block">
                                             {{ $album->category }}
                                         </span>
                                     </div>
 
                                     <!-- Content Overlay Bottom -->
-                                    <div class="absolute bottom-0 inset-x-0 p-4 sm:p-6 z-20 text-white space-y-1 sm:space-y-1.5">
-                                        <div class="text-[10px] sm:text-[11px] font-semibold text-teal-300 flex items-center gap-1.5">
-                                            <span>📅</span> {{ $album->activity_date ? $album->activity_date->translatedFormat('d F Y') : 'Dokumentasi Program' }}
+                                    <div
+                                        class="absolute bottom-0 inset-x-0 p-4 sm:p-6 z-20 text-white space-y-1 sm:space-y-1.5">
+                                        <div
+                                            class="text-[10px] sm:text-[11px] font-semibold text-teal-300 flex items-center gap-1.5">
+                                            <span>📅</span>
+                                            {{ $album->activity_date ? $album->activity_date->translatedFormat('d F Y') : 'Dokumentasi Program' }}
                                         </div>
-                                        <p class="font-outfit text-sm sm:text-base lg:text-lg font-bold leading-snug line-clamp-2 text-white">
+                                        <p
+                                            class="font-outfit text-sm sm:text-base lg:text-lg font-bold leading-snug line-clamp-2 text-white">
                                             {{ $album->title }}
                                         </p>
                                         @if($album->caption)
-                                            <p class="text-[11px] sm:text-xs text-teal-100/80 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                                            <p
+                                                class="text-[11px] sm:text-xs text-teal-100/80 line-clamp-1 sm:line-clamp-2 leading-relaxed">
                                                 {{ $album->caption }}
                                             </p>
                                         @endif
@@ -267,54 +540,83 @@
                             @endforeach
                         @else
                             <!-- Fallback Demo Slide 1 -->
-                            <div x-show="activeIndex === 0" class="absolute inset-0 w-full h-full bg-gradient-to-br from-teal-800 to-slate-900 flex flex-col justify-between p-4 sm:p-6 text-white">
+                            <div x-show="activeIndex === 0"
+                                class="absolute inset-0 w-full h-full bg-gradient-to-br from-teal-800 to-slate-900 flex flex-col justify-between p-4 sm:p-6 text-white">
                                 <div class="flex justify-between items-start">
                                     <div></div>
-                                    <span class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-teal-500/80 text-white">Pemeriksaan</span>
+                                    <span
+                                        class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-teal-500/80 text-white">Pemeriksaan</span>
                                 </div>
                                 <div class="text-center py-4 sm:py-6">
                                     <div class="text-4xl sm:text-5xl mb-2">🩺</div>
-                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Pemeriksaan Medis Dokter Hewan</p>
-                                    <p class="text-[11px] sm:text-xs text-teal-100 mt-1 line-clamp-2">Layanan cek fisik, telinga, mata, dan pemberian vitamin kucing gratis mitra DPD IMM DIY.</p>
+                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Pemeriksaan Medis
+                                        Dokter Hewan</p>
+                                    <p class="text-[11px] sm:text-xs text-teal-100 mt-1 line-clamp-2">Layanan cek fisik,
+                                        telinga, mata, dan pemberian vitamin kucing gratis mitra DPD IMM DIY.</p>
                                 </div>
-                                <div class="text-[10px] sm:text-[11px] text-teal-300 font-semibold">📅 Pelayanan Berkala Komunitas</div>
+                                <div class="text-[10px] sm:text-[11px] text-teal-300 font-semibold">📅 Pelayanan Berkala
+                                    Komunitas</div>
                             </div>
 
                             <!-- Fallback Demo Slide 2 -->
-                            <div x-show="activeIndex === 1" class="absolute inset-0 w-full h-full bg-gradient-to-br from-sky-900 to-indigo-950 flex flex-col justify-between p-4 sm:p-6 text-white" style="display: none;">
+                            <div x-show="activeIndex === 1"
+                                class="absolute inset-0 w-full h-full bg-gradient-to-br from-sky-900 to-indigo-950 flex flex-col justify-between p-4 sm:p-6 text-white"
+                                style="display: none;">
                                 <div class="flex justify-between items-start">
                                     <div></div>
-                                    <span class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-sky-500/80 text-white">Sensus PTMA</span>
+                                    <span
+                                        class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-sky-500/80 text-white">Sensus
+                                        PTMA</span>
                                 </div>
                                 <div class="text-center py-4 sm:py-6">
                                     <div class="text-4xl sm:text-5xl mb-2">📊</div>
-                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Sensus & Surveilans Kucing Liar</p>
-                                    <p class="text-[11px] sm:text-xs text-sky-100 mt-1 line-clamp-2">Pendataan populasi stray cat berbasis klaster kampus PTMA dan pemantauan Body Condition Score.</p>
+                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Sensus & Surveilans
+                                        Kucing Liar</p>
+                                    <p class="text-[11px] sm:text-xs text-sky-100 mt-1 line-clamp-2">Pendataan populasi
+                                        stray cat berbasis klaster kampus PTMA dan pemantauan Body Condition Score.</p>
                                 </div>
-                                <div class="text-[10px] sm:text-[11px] text-sky-300 font-semibold">📅 Klaster Kampus PTMA</div>
+                                <div class="text-[10px] sm:text-[11px] text-sky-300 font-semibold">📅 Klaster Kampus PTMA
+                                </div>
                             </div>
 
                             <!-- Fallback Demo Slide 3 -->
-                            <div x-show="activeIndex === 2" class="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-900 to-slate-950 flex flex-col justify-between p-4 sm:p-6 text-white" style="display: none;">
+                            <div x-show="activeIndex === 2"
+                                class="absolute inset-0 w-full h-full bg-gradient-to-br from-emerald-900 to-slate-950 flex flex-col justify-between p-4 sm:p-6 text-white"
+                                style="display: none;">
                                 <div class="flex justify-between items-start">
                                     <div></div>
-                                    <span class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-500/80 text-white">Identitas Digital</span>
+                                    <span
+                                        class="px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-500/80 text-white">Identitas
+                                        Digital</span>
                                 </div>
                                 <div class="text-center py-4 sm:py-6">
                                     <div class="text-4xl sm:text-5xl mb-2">🪪</div>
-                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Penerbitan Kartu KTAKuMu Digital</p>
-                                    <p class="text-[11px] sm:text-xs text-emerald-100 mt-1 line-clamp-2">Kartu Tanda Anggota KucingMu dilengkapi kode unik wilayah dan QR code verifikasi instan.</p>
+                                    <p class="font-outfit text-base sm:text-lg font-bold text-white">Penerbitan Kartu
+                                        KTAKuMu Digital</p>
+                                    <p class="text-[11px] sm:text-xs text-emerald-100 mt-1 line-clamp-2">Kartu Tanda Anggota
+                                        KucingMu dilengkapi kode unik wilayah dan QR code verifikasi instan.</p>
                                 </div>
-                                <div class="text-[10px] sm:text-[11px] text-emerald-300 font-semibold">📅 Kartu Terverifikasi Digital</div>
+                                <div class="text-[10px] sm:text-[11px] text-emerald-300 font-semibold">📅 Kartu
+                                    Terverifikasi Digital</div>
                             </div>
                         @endif
 
                         <!-- Navigation Arrows (Accessible Touch Targets >= 44x44px) -->
-                        <button type="button" @click.stop="prev()" aria-label="Slide sebelumnya" class="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-11 sm:h-11 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                        <button type="button" @click.stop="prev()" aria-label="Slide sebelumnya"
+                            class="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-11 sm:h-11 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M15 19l-7-7 7-7"></path>
+                            </svg>
                         </button>
-                        <button type="button" @click.stop="next()" aria-label="Slide berikutnya" class="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-11 sm:h-11 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
-                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                        <button type="button" @click.stop="next()" aria-label="Slide berikutnya"
+                            class="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-30 w-8 h-8 sm:w-11 sm:h-11 min-h-[36px] min-w-[36px] sm:min-h-[44px] sm:min-w-[44px] rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition focus:opacity-100 border border-white/20">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M9 5l7 7-7 7"></path>
+                            </svg>
                         </button>
 
                         <!-- Indicators Dots with Touch Target Padding (Zero-CLS pre-rendered in Blade) -->
@@ -323,12 +625,12 @@
                                 $totalAlbumSlides = (isset($activityAlbums) && count($activityAlbums) > 0) ? count($activityAlbums) : 3;
                             @endphp
                             @for($i = 0; $i < $totalAlbumSlides; $i++)
-                                <button type="button" 
-                                        @click.stop="activeIndex = {{ $i }}" 
-                                        aria-label="Buka slide {{ $i + 1 }}" 
-                                        class="min-h-[32px] sm:min-h-[40px] min-w-[20px] sm:min-w-[32px] flex items-center justify-center p-0.5 sm:p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-full">
-                                    <span :class="activeIndex === {{ $i }} ? 'w-5 sm:w-6 bg-amber-400' : 'w-2 bg-white/50 hover:bg-white/80'" 
-                                          class="h-1.5 sm:h-2 rounded-full transition-all duration-300 shadow-xs {{ $i === 0 ? 'w-5 sm:w-6 bg-amber-400' : 'w-2 bg-white/50' }}"></span>
+                                <button type="button" @click.stop="activeIndex = {{ $i }}"
+                                    aria-label="Buka slide {{ $i + 1 }}"
+                                    class="min-h-[32px] sm:min-h-[40px] min-w-[20px] sm:min-w-[32px] flex items-center justify-center p-0.5 sm:p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 rounded-full">
+                                    <span
+                                        :class="activeIndex === {{ $i }} ? 'w-5 sm:w-6 bg-amber-400' : 'w-2 bg-white/50 hover:bg-white/80'"
+                                        class="h-1.5 sm:h-2 rounded-full transition-all duration-300 shadow-xs {{ $i === 0 ? 'w-5 sm:w-6 bg-amber-400' : 'w-2 bg-white/50' }}"></span>
                                 </button>
                             @endfor
                         </div>
@@ -339,13 +641,17 @@
         </section>
 
         <!-- Stats Panel -->
-        <section class="bg-white border-b border-slate-200 py-10 shadow-xs relative z-10" aria-label="Statistik Program & Komunitas">
+        <section class="bg-white border-b border-slate-200 py-10 shadow-xs relative z-10"
+            aria-label="Statistik Program & Komunitas">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid gap-5 grid-cols-2 md:grid-cols-4">
                     <!-- Stat 1: Total Kucing Terdaftar -->
-                    <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
-                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">🐱</div>
-                        <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
+                    <div
+                        class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
+                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300"
+                            aria-hidden="true">🐱</div>
+                        <div
+                            class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
                             {{ number_format($stats['total_cats'] ?? 0) }}
                             <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Ekor</span>
                         </div>
@@ -358,9 +664,12 @@
                     </div>
 
                     <!-- Stat 2: KTAKuMu Digital Terbit -->
-                    <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
-                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">🪪</div>
-                        <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
+                    <div
+                        class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
+                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300"
+                            aria-hidden="true">🪪</div>
+                        <div
+                            class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
                             {{ number_format($stats['ktam_issued'] ?? 0) }}
                             <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Kartu</span>
                         </div>
@@ -373,9 +682,12 @@
                     </div>
 
                     <!-- Stat 3: Pemeriksaan Medis -->
-                    <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
-                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">🩺</div>
-                        <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
+                    <div
+                        class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
+                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300"
+                            aria-hidden="true">🩺</div>
+                        <div
+                            class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
                             {{ number_format($stats['medical_records'] ?? 0) }}
                             <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Layanan</span>
                         </div>
@@ -388,9 +700,12 @@
                     </div>
 
                     <!-- Stat 4: Sensus & Surveilans Kucing Liar -->
-                    <div class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
-                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">📊</div>
-                        <div class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
+                    <div
+                        class="p-5 rounded-2xl bg-gradient-to-b from-slate-50 to-white border border-slate-200/80 hover:border-teal-300 hover:shadow-md transition-all duration-300 flex flex-col justify-center text-center group">
+                        <div class="text-3xl mb-1.5 group-hover:scale-110 transition-transform duration-300"
+                            aria-hidden="true">📊</div>
+                        <div
+                            class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-teal-900 tracking-tight">
                             {{ number_format($stats['census_count'] ?? 0) }}
                             <span class="text-xs sm:text-sm font-bold text-teal-700 font-sans ml-0.5">Data</span>
                         </div>
@@ -410,9 +725,12 @@
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
                 <div class="text-center max-w-2xl mx-auto">
                     <span class="eyebrow">Tentang Inisiatif</span>
-                    <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-slate-900 font-outfit">Kepedulian Lingkungan & Kesejahteraan Kucing</h2>
+                    <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-slate-900 font-outfit">Kepedulian Lingkungan &
+                        Kesejahteraan Kucing</h2>
                     <p class="mt-3 text-sm text-slate-600 leading-relaxed">
-                        KucingMu adalah sarana integrasi komunitas pemerhati kucing di lingkungan persyarikatan Muhammadiyah. Program ini memfasilitasi pemeriksaan medis hewan gratis serta pendataan surveilans lapangan yang akuntabel.
+                        KucingMu adalah sarana integrasi komunitas pemerhati kucing di lingkungan persyarikatan
+                        Muhammadiyah. Program ini memfasilitasi pemeriksaan medis hewan gratis serta pendataan
+                        surveilans lapangan yang akuntabel.
                     </p>
                 </div>
 
@@ -421,7 +739,8 @@
                         <div class="text-2xl" aria-hidden="true">🏥</div>
                         <h3 class="font-bold text-slate-900 mt-3 text-base">Pemeriksaan Dokter Hewan</h3>
                         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-                            Pemeriksaan klinis umum, konsultasi riwayat kesehatan, dan pemberian obat non-invasif oleh dokter hewan mitra.
+                            Pemeriksaan klinis umum, konsultasi riwayat kesehatan, dan pemberian obat non-invasif oleh
+                            dokter hewan mitra.
                         </p>
                     </div>
 
@@ -437,7 +756,8 @@
                         <div class="text-2xl" aria-hidden="true">📋</div>
                         <h3 class="font-bold text-slate-900 mt-3 text-base">Surveilans Lapangan</h3>
                         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-                            Relawan dapat mendata sebaran kucing liar, kondisi kesehatan, dan lokasi koordinat secara terstruktur.
+                            Relawan dapat mendata sebaran kucing liar, kondisi kesehatan, dan lokasi koordinat secara
+                            terstruktur.
                         </p>
                     </div>
                 </div>
@@ -449,65 +769,78 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-12 lg:grid-cols-2 items-center">
                 <div>
                     <span class="eyebrow">Fasilitas Medis</span>
-                    <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-slate-900 font-outfit">Layanan Pemeriksaan Kesehatan</h2>
+                    <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-slate-900 font-outfit">Layanan Pemeriksaan
+                        Kesehatan</h2>
                     <p class="mt-3 text-sm text-slate-600 leading-relaxed">
-                        Kucing yang terdaftar dalam program pemeriksaan mendapatkan perawatan pencegahan standar berikut:
+                        Kucing yang terdaftar dalam program pemeriksaan mendapatkan perawatan pencegahan standar
+                        berikut:
                     </p>
 
                     <div class="mt-6 space-y-4">
                         <div class="flex gap-3.5 items-start">
-                            <div class="h-6 w-6 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0" aria-hidden="true">✓</div>
+                            <div class="h-6 w-6 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                aria-hidden="true">✓</div>
                             <div>
                                 <h3 class="font-bold text-slate-900 text-sm">Pemberian Obat Cacing (Deworming)</h3>
-                                <p class="text-xs text-slate-600 mt-0.5">Mencegah dan mengeliminasi parasit saluran pencernaan.</p>
+                                <p class="text-xs text-slate-600 mt-0.5">Mencegah dan mengeliminasi parasit saluran
+                                    pencernaan.</p>
                             </div>
                         </div>
                         <div class="flex gap-3.5 items-start">
-                            <div class="h-6 w-6 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0" aria-hidden="true">✓</div>
+                            <div class="h-6 w-6 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                aria-hidden="true">✓</div>
                             <div>
                                 <h3 class="font-bold text-slate-900 text-sm">Pengobatan Kutu (Anti-Flea)</h3>
-                                <p class="text-xs text-slate-600 mt-0.5">Penanganan parasit kulit luar untuk mencegah iritasi dan kerontokan bulu.</p>
+                                <p class="text-xs text-slate-600 mt-0.5">Penanganan parasit kulit luar untuk mencegah
+                                    iritasi dan kerontokan bulu.</p>
                             </div>
                         </div>
                         <div class="flex gap-3.5 items-start">
-                            <div class="h-6 w-6 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0" aria-hidden="true">✓</div>
+                            <div class="h-6 w-6 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                aria-hidden="true">✓</div>
                             <div>
                                 <h3 class="font-bold text-slate-900 text-sm">Suplemen & Vitamin</h3>
-                                <p class="text-xs text-slate-600 mt-0.5">Diberikan untuk membantu daya tahan dan nutrisi tubuh kucing.</p>
+                                <p class="text-xs text-slate-600 mt-0.5">Diberikan untuk membantu daya tahan dan nutrisi
+                                    tubuh kucing.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-slate-50 rounded-2xl p-6 sm:p-8 border border-slate-200">
-                    <h3 class="font-outfit text-lg font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2.5">4 Peran Dalam Platform</h3>
+                    <h3 class="font-outfit text-lg font-bold text-slate-900 mb-4 border-b border-slate-200 pb-2.5">4
+                        Peran Dalam Platform</h3>
                     <div class="space-y-3">
                         <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex items-center gap-3.5">
                             <span class="text-xl" aria-hidden="true">🐱</span>
                             <div>
                                 <strong class="text-sm block text-slate-900">Pemilik Kucing (Member)</strong>
-                                <span class="text-xs text-slate-600">Mendaftarkan kucing peliharaan, memilih jadwal periksa, dan mengunduh kartu KTAKuMu.</span>
+                                <span class="text-xs text-slate-600">Mendaftarkan kucing peliharaan, memilih jadwal
+                                    periksa, dan mengunduh kartu KTAKuMu.</span>
                             </div>
                         </div>
                         <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex items-center gap-3.5">
                             <span class="text-xl" aria-hidden="true">🩺</span>
                             <div>
                                 <strong class="text-sm block text-slate-900">Dokter Hewan Mitra</strong>
-                                <span class="text-xs text-slate-600">Melakukan pemeriksaan klinis, memberikan diagnosis, dan mencatat rekam medis.</span>
+                                <span class="text-xs text-slate-600">Melakukan pemeriksaan klinis, memberikan diagnosis,
+                                    dan mencatat rekam medis.</span>
                             </div>
                         </div>
                         <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex items-center gap-3.5">
                             <span class="text-xl" aria-hidden="true">📋</span>
                             <div>
                                 <strong class="text-sm block text-slate-900">Relawan Lapangan (Volunteer)</strong>
-                                <span class="text-xs text-slate-600">Melakukan input data surveilans kucing liar dan verifikasi kehadiran peserta di lokasi.</span>
+                                <span class="text-xs text-slate-600">Melakukan input data surveilans kucing liar dan
+                                    verifikasi kehadiran peserta di lokasi.</span>
                             </div>
                         </div>
                         <div class="p-3.5 bg-white rounded-xl border border-slate-200 flex items-center gap-3.5">
                             <span class="text-xl" aria-hidden="true">🛡️</span>
                             <div>
                                 <strong class="text-sm block text-slate-900">Majelis & Pengelola (Admin)</strong>
-                                <span class="text-xs text-slate-600">Memverifikasi berkas, mengesahkan penerbitan KTAKuMu, dan mengelola jadwal kegiatan.</span>
+                                <span class="text-xs text-slate-600">Memverifikasi berkas, mengesahkan penerbitan
+                                    KTAKuMu, dan mengelola jadwal kegiatan.</span>
                             </div>
                         </div>
                     </div>
@@ -521,7 +854,8 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
                     <div class="text-center max-w-2xl mx-auto">
                         <span class="eyebrow">Agenda Terdekat</span>
-                        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-slate-900 font-outfit">Kegiatan & Pemeriksaan Kesehatan Kucing</h2>
+                        <h2 class="mt-2 text-2xl sm:text-3xl font-bold text-slate-900 font-outfit">Kegiatan & Pemeriksaan
+                            Kesehatan Kucing</h2>
                         <p class="mt-3 text-sm text-slate-600 leading-relaxed">
                             Jadwal sosialisasi, edukasi, dan pemeriksaan kesehatan hewan di lokasi mitra persyarikatan.
                         </p>
@@ -532,17 +866,26 @@
                             <div class="content-card flex flex-col justify-between">
                                 <div>
                                     <!-- Banner -->
-                                    <a href="{{ route('events.show', $event) }}" class="block focus:outline-none focus:ring-2 focus:ring-teal-700 rounded-lg group" aria-label="Lihat detail kegiatan {{ $event->title }}">
-                                        <div class="h-44 w-full bg-slate-100 rounded-lg overflow-hidden relative border border-slate-200">
+                                    <a href="{{ route('events.show', $event) }}"
+                                        class="block focus:outline-none focus:ring-2 focus:ring-teal-700 rounded-lg group"
+                                        aria-label="Lihat detail kegiatan {{ $event->title }}">
+                                        <div
+                                            class="h-44 w-full bg-slate-100 rounded-lg overflow-hidden relative border border-slate-200">
                                             @if($event->banner_path)
-                                                <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}" width="400" height="176" loading="lazy" decoding="async" class="h-full w-full object-cover group-hover:scale-105 transition duration-300">
+                                                <img src="{{ asset('storage/' . $event->banner_path) }}" alt="{{ $event->title }}"
+                                                    width="400" height="176" loading="lazy" decoding="async"
+                                                    class="h-full w-full object-cover group-hover:scale-105 transition duration-300">
                                             @else
-                                                <div class="h-full w-full flex flex-col items-center justify-center text-slate-400 group-hover:bg-slate-200/60 transition">
+                                                <div
+                                                    class="h-full w-full flex flex-col items-center justify-center text-slate-400 group-hover:bg-slate-200/60 transition">
                                                     <span class="text-3xl" aria-hidden="true">📅</span>
-                                                    <span class="text-xs font-semibold uppercase tracking-wider mt-1 text-slate-500">Agenda Kegiatan</span>
+                                                    <span
+                                                        class="text-xs font-semibold uppercase tracking-wider mt-1 text-slate-500">Agenda
+                                                        Kegiatan</span>
                                                 </div>
                                             @endif
-                                            <div class="absolute top-3 left-3 bg-teal-800 text-white font-semibold text-xs px-2.5 py-1 rounded-md shadow-xs">
+                                            <div
+                                                class="absolute top-3 left-3 bg-teal-800 text-white font-semibold text-xs px-2.5 py-1 rounded-md shadow-xs">
                                                 {{ $event->date ? $event->date->format('d M Y') : '-' }}
                                             </div>
                                         </div>
@@ -551,7 +894,8 @@
                                     <!-- Body -->
                                     <div class="pt-4 space-y-2">
                                         <h3 class="font-outfit text-lg font-bold text-slate-900 leading-snug">
-                                            <a href="{{ route('events.show', $event) }}" class="hover:text-teal-800 transition-colors">
+                                            <a href="{{ route('events.show', $event) }}"
+                                                class="hover:text-teal-800 transition-colors">
                                                 {{ $event->title }}
                                             </a>
                                         </h3>
@@ -562,9 +906,11 @@
                                             {{ \Illuminate\Support\Str::limit(strip_tags($event->description), 110, '...') }}
                                         </p>
                                         <div>
-                                            <a href="{{ route('events.show', $event) }}" class="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-950 transition-colors group">
+                                            <a href="{{ route('events.show', $event) }}"
+                                                class="inline-flex items-center gap-1 text-xs font-bold text-teal-800 hover:text-teal-950 transition-colors group">
                                                 <span>Baca Selengkapnya</span>
-                                                <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">&rarr;</span>
+                                                <span aria-hidden="true"
+                                                    class="transition-transform group-hover:translate-x-0.5">&rarr;</span>
                                             </a>
                                         </div>
                                     </div>
@@ -574,15 +920,19 @@
                                 <div class="pt-4 mt-4 border-t border-slate-100">
                                     @if($event->registration_link)
                                         <div class="flex items-center gap-2">
-                                            <a href="{{ route('events.show', $event) }}" class="flex-1 button-secondary text-center text-xs font-semibold py-2.5">
+                                            <a href="{{ route('events.show', $event) }}"
+                                                class="flex-1 button-secondary text-center text-xs font-semibold py-2.5">
                                                 Detail
                                             </a>
-                                            <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}" target="_blank" rel="noopener noreferrer" class="flex-1 button-primary text-center text-xs font-semibold py-2.5">
+                                            <a href="{{ str_starts_with($event->registration_link, 'http') ? $event->registration_link : 'https://' . $event->registration_link }}"
+                                                target="_blank" rel="noopener noreferrer"
+                                                class="flex-1 button-primary text-center text-xs font-semibold py-2.5">
                                                 Daftar Kegiatan
                                             </a>
                                         </div>
                                     @else
-                                        <a href="{{ route('events.show', $event) }}" class="w-full button-secondary text-center text-xs font-semibold py-2.5">
+                                        <a href="{{ route('events.show', $event) }}"
+                                            class="w-full button-secondary text-center text-xs font-semibold py-2.5">
                                             Detail & Informasi Kegiatan
                                         </a>
                                     @endif
@@ -595,32 +945,185 @@
         @endif
 
         <!-- CTA Banner: Jadi Representatif di Daerahmu -->
-        <section class="py-12 sm:py-16 bg-gradient-to-r from-teal-900 via-teal-800 to-sky-900 text-white relative overflow-hidden border-y border-teal-950">
+        <section
+            class="py-12 sm:py-16 bg-gradient-to-r from-teal-900 via-teal-800 to-sky-900 text-white relative overflow-hidden border-y border-teal-950">
             <div class="absolute inset-0 pointer-events-none opacity-20">
                 <div class="absolute -top-20 -right-20 w-80 h-80 bg-amber-400 rounded-full blur-3xl"></div>
                 <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-teal-400 rounded-full blur-3xl"></div>
             </div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="bg-white/10 border border-white/20 rounded-3xl p-6 sm:p-10 backdrop-blur-md flex flex-col lg:flex-row items-center justify-between gap-8">
+                <div
+                    class="bg-white/10 border border-white/20 rounded-3xl p-6 sm:p-10 backdrop-blur-md flex flex-col lg:flex-row items-center justify-between gap-8">
                     <div class="space-y-3 text-center lg:text-left max-w-2xl">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-xs font-bold">
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/40 text-amber-200 text-xs font-bold">
                             <span>🎖️</span> Penjaringan Nasional 38 Provinsi
                         </div>
-                        <h2 class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                        <h2
+                            class="font-outfit text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
                             Berminat Menggerakkan Kepedulian Hewan di Wilayah Anda?
                         </h2>
                         <p class="text-xs sm:text-sm text-teal-100/90 leading-relaxed font-normal">
-                            Bergabunglah sebagai kader penggerak, edukator kesrawan (kesejahteraan hewan), serta relawan KucingMu di tingkat Pimpinan Wilayah (PWM), Daerah (PDM), atau Cabang (PCM).
+                            Bergabunglah sebagai kader penggerak, edukator kesrawan (kesejahteraan hewan), serta relawan
+                            KucingMu di tingkat Pimpinan Wilayah (PWM), Daerah (PDM), atau Cabang (PCM).
                         </p>
                     </div>
 
                     <div class="shrink-0 w-full lg:w-auto text-center">
-                        <a href="{{ route('representative.register') }}" class="w-full sm:w-auto min-h-[50px] px-8 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition transform hover:scale-[1.02] active:scale-[0.98]">
+                        <a href="{{ route('representative.register') }}"
+                            class="w-full sm:w-auto min-h-[50px] px-8 py-3.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm sm:text-base inline-flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition transform hover:scale-[1.02] active:scale-[0.98]">
                             <span>🎖️</span> Jadi Representatif di Daerahmu &rarr;
                         </a>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Peta Sebaran Spasial: Representatif KucingMu & Peta Anabul (Tab Switcher) -->
+        <section id="peta-sebaran" class="py-16 bg-slate-50 border-t border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8" x-data="petaSebaranKomunitas()">
+
+                <!-- Section Header -->
+                <div class="text-center max-w-3xl mx-auto space-y-2">
+                    <span class="eyebrow">GIS & Pemetaan Spasial Komunitas</span>
+                    <h2
+                        class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 font-outfit tracking-tight">
+                        Peta Sebaran Representatif & Anabul KucingMu
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                        Pantau sebaran kader penggerak KucingMu di seluruh Indonesia serta titik pendataan anabul di
+                        sekitar lingkungan Anda dalam satu visualisasi spasial interaktif.
+                    </p>
+                </div>
+
+                <!-- Card Wrapper for Tabs and Map -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+
+                    <!-- Tab Switcher Bar -->
+                    <div
+                        class="p-3 sm:p-4 bg-slate-100/80 border-b border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+
+                        <!-- Segmented Tab Controls -->
+                        <div
+                            class="inline-flex p-1.5 rounded-2xl bg-white border border-slate-200 shadow-2xs self-start sm:self-auto w-full sm:w-auto">
+                            <!-- Tab 1 Button -->
+                            <button type="button" @click="switchTab('representative')"
+                                class="flex-1 sm:flex-initial min-h-[44px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+                                :class="activeTab === 'representative' ? 'bg-teal-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'">
+                                <span class="text-base">🎖️</span>
+                                <span>Peta Representatif Disetujui</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
+                                    :class="activeTab === 'representative' ? 'bg-teal-700 text-teal-100' : 'bg-slate-100 text-slate-600'"
+                                    x-text="repCount !== null ? repCount : '...'">
+                                </span>
+                            </button>
+
+                            <!-- Tab 2 Button -->
+                            <button type="button" @click="switchTab('anabul')"
+                                class="flex-1 sm:flex-initial min-h-[44px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+                                :class="activeTab === 'anabul' ? 'bg-teal-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'">
+                                <span class="text-base">🗺️</span>
+                                <span>Peta Anabul (GIS)</span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
+                                    :class="activeTab === 'anabul' ? 'bg-teal-700 text-teal-100' : 'bg-slate-100 text-slate-600'"
+                                    x-text="catCount !== null ? catCount : '...'">
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- Dynamic Context / Action based on Active Tab -->
+                        <div class="flex items-center gap-2 text-xs">
+                            <!-- When Tab Representative -->
+                            <div x-show="activeTab === 'representative'" x-cloak
+                                class="flex flex-wrap items-center gap-2">
+                                <span class="hidden md:inline-flex items-center gap-1.5 text-slate-500 font-medium">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                                    Kader Terverifikasi
+                                </span>
+                                <a href="{{ route('representative.register') }}"
+                                    class="button-primary min-h-[40px] px-3.5 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs">
+                                    <span>🎖️</span>
+                                    <span>Gabung Representatif</span>
+                                </a>
+                            </div>
+
+                            <!-- When Tab Anabul -->
+                            <div x-show="activeTab === 'anabul'" x-cloak class="flex flex-wrap items-center gap-2">
+                                <!-- Legend Badges -->
+                                <div class="hidden md:flex items-center gap-2 text-[11px] font-semibold">
+                                    <span
+                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200">
+                                        <span class="w-2 h-2 rounded-full bg-teal-700"></span>
+                                        <span>Peliharaan Member (🏠)</span>
+                                    </span>
+                                    <span
+                                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-800 border border-orange-200">
+                                        <span class="w-2 h-2 rounded-full bg-orange-600"></span>
+                                        <span>Liar / Sekitar (🐾)</span>
+                                    </span>
+                                </div>
+                                <a href="{{ route('peta-anabul.index') }}"
+                                    class="button-secondary min-h-[40px] px-3 py-1.5 text-xs font-bold inline-flex items-center gap-1">
+                                    <span>Buka Peta Penuh</span>
+                                    <span>&rarr;</span>
+                                </a>
+                                <a href="{{ route('peta-anabul.create') }}"
+                                    class="button-primary min-h-[40px] px-3.5 py-1.5 text-xs font-bold inline-flex items-center gap-1.5 shadow-2xs">
+                                    <span>+</span>
+                                    <span>Petakan Anabul</span>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Map Container Area -->
+                    <div class="relative overflow-hidden">
+                        <!-- The Leaflet Map Instance -->
+                        <div id="welcome-community-map"
+                            class="w-full h-[440px] sm:h-[520px] lg:h-[580px] bg-slate-100 z-10"></div>
+
+                        <!-- Loading Indicator Overlay -->
+                        <div x-show="isLoading" x-cloak
+                            class="absolute inset-0 z-[1000] bg-white/70 backdrop-blur-xs flex flex-col items-center justify-center gap-3">
+                            <div
+                                class="w-9 h-9 border-3 border-teal-700 border-t-transparent rounded-full animate-spin">
+                            </div>
+                            <span class="text-xs font-bold text-slate-700" x-text="loadingText"></span>
+                        </div>
+
+                        <!-- Floating Legend & Info on Map -->
+                        <div
+                            class="absolute bottom-4 left-4 z-[900] bg-white/95 backdrop-blur-md p-3 sm:p-3.5 rounded-2xl border border-slate-200/90 shadow-md max-w-xs sm:max-w-sm space-y-1.5 text-xs">
+                            <div class="font-outfit font-black text-slate-800 flex items-center justify-between gap-2">
+                                <span
+                                    x-text="activeTab === 'representative' ? 'Sebaran Representatif' : 'Sebaran Anabul'"></span>
+                                <span
+                                    class="text-[10px] font-mono font-bold text-teal-800 bg-teal-50 border border-teal-200 px-1.5 py-0.5 rounded-md"
+                                    x-text="activeTab === 'representative' ? (repCount + ' Titik') : (catCount + ' Titik')"></span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 leading-relaxed"
+                                x-text="activeTab === 'representative' ? 'Menampilkan kader representatif KucingMu di tingkat PWM, PDM, atau PCM yang telah disetujui secara resmi.' : 'Menampilkan titik sebaran anabul milik member serta kucing liar yang didata oleh komunitas pecinta kucing.'">
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Notice / Callout -->
+                    <div
+                        class="p-3.5 sm:p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-600 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 text-center sm:text-left">
+                            <span class="text-base shrink-0">💡</span>
+                            <span>Klik titik marker untuk melihat informasi lengkap kader atau detail kondisi anabul di
+                                lokasi tersebut.</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 shrink-0 font-medium">
+                            Leaflet & OpenStreetMap &bull; KucingMu GIS
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
         </section>
 
@@ -640,33 +1143,42 @@
                 <div class="space-y-3" x-data="{ activeFaq: null }">
                     <!-- FAQ Item 1 -->
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                        <button type="button" @click="activeFaq = activeFaq === 1 ? null : 1" class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
+                        <button type="button" @click="activeFaq = activeFaq === 1 ? null : 1"
+                            class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
                             <span>{{ app()->getLocale() == 'en' ? 'What is KucingMu and who is it for?' : 'Apa itu KucingMu dan untuk siapa platform ini?' }}</span>
-                            <span class="text-teal-800 font-bold text-base transition-transform" :class="activeFaq === 1 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            <span class="text-teal-800 font-bold text-base transition-transform"
+                                :class="activeFaq === 1 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
                         </button>
-                        <div x-show="activeFaq === 1" class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                        <div x-show="activeFaq === 1"
+                            class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
                             {{ app()->getLocale() == 'en' ? 'KucingMu is a community platform for registering pet cats, recording veterinary checkups, and issuing digital KTAKuMu cards.' : 'KucingMu adalah platform web terpadu bagi warga komunitas untuk mendaftarkan kucing peliharaan, mencatat riwayat pemeriksaan dokter hewan, serta menerbitkan Kartu Tanda Anggota KucingMu (KTAKuMu) secara digital.' }}
                         </div>
                     </div>
 
                     <!-- FAQ Item 2 -->
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                        <button type="button" @click="activeFaq = activeFaq === 2 ? null : 2" class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
+                        <button type="button" @click="activeFaq = activeFaq === 2 ? null : 2"
+                            class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
                             <span>{{ app()->getLocale() == 'en' ? 'How can my cat get a KTAKuMu Card?' : 'Bagaimana cara kucing saya mendapatkan kartu KTAKuMu?' }}</span>
-                            <span class="text-teal-800 font-bold text-base transition-transform" :class="activeFaq === 2 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            <span class="text-teal-800 font-bold text-base transition-transform"
+                                :class="activeFaq === 2 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
                         </button>
-                        <div x-show="activeFaq === 2" class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                        <div x-show="activeFaq === 2"
+                            class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
                             {{ app()->getLocale() == 'en' ? 'Register your cat profile, upload photos, and complete a health checkup with a partner veterinarian. Admin will review and issue the verified card.' : 'Daftarkan profil kucing di dashboard, unggah foto/biometrik, dan ikuti sesi pemeriksaan kesehatan bersama dokter hewan mitra. Administrator akan meninjau data sebelum menerbitkan kartu KTAKuMu resmi.' }}
                         </div>
                     </div>
 
                     <!-- FAQ Item 3 -->
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                        <button type="button" @click="activeFaq = activeFaq === 3 ? null : 3" class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
+                        <button type="button" @click="activeFaq = activeFaq === 3 ? null : 3"
+                            class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
                             <span>{{ app()->getLocale() == 'en' ? 'Are the clinic checkups and KTAKuMu cards free?' : 'Apakah pemeriksaan klinik dan kartu KTAKuMu ini gratis?' }}</span>
-                            <span class="text-teal-800 font-bold text-base transition-transform" :class="activeFaq === 3 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            <span class="text-teal-800 font-bold text-base transition-transform"
+                                :class="activeFaq === 3 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
                         </button>
-                        <div x-show="activeFaq === 3" class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                        <div x-show="activeFaq === 3"
+                            class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
                             {{ app()->getLocale() == 'en' ? 'Yes, the pilot project checkups and digital card issuance are provided free of charge for community members.' : 'Ya, pemeriksaan kesehatan dasar (obat cacing, obat kutu, vitamin) serta penerbitan kartu KTAKuMu digital pada program percontohan ini disediakan gratis untuk warga komunitas.' }}
                         </div>
                     </div>
@@ -678,15 +1190,21 @@
         <section id="verifikasi" class="py-16 bg-slate-50 border-t border-slate-200">
             <div class="max-w-md mx-auto px-4 text-center space-y-5">
                 <span class="eyebrow">Validasi Data</span>
-                <h2 class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900 leading-snug">Periksa Keaslian Kartu KTAKuMu</h2>
-                <p class="text-xs text-slate-600 leading-relaxed">Masukkan nomor NIAKuMu Kucing (contoh: 34.kcg.0001) untuk memeriksa status registrasi dan riwayat pemeriksaan medis resmi.</p>
-                
-                <form onsubmit="event.preventDefault(); const val = document.getElementById('verify-input').value.trim(); if(val) { window.location.href = '/verify/' + val; } else { alert('Silakan masukkan nomor NIAKuMu.'); }" class="space-y-3 bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+                <h2 class="font-outfit text-2xl sm:text-3xl font-bold text-slate-900 leading-snug">Periksa Keaslian
+                    Kartu KTAKuMu</h2>
+                <p class="text-xs text-slate-600 leading-relaxed">Masukkan nomor NIAKuMu Kucing (contoh: 34.kcg.0001)
+                    untuk memeriksa status registrasi dan riwayat pemeriksaan medis resmi.</p>
+
+                <form
+                    onsubmit="event.preventDefault(); const val = document.getElementById('verify-input').value.trim(); if(val) { window.location.href = '/verify/' + val; } else { alert('Silakan masukkan nomor NIAKuMu.'); }"
+                    class="space-y-3 bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
                     <div>
                         <label for="verify-input" class="form-label text-left text-xs">Nomor NIAKuMu Kucing</label>
-                        <input type="text" id="verify-input" placeholder="e.g. 34.kcg.0001" class="form-input text-center font-mono text-sm" required>
+                        <input type="text" id="verify-input" placeholder="e.g. 34.kcg.0001"
+                            class="form-input text-center font-mono text-sm" required>
                     </div>
-                    <button type="submit" class="w-full button-primary flex justify-center py-2.5 text-xs font-semibold">
+                    <button type="submit"
+                        class="w-full button-primary flex justify-center py-2.5 text-xs font-semibold">
                         Periksa Validitas Kartu
                     </button>
                 </form>
@@ -703,9 +1221,10 @@
         @endphp
         <section id="kontak" class="py-16 sm:py-20 bg-slate-100 border-t border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
+
                 @if(session('contact_success'))
-                    <div class="mb-8 p-5 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-start gap-3 shadow-xs">
+                    <div
+                        class="mb-8 p-5 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-start gap-3 shadow-xs">
                         <span class="text-2xl shrink-0">✅</span>
                         <div>
                             <h3 class="font-outfit font-bold text-emerald-950 text-sm">Pesan Berhasil Dikirim!</h3>
@@ -716,47 +1235,63 @@
 
                 <!-- Symmetrical 2-Column Responsive Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                    
+
                     <!-- Left Column: Official Contact Information Card -->
-                    <div class="lg:col-span-5 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-md" style="background-color: #0f3e36; color: #ffffff;">
-                        
+                    <div class="lg:col-span-5 rounded-3xl p-6 sm:p-8 flex flex-col justify-between space-y-6 shadow-md"
+                        style="background-color: #0f3e36; color: #ffffff;">
+
                         <!-- Top: Title & Description -->
                         <div class="space-y-3">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase" style="background-color: rgba(255,255,255,0.12); color: #a7f3d0; border: 1px solid rgba(255,255,255,0.2);">
+                            <span
+                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase"
+                                style="background-color: rgba(255,255,255,0.12); color: #a7f3d0; border: 1px solid rgba(255,255,255,0.2);">
                                 <span>💬</span> Kontak & Kemitraan
                             </span>
-                            <h2 class="font-outfit text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight">
+                            <h2
+                                class="font-outfit text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight">
                                 Kolaborasi & Layanan Informasi KucingMu
                             </h2>
                             <p class="text-xs sm:text-sm leading-relaxed" style="color: #ccfbf1;">
-                                Punya pertanyaan seputar pemeriksaan kesehatan kucing, program e-Surveillance kampus/masjid, atau tertarik bermitra sebagai relawan dan dokter hewan? Silakan hubungi kami.
+                                Punya pertanyaan seputar pemeriksaan kesehatan kucing, program e-Surveillance
+                                kampus/masjid, atau tertarik bermitra sebagai relawan dan dokter hewan? Silakan hubungi
+                                kami.
                             </p>
                         </div>
 
                         <!-- Middle: Contact Info Badges -->
                         <div class="space-y-3.5">
-                            
+
                             <!-- Email Resmi -->
-                            <div class="flex items-start gap-3.5 p-4 rounded-2xl" style="background-color: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0" style="background-color: rgba(255,255,255,0.15); color: #ffffff;">
+                            <div class="flex items-start gap-3.5 p-4 rounded-2xl"
+                                style="background-color: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                                    style="background-color: rgba(255,255,255,0.15); color: #ffffff;">
                                     ✉️
                                 </div>
                                 <div class="space-y-1 min-w-0">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider block" style="color: #6ee7b7;">Email Resmi</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider block"
+                                        style="color: #6ee7b7;">Email Resmi</span>
                                     <div class="text-xs font-semibold leading-relaxed space-y-0.5">
-                                        <div><a href="mailto:bidkes.immdiy@gmail.com" class="text-white hover:underline transition">bidkes.immdiy@gmail.com</a></div>
-                                        <div><a href="mailto:kucingmuhammadiyah@gmail.com" class="text-white hover:underline transition">kucingmuhammadiyah@gmail.com</a></div>
+                                        <div><a href="mailto:bidkes.immdiy@gmail.com"
+                                                class="text-white hover:underline transition">bidkes.immdiy@gmail.com</a>
+                                        </div>
+                                        <div><a href="mailto:kucingmuhammadiyah@gmail.com"
+                                                class="text-white hover:underline transition">kucingmuhammadiyah@gmail.com</a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Alamat Kantor -->
-                            <div class="flex items-start gap-3.5 p-4 rounded-2xl" style="background-color: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0" style="background-color: rgba(255,255,255,0.15); color: #ffffff;">
+                            <div class="flex items-start gap-3.5 p-4 rounded-2xl"
+                                style="background-color: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                                    style="background-color: rgba(255,255,255,0.15); color: #ffffff;">
                                     📍
                                 </div>
                                 <div class="space-y-1 min-w-0">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider block" style="color: #6ee7b7;">Alamat Kantor Sekretariat</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider block"
+                                        style="color: #6ee7b7;">Alamat Kantor Sekretariat</span>
                                     <p class="text-xs leading-relaxed text-white font-medium">
                                         {{ $officeAddress }}
                                     </p>
@@ -764,12 +1299,15 @@
                             </div>
 
                             <!-- Jam Pelayanan -->
-                            <div class="flex items-start gap-3.5 p-4 rounded-2xl" style="background-color: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
-                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0" style="background-color: rgba(255,255,255,0.15); color: #ffffff;">
+                            <div class="flex items-start gap-3.5 p-4 rounded-2xl"
+                                style="background-color: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                                    style="background-color: rgba(255,255,255,0.15); color: #ffffff;">
                                     🕒
                                 </div>
                                 <div class="space-y-1 min-w-0">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider block" style="color: #6ee7b7;">Waktu Pelayanan</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider block"
+                                        style="color: #6ee7b7;">Waktu Pelayanan</span>
                                     <p class="text-xs text-white font-medium">
                                         Senin &ndash; Jumat, 08.00 &ndash; 16.00 WIB
                                     </p>
@@ -779,11 +1317,14 @@
                     </div>
 
                     <!-- Right Column: Interactive Form Card -->
-                    <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 sm:p-10 shadow-md flex flex-col justify-between space-y-6">
+                    <div
+                        class="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 sm:p-10 shadow-md flex flex-col justify-between space-y-6">
                         <div>
                             <div class="border-b border-slate-100 pb-4 mb-5">
-                                <h3 class="font-outfit text-xl sm:text-2xl font-extrabold text-slate-900">Kirimkan Pesan atau Pertanyaan</h3>
-                                <p class="text-xs sm:text-sm text-slate-500 mt-1">Lengkapi formulir di bawah ini, tim administrator KucingMu akan merespon melalui email sesegera mungkin.</p>
+                                <h3 class="font-outfit text-xl sm:text-2xl font-extrabold text-slate-900">Kirimkan Pesan
+                                    atau Pertanyaan</h3>
+                                <p class="text-xs sm:text-sm text-slate-500 mt-1">Lengkapi formulir di bawah ini, tim
+                                    administrator KucingMu akan merespon melalui email sesegera mungkin.</p>
                             </div>
 
                             <form action="{{ route('contact.store') }}" method="POST" class="space-y-4">
@@ -792,15 +1333,25 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <!-- Nama Lengkap -->
                                     <div>
-                                        <label for="contact_name" class="form-label text-xs font-semibold text-slate-700">Nama Lengkap <span class="text-rose-500">*</span></label>
-                                        <input type="text" id="contact_name" name="name" value="{{ old('name', Auth::user()?->name) }}" required placeholder="Nama Lengkap Anda" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
+                                        <label for="contact_name"
+                                            class="form-label text-xs font-semibold text-slate-700">Nama Lengkap <span
+                                                class="text-rose-500">*</span></label>
+                                        <input type="text" id="contact_name" name="name"
+                                            value="{{ old('name', Auth::user()?->name) }}" required
+                                            placeholder="Nama Lengkap Anda"
+                                            class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
                                         <x-input-error :messages="$errors->get('name')" class="mt-1" />
                                     </div>
 
                                     <!-- Email -->
                                     <div>
-                                        <label for="contact_email" class="form-label text-xs font-semibold text-slate-700">Alamat Email <span class="text-rose-500">*</span></label>
-                                        <input type="email" id="contact_email" name="email" value="{{ old('email', Auth::user()?->email) }}" required placeholder="nama@email.com" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
+                                        <label for="contact_email"
+                                            class="form-label text-xs font-semibold text-slate-700">Alamat Email <span
+                                                class="text-rose-500">*</span></label>
+                                        <input type="email" id="contact_email" name="email"
+                                            value="{{ old('email', Auth::user()?->email) }}" required
+                                            placeholder="nama@email.com"
+                                            class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
                                         <x-input-error :messages="$errors->get('email')" class="mt-1" />
                                     </div>
                                 </div>
@@ -808,46 +1359,64 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <!-- No. Telepon / WhatsApp -->
                                     <div>
-                                        <label for="contact_phone" class="form-label text-xs font-semibold text-slate-700">No. WhatsApp / Telepon <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                                        <input type="text" id="contact_phone" name="phone" value="{{ old('phone', Auth::user()?->phone) }}" placeholder="08xxxxxxxxxx" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
+                                        <label for="contact_phone"
+                                            class="form-label text-xs font-semibold text-slate-700">No. WhatsApp /
+                                            Telepon <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                                        <input type="text" id="contact_phone" name="phone"
+                                            value="{{ old('phone', Auth::user()?->phone) }}" placeholder="08xxxxxxxxxx"
+                                            class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
                                         <x-input-error :messages="$errors->get('phone')" class="mt-1" />
                                     </div>
 
                                     <!-- Subjek Pesan -->
                                     <div>
-                                        <label for="contact_subject" class="form-label text-xs font-semibold text-slate-700">Subjek / Topik <span class="text-rose-500">*</span></label>
-                                        <input type="text" id="contact_subject" name="subject" value="{{ old('subject') }}" required placeholder="Contoh: Kemitraan Relawan / Pertanyaan KTAM" class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
+                                        <label for="contact_subject"
+                                            class="form-label text-xs font-semibold text-slate-700">Subjek / Topik <span
+                                                class="text-rose-500">*</span></label>
+                                        <input type="text" id="contact_subject" name="subject"
+                                            value="{{ old('subject') }}" required
+                                            placeholder="Contoh: Kemitraan Relawan / Pertanyaan KTAM"
+                                            class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">
                                         <x-input-error :messages="$errors->get('subject')" class="mt-1" />
                                     </div>
                                 </div>
 
                                 <!-- Pesan / Pertanyaan -->
                                 <div>
-                                    <label for="contact_message" class="form-label text-xs font-semibold text-slate-700">Isi Pesan <span class="text-rose-500">*</span></label>
-                                    <textarea id="contact_message" name="message" rows="4" required placeholder="Tuliskan pesan, pertanyaan, atau masukan Anda di sini..." class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">{{ old('message') }}</textarea>
+                                    <label for="contact_message"
+                                        class="form-label text-xs font-semibold text-slate-700">Isi Pesan <span
+                                            class="text-rose-500">*</span></label>
+                                    <textarea id="contact_message" name="message" rows="4" required
+                                        placeholder="Tuliskan pesan, pertanyaan, atau masukan Anda di sini..."
+                                        class="form-input mt-1 block w-full rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600">{{ old('message') }}</textarea>
                                     <x-input-error :messages="$errors->get('message')" class="mt-1" />
                                 </div>
 
                                 <!-- Captcha Verification Box -->
                                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                                    <label for="contact_captcha" class="form-label text-xs font-semibold text-slate-700 flex items-center justify-between">
+                                    <label for="contact_captcha"
+                                        class="form-label text-xs font-semibold text-slate-700 flex items-center justify-between">
                                         <span>Verifikasi Keamanan (Captcha) <span class="text-rose-500">*</span></span>
                                         <span class="text-[11px] text-slate-400 font-normal">Cegah bot otomatis</span>
                                     </label>
-                                    
+
                                     <div class="flex flex-wrap items-center gap-3">
-                                        <div class="px-4 py-2.5 bg-teal-50 border border-teal-200 text-teal-900 font-bold font-mono text-sm rounded-xl tracking-wider select-none shrink-0 shadow-2xs">
+                                        <div
+                                            class="px-4 py-2.5 bg-teal-50 border border-teal-200 text-teal-900 font-bold font-mono text-sm rounded-xl tracking-wider select-none shrink-0 shadow-2xs">
                                             {{ session('contact_captcha_question') }}
                                         </div>
-                                        
-                                        <input id="contact_captcha" class="form-input flex-1 min-w-[140px] rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600 font-mono" type="number" name="captcha" required placeholder="Tulis hasil hitungan" />
+
+                                        <input id="contact_captcha"
+                                            class="form-input flex-1 min-w-[140px] rounded-xl border-slate-300 text-xs py-2.5 focus:border-teal-600 focus:ring-teal-600 font-mono"
+                                            type="number" name="captcha" required placeholder="Tulis hasil hitungan" />
                                     </div>
                                     <x-input-error :messages="$errors->get('captcha')" class="mt-1" />
                                 </div>
 
                                 <!-- Submit Button -->
                                 <div class="pt-2">
-                                    <button type="submit" class="button-primary w-full py-3.5 text-xs sm:text-sm font-bold shadow-sm flex items-center justify-center gap-2 cursor-pointer">
+                                    <button type="submit"
+                                        class="button-primary w-full py-3.5 text-xs sm:text-sm font-bold shadow-sm flex items-center justify-center gap-2 cursor-pointer">
                                         <span>📨</span> Kirim Pesan Sekarang
                                     </button>
                                 </div>
@@ -862,18 +1431,22 @@
 
     <!-- Footer -->
     <footer class="bg-slate-900 text-slate-300 py-10 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
             <div class="flex items-center gap-2">
                 @if(isset($app_settings['app_logo']))
-                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="28" height="28" loading="lazy" decoding="async" class="h-7 w-auto object-contain">
+                    <img src="{{ asset('storage/' . $app_settings['app_logo']) }}" alt="" aria-hidden="true" width="28"
+                        height="28" loading="lazy" decoding="async" class="h-7 w-auto object-contain">
                 @else
                     <span class="text-2xl" aria-hidden="true">🐱</span>
                 @endif
-                <span class="font-outfit font-extrabold text-white text-base tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
+                <span
+                    class="font-outfit font-extrabold text-white text-base tracking-tight">{{ $app_settings['app_name'] ?? 'KucingMu' }}</span>
             </div>
 
             <div class="flex items-center gap-4 text-xs">
-                <a href="{{ route('representative.register') }}" class="text-slate-400 hover:text-amber-300 transition font-semibold">
+                <a href="{{ route('representative.register') }}"
+                    class="text-slate-400 hover:text-amber-300 transition font-semibold">
                     Penjaringan Representatif
                 </a>
                 <span class="text-slate-700">&bull;</span>
@@ -885,13 +1458,265 @@
                     Pusat Bantuan
                 </a>
             </div>
-            
+
             <p class="text-xs text-slate-400 footer-text">
                 {!! $app_settings['app_footer'] ?? '&copy; ' . date('Y') . ' KucingMu. KucingMu.' !!}
             </p>
         </div>
     </footer>
 
+    <!-- Leaflet & Clustering Script for Community Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <script>
+        function petaSebaranKomunitas() {
+            return {
+                activeTab: 'representative',
+                map: null,
+                markerCluster: null,
+                isLoading: false,
+                loadingText: 'Memuat data...',
+                repCount: {{ $stats['approved_representatives'] ?? 0 }},
+                catCount: {{ $stats['mapped_cats'] ?? 0 }},
+                repData: null,
+                catData: null,
+
+                init() {
+                    this.$nextTick(() => {
+                        this.initMap();
+                    });
+                },
+
+                initMap() {
+                    if (this.map) return;
+
+                    // Centered on Indonesia archipelago
+                    this.map = L.map('welcome-community-map', {
+                        scrollWheelZoom: false,
+                    }).setView([-2.548926, 118.0148634], 5);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap contributors | KucingMu GIS'
+                    }).addTo(this.map);
+
+                    this.markerCluster = L.markerClusterGroup({
+                        showCoverageOnHover: false,
+                        maxClusterRadius: 45,
+                        spiderfyOnMaxZoom: true,
+                    });
+                    this.map.addLayer(this.markerCluster);
+
+                    // Load initial tab
+                    this.switchTab('representative');
+                },
+
+                switchTab(tab) {
+                    this.activeTab = tab;
+                    if (this.markerCluster) {
+                        this.markerCluster.clearLayers();
+                    }
+
+                    this.$nextTick(() => {
+                        if (this.map) {
+                            this.map.invalidateSize();
+                        }
+                    });
+
+                    if (tab === 'representative') {
+                        this.loadRepresentativeMarkers();
+                    } else {
+                        this.loadAnabulMarkers();
+                    }
+                },
+
+                loadRepresentativeMarkers() {
+                    if (this.repData) {
+                        this.renderRepresentativeMarkers(this.repData);
+                        return;
+                    }
+
+                    this.isLoading = true;
+                    this.loadingText = 'Memuat sebaran representatif disetujui...';
+
+                    fetch('{{ route('api.representatives.markers') }}')
+                        .then(res => res.json())
+                        .then(res => {
+                            this.isLoading = false;
+                            const items = res.data || [];
+                            this.repData = items;
+                            this.repCount = items.length;
+                            this.renderRepresentativeMarkers(items);
+                        })
+                        .catch(err => {
+                            this.isLoading = false;
+                            console.error('Error fetching representatives:', err);
+                        });
+                },
+
+                renderRepresentativeMarkers(items) {
+                    if (!this.markerCluster) return;
+                    this.markerCluster.clearLayers();
+                    const bounds = [];
+
+                    items.forEach(rep => {
+                        if (!rep.lat || !rep.lng) return;
+
+                        const iconHtml = `
+                            <div class="rep-marker-pin">
+                                <div class="rep-marker-avatar">
+                                    <span>🎖️</span>
+                                </div>
+                                <div class="rep-marker-badge">✓</div>
+                            </div>
+                        `;
+
+                        const customIcon = L.divIcon({
+                            className: 'custom-rep-icon-container',
+                            html: iconHtml,
+                            iconSize: [38, 38],
+                            iconAnchor: [19, 19],
+                            popupAnchor: [0, -22],
+                        });
+
+                        const popupHtml = `
+                            <div class="font-sans text-slate-800">
+                                <div class="p-3.5 bg-gradient-to-r from-teal-800 to-teal-900 text-white rounded-t-2xl">
+                                    <div class="flex items-center justify-between gap-1 mb-1">
+                                        <span class="font-mono text-[10px] text-teal-200 font-bold">${rep.registration_number}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500 text-white shadow-2xs">
+                                            ✓ Disetujui
+                                        </span>
+                                    </div>
+                                    <h4 class="font-outfit font-black text-white text-sm leading-tight">${rep.name}</h4>
+                                    <div class="text-[11px] text-teal-100 font-medium mt-0.5">${rep.leadership}</div>
+                                </div>
+                                <div class="p-3.5 space-y-2.5">
+                                    <div class="text-[11px] text-slate-600 flex items-start gap-1.5 leading-relaxed">
+                                        <span class="shrink-0 text-slate-400">📍</span>
+                                        <span>${rep.village_name ? rep.village_name + ', ' : ''}${rep.district_name ? rep.district_name + ', ' : ''}${rep.city_name}, ${rep.province_name}</span>
+                                    </div>
+                                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                                        <span class="text-[10px] text-slate-400 font-medium">Kader Penggerak KucingMu</span>
+                                        <a href="{{ route('representative.register') }}" class="popup-btn inline-flex items-center gap-1 py-1.5 px-3 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-[11px] font-bold shadow-xs transition" style="color: #ffffff !important; text-decoration: none !important; background-color: #0f766e !important;">
+                                            <span style="color: #ffffff !important;">Gabung ↗</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        const marker = L.marker([rep.lat, rep.lng], { icon: customIcon }).bindPopup(popupHtml);
+                        this.markerCluster.addLayer(marker);
+                        bounds.push([rep.lat, rep.lng]);
+                    });
+
+                    if (bounds.length > 0) {
+                        this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+                    } else {
+                        this.map.setView([-2.548926, 118.0148634], 5);
+                    }
+                },
+
+                loadAnabulMarkers() {
+                    if (this.catData) {
+                        this.renderAnabulMarkers(this.catData);
+                        return;
+                    }
+
+                    this.isLoading = true;
+                    this.loadingText = 'Memuat sebaran anabul GIS...';
+
+                    fetch('{{ route('peta-anabul.markers') }}')
+                        .then(res => res.json())
+                        .then(res => {
+                            this.isLoading = false;
+                            const items = res.data || [];
+                            this.catData = items;
+                            this.catCount = items.length;
+                            this.renderAnabulMarkers(items);
+                        })
+                        .catch(err => {
+                            this.isLoading = false;
+                            console.error('Error fetching cat markers:', err);
+                        });
+                },
+
+                renderAnabulMarkers(items) {
+                    if (!this.markerCluster) return;
+                    this.markerCluster.clearLayers();
+                    const bounds = [];
+
+                    items.forEach(cat => {
+                        if (!cat.lat || !cat.lng) return;
+
+                        const isPet = cat.ownership_type === 'pet';
+                        const badgeIcon = isPet ? '🏠' : '🐾';
+                        const avatarUrl = cat.thumbnail_url || '{{ asset('images/default-cat.png') }}';
+
+                        const iconHtml = `
+                            <div class="cat-marker-pin ${isPet ? 'cat-marker-pet' : 'cat-marker-stray'}">
+                                <img src="${avatarUrl}" class="cat-marker-avatar" alt="${cat.name}">
+                                <div class="cat-marker-badge">${badgeIcon}</div>
+                            </div>
+                        `;
+
+                        const customIcon = L.divIcon({
+                            className: 'custom-cat-icon-container',
+                            html: iconHtml,
+                            iconSize: [38, 38],
+                            iconAnchor: [19, 19],
+                            popupAnchor: [0, -22],
+                        });
+
+                        const popupHtml = `
+                            <div class="font-sans text-slate-800">
+                                <div class="relative w-full h-28 bg-slate-100 overflow-hidden">
+                                    <img src="${avatarUrl}" alt="${cat.name}" class="w-full h-full object-cover">
+                                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isPet ? 'bg-teal-700 text-white' : 'bg-orange-600 text-white'}" style="color: #ffffff !important;">
+                                        ${cat.ownership_label}
+                                    </span>
+                                </div>
+                                <div class="p-3 space-y-2">
+                                    <div class="flex items-start justify-between gap-1">
+                                        <h4 class="font-outfit font-black text-slate-900 text-sm leading-tight">${cat.name}</h4>
+                                        <span class="font-mono text-[10px] text-slate-400 font-semibold">${cat.unique_code}</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1 text-[10px]">
+                                        <span class="px-2 py-0.5 rounded-full font-bold border ${cat.condition_badge_class}">${cat.condition_label}</span>
+                                        <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">${cat.coat_pattern}</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 line-clamp-2">
+                                        📍 ${cat.formatted_address || cat.city || 'Lokasi tercatat'}
+                                    </div>
+                                    <div class="pt-1.5 border-t border-slate-100">
+                                        <a href="${cat.detail_url}" class="popup-btn w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-xs transition" style="color: #ffffff !important; text-decoration: none !important; background-color: #0f766e !important;">
+                                            <span style="color: #ffffff !important; font-weight: 700;">Lihat Detail Anabul</span>
+                                            <span style="color: #ffffff !important; font-weight: 700;">&rarr;</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        const marker = L.marker([cat.lat, cat.lng], { icon: customIcon }).bindPopup(popupHtml);
+                        this.markerCluster.addLayer(marker);
+                        bounds.push([cat.lat, cat.lng]);
+                    });
+
+                    if (bounds.length > 0) {
+                        this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+                    } else {
+                        this.map.setView([-2.548926, 118.0148634], 5);
+                    }
+                }
+            };
+        }
+    </script>
+
     @include('partials.accessibility-widget')
 </body>
+
 </html>

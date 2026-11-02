@@ -230,4 +230,39 @@ class RepresentativeRegistrationController extends Controller
 
         return response()->json($data);
     }
+
+    /**
+     * API endpoint to get approved representatives for public GIS map.
+     */
+    public function getApprovedMarkersApi()
+    {
+        $representatives = RepresentativeRegistration::query()
+            ->where('status', 'approved')
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->where('latitude', '!=', 0)
+            ->where('longitude', '!=', 0)
+            ->get()
+            ->map(function ($rep) {
+                return [
+                    'id' => $rep->id,
+                    'registration_number' => $rep->registration_number,
+                    'name' => $rep->name,
+                    'leadership' => $rep->muhammadiyah_active_leadership ?: 'Kader Representatif KucingMu',
+                    'province_name' => $rep->province_name,
+                    'city_name' => $rep->city_name,
+                    'district_name' => $rep->district_name,
+                    'village_name' => $rep->village_name,
+                    'formatted_address' => $rep->formatted_address,
+                    'lat' => (float) $rep->latitude,
+                    'lng' => (float) $rep->longitude,
+                ];
+            });
+
+        return response()->json([
+            'status' => 'success',
+            'count' => $representatives->count(),
+            'data' => $representatives,
+        ]);
+    }
 }

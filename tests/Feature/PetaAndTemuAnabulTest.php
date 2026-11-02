@@ -86,6 +86,49 @@ class PetaAndTemuAnabulTest extends TestCase
     }
 
     /**
+     * Requirement: Visualisasi Peta Sebaran Representatif KucingMu yg sudah disetujui serta Peta Anabul dengan perbedaan Tab di homepage.
+     */
+    public function test_welcome_page_renders_peta_sebaran_section_and_tabs()
+    {
+        // 1. Create an approved representative
+        \App\Models\RepresentativeRegistration::create([
+            'name' => 'H. Agus Prasetyo, M.Si',
+            'nbm' => '982341',
+            'birth_date' => '1985-04-12',
+            'email' => 'agus.prasetyo@example.com',
+            'whatsapp_number' => '081234567890',
+            'province_name' => 'DI Yogyakarta',
+            'city_name' => 'Kota Yogyakarta',
+            'district_name' => 'Gondomanan',
+            'village_name' => 'Prawirodirjan',
+            'latitude' => -7.8014,
+            'longitude' => 110.3647,
+            'formatted_address' => 'Jl. Kauman No. 23, Prawirodirjan, Gondomanan, Kota Yogyakarta',
+            'muhammadiyah_active_leadership' => 'Pimpinan Daerah Muhammadiyah (PDM) Kota Yogyakarta',
+            'sk_pimpinan_document_path' => 'documents/sk_sample.pdf',
+            'ktam_document_path' => 'documents/ktam_sample.jpg',
+            'animal_welfare_essay' => 'Komitmen pemberdayaan kesrawan dan edukasi sterilisasi kucing di lingkungan persyarikatan.',
+            'status' => 'approved',
+            'privacy_agreed' => true,
+        ]);
+
+        // 2. Visit homepage (GET /)
+        $response = $this->get('/');
+        $response->assertStatus(200);
+        $response->assertSee('id="peta-sebaran"', false);
+        $response->assertSee('Peta Sebaran Representatif & Anabul KucingMu', false);
+        $response->assertSee('Peta Representatif Disetujui', false);
+        $response->assertSee('Peta Anabul (GIS)', false);
+        $response->assertSee('welcome-community-map', false);
+
+        // 3. Check approved representative markers API
+        $repMarkersResponse = $this->getJson(route('api.representatives.markers'));
+        $repMarkersResponse->assertStatus(200)
+            ->assertJsonStructure(['status', 'count', 'data'])
+            ->assertJsonFragment(['name' => 'H. Agus Prasetyo, M.Si']);
+    }
+
+    /**
      * Requirement: Untuk menambahkan, harus login sebagai member.
      */
     public function test_guest_cannot_add_and_is_redirected_to_login()
@@ -346,5 +389,101 @@ class PetaAndTemuAnabulTest extends TestCase
         $posterResponse = $this->get(route('temu-anabul.poster', $lostReport->id));
         $posterResponse->assertStatus(200);
         $posterResponse->assertSee('Snowy');
+    }
+
+    /**
+     * Requirement: /temu-anabul/lapor?type=lost ada pilihan bisa ambil kucing dari yg sudah didaftarkan atau belum (untuk membantu orang lain menemukan kucingnya).
+     */
+    public function test_temu_anabul_lost_cat_options_registered_vs_unregistered()
+    {
+        // 0. Create a registered cat for member
+        $memberCat = Cat::create([
+            'user_id' => $this->member->id,
+            'name' => 'Mimi',
+            'breed' => 'Persia Mix',
+            'gender' => 'female',
+            'status' => 'alive',
+            'color' => 'Abu-abu',
+            'photo_path' => 'cats/mimi.jpg',
+            'date_of_birth' => '2023-01-01',
+        ]);
+
+        // 1. Check create view renders both options
+        $viewResponse = $this->actingAs($this->member)->get(route('temu-anabul.create', ['type' => 'lost']));
+        $viewResponse->assertStatus(200);
+        $viewResponse->assertSee('Kucing Saya yang Sudah Terdaftar', false);
+        $viewResponse->assertSee('Kucing Belum Terdaftar / Bantu Orang Lain', false);
+        $viewResponse->assertSee('name="lost_source"', false);
+
+        // 2. Case A: Report lost cat choosing from registered cat (Auto-syncs data)
+        $lostRegisteredData = [
+            'type' => 'lost',
+            'cat_id' => $memberCat->id,
+            'cat_name' => $memberCat->name,
+            'gender' => 'betina',
+            'distinctive_features' => 'Kalung ungu berlonceng',
+            'condition' => 'terawat',
+            'incident_date' => now()->format('Y-m-d H:i:s'),
+            'latitude' => -7.7956,
+            'longitude' => 110.3695,
+            'contact_name' => 'Budi Member',
+            'contact_phone' => '08123456789',
+        ];
+
+        $postRegistered = $this->actingAs($this->member)->post(route('temu-anabul.store'), $lostRegisteredData);
+        $postRegistered->assertRedirect();
+
+        $registeredReport = TemuAnabul::where('cat_id', $memberCat->id)->first();
+        $this->assertNotNull($registeredReport);
+        $this->assertEquals($memberCat->id, $registeredReport->cat_id);
+        $this->assertEquals($memberCat->name, $registeredReport->cat_name);
+        $this->assertTrue($registeredReport->isRegisteredCat());
+        // Since no photo was uploaded, the registered cat's photo should be copied to report photos
+        $this->assertDatabaseHas('temu_anabul_photos', [
+            'temu_anabul_id' => $registeredReport->id,
+            'photo_path' => 'cats/mimi.jpg',
+            'is_primary' => true,
+        ]);
+
+        // Detail page shows registered cat badge
+        $showRegResponse = $this->get(route('temu-anabul.show', $registeredReport->id));
+        $showRegResponse->assertStatus(200);
+        $showRegResponse->assertSee('Kucing Terdaftar Resmi KucingMu', false);
+
+        // 3. Case B: Report lost cat for an unregistered cat / helping someone else (cat_id null)
+        $lostHelpingOtherData = [
+            'type' => 'lost',
+            'cat_id' => null,
+            'title' => 'Dicari Kucing Tetangga Hilang: Si Belang',
+            'cat_name' => 'Si Belang',
+            'gender' => 'jantan',
+            'coat_color' => 'Hitam Putih',
+            'coat_pattern' => 'Tuxedo',
+            'distinctive_features' => 'Hidung hitam sebelah, ekor pendek bundel',
+            'condition' => 'sehat',
+            'incident_date' => now()->format('Y-m-d H:i:s'),
+            'latitude' => -7.8010,
+            'longitude' => 110.3640,
+            'contact_name' => 'Pak RT Joko (Pemilik Asli)',
+            'contact_phone' => '087711223344',
+            'is_contact_public' => 1,
+            'reward_info' => 'Ucapan terima kasih & sekantong makanan kucing',
+            'notes' => 'Membantu tetangga RT 05 yang sedang mencari kucing kesayangannya.',
+        ];
+
+        $postHelping = $this->actingAs($this->member)->post(route('temu-anabul.store'), $lostHelpingOtherData);
+        $postHelping->assertRedirect();
+
+        $helpingReport = TemuAnabul::where('cat_name', 'Si Belang')->first();
+        $this->assertNotNull($helpingReport);
+        $this->assertNull($helpingReport->cat_id);
+        $this->assertEquals('Pak RT Joko (Pemilik Asli)', $helpingReport->contact_name);
+        $this->assertEquals('087711223344', $helpingReport->contact_phone);
+        $this->assertFalse($helpingReport->isRegisteredCat());
+
+        // Detail page shows community helper badge
+        $showHelpingResponse = $this->get(route('temu-anabul.show', $helpingReport->id));
+        $showHelpingResponse->assertStatus(200);
+        $showHelpingResponse->assertSee('Laporan Kucing Hilang Komunitas (Belum Terdaftar / Membantu Orang Lain)', false);
     }
 }

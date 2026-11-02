@@ -55,10 +55,10 @@
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="text-base">🚨</span>
-                                    <span class="font-bold text-sm text-slate-900">Kucing Saya Hilang</span>
+                                    <span class="font-bold text-sm text-slate-900">Kucing Hilang</span>
                                 </div>
                                 <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                                    Saya adalah pemilik yang mencari anabul yang lepas atau hilang dari rumah / lingkungan.
+                                    Melaporkan anabul yang lepas atau hilang dari rumah / lingkungan (milik sendiri atau membantu orang lain).
                                 </p>
                             </div>
                         </label>
@@ -79,41 +79,186 @@
                         </label>
                     </div>
 
-                    <!-- Auto-fill from My Cats (for Lost type) -->
-                    <div x-show="reportType === 'lost'" x-cloak class="p-4 rounded-xl bg-teal-50/60 border border-teal-200/80 space-y-2">
-                        <label class="form-label text-teal-900">Pilih dari Kucing Saya yang Terdaftar (Otomatis Isi Data)</label>
-                        @if($myCats->isEmpty())
-                            <p class="text-xs text-slate-600">
-                                Anda belum memiliki data kucing terdaftar di profil. Anda dapat mengisi formulir secara manual di bawah.
-                            </p>
-                        @else
-                            <select name="cat_id" x-model="selectedCatId" @change="onCatSelected($event.target.value)"
-                                class="form-input bg-white text-xs sm:text-sm">
-                                <option value="">- Pilih Kucing Saya atau Isi Manual -</option>
-                                @foreach($myCats as $cat)
-                                    <option value="{{ $cat->id }}"
-                                        data-name="{{ $cat->name }}"
-                                        data-color="{{ $cat->color }}"
-                                        data-gender="{{ $cat->gender }}"
-                                        data-breed="{{ $cat->breed }}"
-                                        {{ (isset($selectedCat) && $selectedCat->id === $cat->id) ? 'selected' : '' }}>
-                                        {{ $cat->name }} ({{ $cat->breed ?: 'Kucing' }} - {{ $cat->color ?: 'Warna tidak tercatat' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        @endif
+                    <!-- Sub-Pilihan Sumber Data (Khusus Laporan Kucing Hilang) -->
+                    <div x-show="reportType === 'lost'" x-cloak class="pt-3 border-t border-slate-100 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                <span>🐾</span> Pilihan Sumber Data Kucing yang Hilang:
+                            </label>
+                            <span class="text-[11px] text-slate-500 font-medium">Pilih salah satu metode</span>
+                        </div>
+
+                        <!-- 2 Opsi: Kucing Terdaftar vs Belum Terdaftar / Bantu Orang Lain -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Opsi 1: Kucing Saya yang Sudah Terdaftar -->
+                            <label class="relative flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition select-none"
+                                :class="lostSource === 'registered' ? 'border-teal-700 bg-teal-50/70 ring-2 ring-teal-600/20 shadow-xs' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                <input type="radio" name="lost_source" value="registered" x-model="lostSource" @change="onSourceChanged('registered')" class="mt-1 text-teal-700 focus:ring-teal-600">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-base">🏠</span>
+                                        <span class="font-bold text-xs sm:text-sm text-slate-900">Kucing Saya yang Sudah Terdaftar</span>
+                                    </div>
+                                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">
+                                        Ambil langsung dari profil anabul di akun KucingMu Anda. Foto dan data identitas terisi otomatis.
+                                    </p>
+                                    <div class="mt-2 flex items-center gap-1.5 text-[10px] font-semibold text-teal-800">
+                                        <span class="bg-teal-100/90 px-2 py-0.5 rounded-md">Tersinkronisasi KTAKuMu</span>
+                                        <span>{{ $myCats->count() }} anabul di profil</span>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <!-- Opsi 2: Kucing Belum Terdaftar / Membantu Orang Lain -->
+                            <label class="relative flex items-start gap-3 p-3.5 rounded-2xl border-2 cursor-pointer transition select-none"
+                                :class="lostSource === 'unregistered' ? 'border-amber-600 bg-amber-50/70 ring-2 ring-amber-600/20 shadow-xs' : 'border-slate-200 hover:border-slate-300 bg-white'">
+                                <input type="radio" name="lost_source" value="unregistered" x-model="lostSource" @change="onSourceChanged('unregistered')" class="mt-1 text-amber-600 focus:ring-amber-500">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-base">🤝</span>
+                                        <span class="font-bold text-xs sm:text-sm text-slate-900">Kucing Belum Terdaftar / Bantu Orang Lain</span>
+                                    </div>
+                                    <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">
+                                        Kucing belum ada di profil, atau membantu tetangga, teman, dan keluarga yang kehilangan anabul.
+                                    </p>
+                                    <div class="mt-2 flex items-center gap-1.5 text-[10px] font-semibold text-amber-800">
+                                        <span class="bg-amber-100/90 px-2 py-0.5 rounded-md">Input Bebas</span>
+                                        <span>Dapat sesuaikan kontak pemilik</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- KONTEN UNTUK PILIHAN KUCING TERDAFTAR -->
+                        <div x-show="lostSource === 'registered'" x-cloak class="pt-2 space-y-3">
+                            @if($myCats->isEmpty())
+                                <div class="p-5 rounded-2xl bg-amber-50 border border-amber-200 text-center space-y-3">
+                                    <span class="text-3xl">🐱</span>
+                                    <div class="font-bold text-sm text-slate-800">Belum Ada Kucing Terdaftar di Akun Anda</div>
+                                    <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+                                        Anda belum memiliki data anabul di profil akun Anda. Anda dapat mendaftarkannya terlebih dahulu di dashboard atau memilih opsi Kucing Belum Terdaftar untuk langsung melaporkan.
+                                    </p>
+                                    <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                                        <a href="{{ route('dashboard') }}" class="button-primary min-h-[44px] px-4 text-xs font-bold inline-flex items-center gap-1.5">
+                                            <span>+</span>
+                                            <span>Daftarkan Kucing di Dashboard Dulu</span>
+                                        </a>
+                                        <button type="button" @click="onSourceChanged('unregistered')" class="button-secondary min-h-[44px] px-4 text-xs font-semibold">
+                                            Lapor Kucing Belum Terdaftar / Bantu Orang Lain
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                <div>
+                                    <label class="form-label font-bold text-slate-800 mb-2 block">
+                                        Pilih Kucing Peliharaan Anda yang Hilang <span class="text-rose-600">*</span>
+                                    </label>
+                                    <input type="hidden" name="cat_id" :value="selectedCatId">
+
+                                    <!-- Grid Pilihan Kucing -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                        @foreach($myCats as $cat)
+                                            <div @click="selectCat({{ $cat->id }})"
+                                                 class="p-3.5 rounded-2xl border-2 cursor-pointer transition flex items-center gap-3 select-none"
+                                                 :class="selectedCatId == {{ $cat->id }} ? 'border-teal-700 bg-teal-50/80 shadow-xs ring-2 ring-teal-600/30' : 'border-slate-200 hover:border-teal-400 bg-white'">
+                                                <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0">
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex items-center justify-between gap-1">
+                                                        <span class="font-bold text-sm text-slate-800 truncate">{{ $cat->name }}</span>
+                                                        <span x-show="selectedCatId == {{ $cat->id }}" class="text-teal-700 text-xs font-black">✓</span>
+                                                    </div>
+                                                    <div class="text-[11px] text-slate-500 truncate">{{ $cat->breed ?: 'Domestik' }} &bull; {{ $cat->color ?: 'Warna -' }}</div>
+                                                    <div class="text-[10px] text-teal-700 font-semibold flex items-center gap-1.5 mt-0.5">
+                                                        <span>{{ in_array(strtolower($cat->gender ?? ''), ['male', 'jantan']) ? '♂ Jantan' : '♀ Betina' }}</span>
+                                                        @if($cat->unique_code)
+                                                            <span class="bg-teal-100 text-teal-800 px-1 py-0.2 rounded font-mono">{{ $cat->unique_code }}</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- Card Konfirmasi Sinkronisasi Identitas -->
+                                <div x-show="selectedCatData" x-cloak
+                                     class="p-4 rounded-2xl bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+                                    <div class="flex items-center gap-3.5 min-w-0">
+                                        <img :src="selectedCatData?.photo_url" class="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-xs shrink-0">
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[10px] font-bold uppercase tracking-wider text-teal-800 bg-teal-100/90 px-2 py-0.5 rounded-full">Kucing Terdaftar</span>
+                                                <span x-show="selectedCatData?.unique_code" class="text-xs font-mono font-bold text-teal-900" x-text="selectedCatData?.unique_code"></span>
+                                            </div>
+                                            <div class="text-base font-outfit font-black text-slate-900 mt-0.5 truncate" x-text="selectedCatData?.name"></div>
+                                            <div class="text-xs text-slate-600 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                                                <span x-text="selectedCatData?.breed"></span>
+                                                <span>&bull;</span>
+                                                <span x-text="selectedCatData?.color"></span>
+                                                <span>&bull;</span>
+                                                <span x-text="selectedCatData?.gender_label"></span>
+                                                <span x-show="selectedCatData?.age_text && selectedCatData?.age_text !== '-'">&bull;</span>
+                                                <span x-show="selectedCatData?.age_text && selectedCatData?.age_text !== '-'" x-text="selectedCatData?.age_text"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-xs text-teal-800 font-semibold bg-white px-3 py-1.5 rounded-xl border border-teal-200/80 shadow-2xs flex items-center gap-1.5 self-stretch sm:self-auto justify-center shrink-0">
+                                        <span>✓</span>
+                                        <span>Identitas & Foto Profil Terhubung</span>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- KONTEN UNTUK PILIHAN KUCING BELUM TERDAFTAR / BANTU ORANG LAIN -->
+                        <div x-show="lostSource === 'unregistered'" x-cloak class="pt-2">
+                            <input type="hidden" name="cat_id" value="">
+                            <div class="p-4 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-950 flex items-start gap-3">
+                                <span class="text-xl shrink-0">🤝</span>
+                                <div class="text-xs space-y-1">
+                                    <div class="font-bold text-slate-800">Mode: Kucing Belum Terdaftar / Membantu Orang Lain</div>
+                                    <p class="text-slate-600 leading-relaxed">
+                                        Silakan lengkapi identitas dan foto anabul secara manual pada formulir di bawah. Bila Anda sedang membantu teman, tetangga, atau keluarga, Anda juga dapat menyesuaikan nama dan kontak nomor WhatsApp pemilik aslinya pada bagian <strong>Kontak Pelapor</strong>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Section 2: Foto Anabul -->
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
-                    <div class="border-b border-slate-100 pb-3">
-                        <h2 class="text-base font-outfit font-bold text-slate-800 flex items-center gap-2">
-                            <span>📸</span> Foto Anabul Terbaru
-                        </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">
-                            Unggah foto yang jelas menampilkan wajah, warna bulu, dan tanda khas anabul.
-                        </p>
+                    <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-outfit font-bold text-slate-800 flex items-center gap-2">
+                                <span>📸</span>
+                                <span x-show="reportType === 'lost' && lostSource === 'registered' && selectedCatData">Foto Anabul Terbaru (Tambahan / Kondisi Terakhir)</span>
+                                <span x-show="!(reportType === 'lost' && lostSource === 'registered' && selectedCatData)">Foto Anabul Terbaru</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                <span x-show="reportType === 'lost' && lostSource === 'registered' && selectedCatData">
+                                    Foto utama otomatis menggunakan foto profil anabul terdaftar. Anda dapat menambahkan foto kondisi terakhir (opsional).
+                                </span>
+                                <span x-show="!(reportType === 'lost' && lostSource === 'registered' && selectedCatData)">
+                                    Unggah foto yang jelas menampilkan wajah, warna bulu, dan tanda khas anabul agar mudah dikenali.
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Sync preview badge when registered cat has photo -->
+                    <div x-show="reportType === 'lost' && lostSource === 'registered' && selectedCatData" x-cloak
+                         class="p-3.5 rounded-xl bg-teal-50 border border-teal-200 flex items-center gap-3">
+                        <img :src="selectedCatData?.photo_url" class="w-12 h-12 rounded-xl object-cover border border-teal-300 shadow-2xs shrink-0">
+                        <div class="text-xs text-teal-900 min-w-0">
+                            <div class="font-bold flex items-center gap-1.5">
+                                <span>✓</span>
+                                <span>Foto Profil Terdaftar Aktif</span>
+                            </div>
+                            <div class="text-teal-700 text-[11px] leading-relaxed">
+                                Foto di samping otomatis dijadikan foto utama laporan jika tidak ada foto baru yang diunggah.
+                            </div>
+                        </div>
                     </div>
 
                     <div>
@@ -122,7 +267,8 @@
                             <div class="space-y-2">
                                 <span class="text-3xl">📷</span>
                                 <div class="text-xs sm:text-sm font-bold text-slate-700">
-                                    Pilih foto anabul dari galeri perangkat Anda
+                                    <span x-show="reportType === 'lost' && lostSource === 'registered' && selectedCatData">Unggah foto tambahan dari galeri (opsional)</span>
+                                    <span x-show="!(reportType === 'lost' && lostSource === 'registered' && selectedCatData)">Pilih foto anabul dari galeri perangkat Anda</span>
                                 </div>
                                 <div class="text-[11px] text-slate-400">
                                     Format: JPG, PNG, WEBP (Maksimal 10 MB per foto, otomatis dikompresi)
@@ -137,7 +283,7 @@
                             <div class="relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-2xs group">
                                 <img :src="url" class="w-full h-full object-cover">
                                 <span x-show="index === 0" class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-teal-700 text-white text-[9px] font-bold">
-                                    Foto Utama
+                                    Foto Utama Baru
                                 </span>
                             </div>
                         </template>
@@ -156,7 +302,7 @@
                         <!-- Judul Laporan -->
                         <div class="sm:col-span-2">
                             <label class="form-label">Judul Laporan Singkat <span class="text-rose-600">*</span></label>
-                            <input type="text" name="title" required
+                            <input type="text" name="title" x-model="title" required
                                 placeholder="Contoh: Dicari Kucing Persia Abu-abu Lepas di Area UMY / Ditemukan Kucing Berkalung di Gondomanan"
                                 class="form-input text-xs sm:text-sm">
                         </div>
@@ -190,7 +336,7 @@
                         <!-- Pola Bulu -->
                         <div>
                             <label class="form-label">Pola Bulu</label>
-                            <input type="text" name="coat_pattern"
+                            <input type="text" name="coat_pattern" x-model="coatPattern"
                                 placeholder="Contoh: Tabby, Tuxedo, Calico, Polos"
                                 class="form-input text-xs sm:text-sm">
                         </div>
@@ -198,7 +344,7 @@
                         <!-- Perkiraan Usia -->
                         <div>
                             <label class="form-label">Perkiraan Usia</label>
-                            <input type="text" name="age_estimate"
+                            <input type="text" name="age_estimate" x-model="ageEstimate"
                                 placeholder="Contoh: 1 tahun / Dewasa / Anak-anak"
                                 class="form-input text-xs sm:text-sm">
                         </div>
@@ -206,7 +352,7 @@
                         <!-- Kondisi Saat Kejadian -->
                         <div>
                             <label class="form-label">Kondisi Fisik Saat Dilihat / Ditemukan <span class="text-rose-600">*</span></label>
-                            <select name="condition" required class="form-input text-xs sm:text-sm">
+                            <select name="condition" x-model="condition" required class="form-input text-xs sm:text-sm">
                                 <option value="sehat">Sehat & Bersih</option>
                                 <option value="terawat">Terawat (Tampak Kucing Rumahan)</option>
                                 <option value="lemas_kelaparan">Lemas / Tampak Kelaparan</option>
@@ -219,7 +365,7 @@
                         <!-- Ciri Fisik Khas (Wajib) -->
                         <div class="sm:col-span-2">
                             <label class="form-label">Ciri-Ciri Khas Fisik <span class="text-rose-600">*</span></label>
-                            <textarea name="distinctive_features" rows="3" required
+                            <textarea name="distinctive_features" x-model="distinctiveFeatures" rows="3" required
                                 placeholder="Tuliskan ciri fisik yang spesifik: warna dan bentuk kalung/lonceng, bentuk ekor (lurus/bengkok/pendek), bekas luka atau operasi steril, tanda khusus di bulu atau telinga..."
                                 class="form-input text-xs sm:text-sm leading-relaxed"></textarea>
                         </div>
@@ -343,8 +489,17 @@
                             <span>📞</span> Kontak Pelapor
                         </h2>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Kontak ini digunakan oleh penemu atau pemilik anabul untuk menghubungi Anda.
+                            Kontak ini digunakan oleh penemu atau komunitas untuk menghubungi pihak pelapor / pemilik anabul.
                         </p>
+                    </div>
+
+                    <!-- Callout for helping someone else -->
+                    <div x-show="reportType === 'lost' && lostSource === 'unregistered'" x-cloak
+                         class="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2.5">
+                        <span class="text-base shrink-0">💡</span>
+                        <span>
+                            <strong>Sedang membantu orang lain?</strong> Anda dapat mengganti nama dan nomor telepon di bawah ini dengan nama dan nomor WhatsApp pemilik kucing yang sebenarnya agar pihak penemu dapat langsung menghubungi pemilik asli anabul.
+                        </span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -388,22 +543,36 @@
 
     <script>
         function temuAnabulCreateForm() {
+            const catsData = @json($myCatsFormatted ?? []);
+            const hasCats = catsData.length > 0;
+            const requestedSource = '{{ request('source') }}';
+            const initialLostSource = '{{ old('lost_source', '') }}' || (requestedSource === 'unregistered' || !hasCats ? 'unregistered' : 'registered');
+            const initialSelectedCatId = '{{ old('cat_id', isset($selectedCat) ? $selectedCat->id : '') }}' || (initialLostSource === 'registered' && hasCats ? catsData[0].id : '');
+
             return {
                 reportType: '{{ old('type', $initialType ?? 'lost') }}',
-                selectedCatId: '{{ old('cat_id', isset($selectedCat) ? $selectedCat->id : '') }}',
-                catName: '{{ old('cat_name', isset($selectedCat) ? $selectedCat->name : '') }}',
-                coatColor: '{{ old('coat_color', isset($selectedCat) ? $selectedCat->color : '') }}',
-                catGender: '{{ old('gender', isset($selectedCat) ? $selectedCat->gender : 'tidak_diketahui') }}',
+                lostSource: initialLostSource,
+                catsList: catsData,
+                selectedCatId: initialLostSource === 'registered' ? initialSelectedCatId : '',
+                selectedCatData: null,
+                title: @json(old('title', '')),
+                catName: @json(old('cat_name', '')),
+                coatColor: @json(old('coat_color', '')),
+                coatPattern: @json(old('coat_pattern', '')),
+                catGender: @json(old('gender', 'tidak_diketahui')),
+                ageEstimate: @json(old('age_estimate', '')),
+                condition: @json(old('condition', 'sehat')),
+                distinctiveFeatures: @json(old('distinctive_features', '')),
                 searchRadiusKm: {{ old('search_radius_km', 3.0) }},
                 coords: {
                     lat: '{{ old('latitude', -7.7956) }}',
                     lng: '{{ old('longitude', 110.3695) }}',
                 },
-                formattedAddress: '{{ old('formatted_address', '') }}',
-                selectedProvince: '{{ old('province', '') }}',
-                cityName: '{{ old('city', '') }}',
-                districtName: '{{ old('district', '') }}',
-                villageName: '{{ old('village', '') }}',
+                formattedAddress: @json(old('formatted_address', '')),
+                selectedProvince: @json(old('province', '')),
+                cityName: @json(old('city', '')),
+                districtName: @json(old('district', '')),
+                villageName: @json(old('village', '')),
                 previewUrls: [],
                 map: null,
                 marker: null,
@@ -411,9 +580,54 @@
                 isGeocoding: false,
 
                 init() {
+                    if (this.reportType === 'lost' && this.lostSource === 'registered' && this.selectedCatId) {
+                        this.selectCat(this.selectedCatId, false);
+                    }
                     this.$nextTick(() => {
                         this.initMap();
                     });
+                },
+
+                selectCat(catId, overwrite = true) {
+                    this.selectedCatId = catId;
+                    const cat = this.catsList.find(c => c.id == catId);
+                    if (cat) {
+                        this.selectedCatData = cat;
+                        if (overwrite || !this.catName) {
+                            this.catName = cat.name || '';
+                        }
+                        if (overwrite || !this.coatColor) {
+                            this.coatColor = cat.color || '';
+                        }
+                        if (overwrite || !this.coatPattern) {
+                            this.coatPattern = cat.breed || '';
+                        }
+                        if (overwrite || !this.catGender || this.catGender === 'tidak_diketahui') {
+                            this.catGender = cat.gender || 'tidak_diketahui';
+                        }
+                        if (overwrite || !this.ageEstimate) {
+                            this.ageEstimate = (cat.age_text && cat.age_text !== '-') ? cat.age_text : '';
+                        }
+                        if (overwrite || !this.title || this.title.startsWith('Dicari: Kucing ')) {
+                            this.title = 'Dicari: Kucing ' + cat.name + ' Hilang';
+                        }
+                        if (overwrite || !this.distinctiveFeatures) {
+                            this.distinctiveFeatures = cat.notes ? cat.notes : ('Kucing peliharaan terdaftar KTAKuMu: ' + (cat.unique_code || cat.name));
+                        }
+                    }
+                },
+
+                onSourceChanged(source) {
+                    this.lostSource = source;
+                    if (source === 'unregistered') {
+                        this.selectedCatId = '';
+                        this.selectedCatData = null;
+                    } else if (source === 'registered') {
+                        if (this.catsList.length > 0) {
+                            const targetId = this.selectedCatId || this.catsList[0].id;
+                            this.selectCat(targetId, true);
+                        }
+                    }
                 },
 
                 initMap() {
@@ -533,16 +747,6 @@
                         };
                         reader.readAsDataURL(file);
                     });
-                },
-
-                onCatSelected(catId) {
-                    if (!catId) return;
-                    const opt = document.querySelector(`select[name="cat_id"] option[value="${catId}"]`);
-                    if (opt) {
-                        this.catName = opt.dataset.name || '';
-                        this.coatColor = opt.dataset.color || '';
-                        this.catGender = opt.dataset.gender || 'tidak_diketahui';
-                    }
                 }
             };
         }

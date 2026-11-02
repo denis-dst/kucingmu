@@ -29,6 +29,8 @@ Route::get('/', function () {
         'medical_records' => \App\Models\MedicalRecord::count(),
         'census_count' => \App\Models\PtmaCatCensus::count() + \App\Models\StrayCatSurvey::count(),
         'total_users' => \App\Models\User::count(),
+        'approved_representatives' => \App\Models\RepresentativeRegistration::where('status', 'approved')->count(),
+        'mapped_cats' => \App\Models\PetaAnabul::where('status', '!=', 'arsip')->count(),
     ];
 
     return view('welcome', compact('events', 'activityAlbums', 'stats'));
@@ -213,6 +215,7 @@ Route::get('/api/representatives/provinces', [RepresentativeRegistrationControll
 Route::get('/api/representatives/regencies', [RepresentativeRegistrationController::class, 'getRegenciesApi'])->name('api.representatives.regencies');
 Route::get('/api/representatives/districts', [RepresentativeRegistrationController::class, 'getDistrictsApi'])->name('api.representatives.districts');
 Route::get('/api/representatives/villages', [RepresentativeRegistrationController::class, 'getVillagesApi'])->name('api.representatives.villages');
+Route::get('/api/representatives/markers', [RepresentativeRegistrationController::class, 'getApprovedMarkersApi'])->name('api.representatives.markers');
 Route::redirect('/representatif', '/penjaringan-representatif');
 Route::redirect('/daftar-representatif', '/penjaringan-representatif');
 

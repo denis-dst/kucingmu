@@ -201,6 +201,21 @@
                             <h2 class="text-base sm:text-lg font-outfit font-bold text-slate-900 mt-0.5">
                                 {{ $temuAnabul->title }}
                             </h2>
+
+                            @if($temuAnabul->cat)
+                                <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold">
+                                    <span>🏠</span>
+                                    <span>Kucing Terdaftar Resmi KucingMu</span>
+                                    @if($temuAnabul->cat->unique_code)
+                                        <span class="font-mono bg-teal-100 text-teal-900 px-1.5 py-0.5 rounded text-[10px]">{{ $temuAnabul->cat->unique_code }}</span>
+                                    @endif
+                                </div>
+                            @elseif($temuAnabul->isLost())
+                                <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+                                    <span>🤝</span>
+                                    <span>Laporan Kucing Hilang Komunitas (Belum Terdaftar / Membantu Orang Lain)</span>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5 text-xs pt-2 border-t border-slate-100">
