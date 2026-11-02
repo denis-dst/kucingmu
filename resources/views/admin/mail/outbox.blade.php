@@ -148,6 +148,11 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                                 ● Online
                             </span>
+                            @if(($stats['queued'] ?? 0) > 0 || ($stats['pending_jobs'] ?? 0) > 0)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/30 text-amber-200 border border-amber-400/40">
+                                    ⏳ Antrian: {{ $stats['queued'] ?? $stats['pending_jobs'] }} Jobs
+                                </span>
+                            @endif
                         </div>
                         <p class="text-xs text-teal-100/80 mt-0.5">
                             Pengirim Resmi: <code class="text-teal-200 font-semibold">{{ $smtpInfo['from_address'] }}</code> ({{ $smtpInfo['from_name'] }})
@@ -156,23 +161,31 @@
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0 flex-wrap">
-                    <button type="button" @click="showBroadcastModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+                    @if(($stats['pending_jobs'] ?? 0) > 0)
+                        <form action="{{ route('admin.mail.queue.process') }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="px-3.5 py-2 min-h-[44px] rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer" title="Jalankan antrian pekerjaan email">
+                                <span>⚡</span> Proses Antrian ({{ $stats['pending_jobs'] }})
+                            </button>
+                        </form>
+                    @endif
+                    <button type="button" @click="showBroadcastModal = true" class="px-3.5 py-2 min-h-[44px] rounded-xl text-xs font-bold bg-teal-700/80 hover:bg-teal-600 text-white border border-teal-500/50 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
                         <span>📢</span> Broadcast Email
                     </button>
-                    <button type="button" @click="showTestModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-teal-900 hover:bg-teal-50 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+                    <button type="button" @click="showTestModal = true" class="px-3.5 py-2 min-h-[44px] rounded-xl text-xs font-bold bg-white text-teal-900 hover:bg-teal-50 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
                         <span>🧪</span> Uji SMTP
                     </button>
-                    <button type="button" @click="showComposeModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
+                    <button type="button" @click="showComposeModal = true" class="px-3.5 py-2 min-h-[44px] rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer">
                         <span>✍️</span> Tulis Email
                     </button>
                 </div>
             </div>
 
             <!-- Outbox Stat Cards -->
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
                 <a href="{{ route('admin.mail.outbox', ['status' => 'all', 'type' => 'all']) }}" 
                    class="content-card p-4 transition hover:border-teal-400 hover:shadow-md bg-white block {{ ($statusFilter === 'all' && $typeFilter === 'all') && !request('search') ? 'ring-2 ring-teal-500/20 border-teal-300' : '' }}">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Email Keluar</span>
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Email</span>
                     <div class="mt-1 flex items-baseline gap-1.5">
                         <span class="font-outfit text-2xl font-bold text-slate-900">{{ number_format($stats['total']) }}</span>
                         <span class="text-xs font-semibold text-slate-500">Log</span>
@@ -181,17 +194,17 @@
 
                 <a href="{{ route('admin.mail.outbox', ['status' => 'sent']) }}" 
                    class="content-card p-4 transition hover:border-emerald-400 hover:shadow-md bg-emerald-50/40 border border-emerald-200 block {{ $statusFilter === 'sent' ? 'ring-2 ring-emerald-500/30' : '' }}">
-                    <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Berhasil Terkirim</span>
+                    <span class="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">Terkirim</span>
                     <div class="mt-1 flex items-baseline gap-1.5">
                         <span class="font-outfit text-2xl font-bold text-emerald-800">{{ number_format($stats['sent']) }}</span>
-                        <span class="text-xs font-semibold text-emerald-700">Terkirim</span>
+                        <span class="text-xs font-semibold text-emerald-700">SMTP OK</span>
                     </div>
                 </a>
 
                 <a href="{{ route('admin.mail.outbox', ['status' => 'failed']) }}" 
                    class="content-card p-4 transition hover:border-rose-400 hover:shadow-md bg-rose-50/40 border border-rose-200 block {{ $statusFilter === 'failed' ? 'ring-2 ring-rose-500/30' : '' }}">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-rose-800 uppercase tracking-wider">Gagal Terkirim</span>
+                        <span class="text-[11px] font-bold text-rose-800 uppercase tracking-wider">Gagal Kirim</span>
                         @if($stats['failed'] > 0)
                             <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
                         @endif
@@ -202,24 +215,90 @@
                     </div>
                 </a>
 
+                <a href="{{ route('admin.mail.outbox', ['status' => 'queued']) }}" 
+                   class="content-card p-4 transition hover:border-amber-400 hover:shadow-md bg-amber-50/40 border border-amber-200 block {{ $statusFilter === 'queued' ? 'ring-2 ring-amber-500/30' : '' }}">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Dalam Antrian</span>
+                        @if(($stats['queued'] ?? 0) > 0)
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        @endif
+                    </div>
+                    <div class="mt-1 flex items-baseline gap-1.5">
+                        <span class="font-outfit text-2xl font-bold text-amber-800">{{ number_format($stats['queued'] ?? 0) }}</span>
+                        <span class="text-xs font-semibold text-amber-700">Jobs</span>
+                    </div>
+                </a>
+
                 <a href="{{ route('admin.mail.outbox', ['type' => 'broadcasts']) }}" 
                    class="content-card p-4 transition hover:border-amber-400 hover:shadow-md bg-amber-50/50 border border-amber-200 block {{ in_array($typeFilter, ['broadcasts', 'ktam_broadcast', 'event_broadcast', 'general_broadcast']) ? 'ring-2 ring-amber-500/30' : '' }}">
-                    <span class="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">Broadcast Email</span>
+                    <span class="text-[11px] font-bold text-amber-900 uppercase tracking-wider block">Broadcast</span>
                     <div class="mt-1 flex items-baseline gap-1.5">
                         <span class="font-outfit text-2xl font-bold text-amber-900">{{ number_format($stats['broadcasts'] ?? 0) }}</span>
-                        <span class="text-xs font-semibold text-amber-700">Terkirim</span>
+                        <span class="text-xs font-semibold text-amber-700">Email</span>
                     </div>
                 </a>
 
                 <a href="{{ route('admin.mail.outbox', ['type' => 'contact_reply']) }}" 
                    class="content-card p-4 transition hover:border-teal-400 hover:shadow-md bg-teal-50/40 border border-teal-200 block {{ $typeFilter === 'contact_reply' ? 'ring-2 ring-teal-500/30' : '' }}">
-                    <span class="text-[11px] font-bold text-teal-800 uppercase tracking-wider block">Balasan Kontak</span>
+                    <span class="text-[11px] font-bold text-teal-800 uppercase tracking-wider block">Balasan</span>
                     <div class="mt-1 flex items-baseline gap-1.5">
                         <span class="font-outfit text-2xl font-bold text-teal-800">{{ number_format($stats['replies']) }}</span>
-                        <span class="text-xs font-semibold text-teal-700">Respons</span>
+                        <span class="text-xs font-semibold text-teal-700">Kontak</span>
                     </div>
                 </a>
             </div>
+
+            <!-- Banner Aksi Email Gagal (Kirim Ulang via Sistem Antrian Jobs) -->
+            @if($statusFilter === 'failed' || ($stats['failed'] > 0 && request('status') !== 'sent'))
+                <div class="p-4 sm:p-5 bg-gradient-to-r from-rose-50 via-rose-50/80 to-amber-50/60 border border-rose-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 border border-rose-300 text-rose-700 flex items-center justify-center text-xl shrink-0">
+                            ⚠️
+                        </div>
+                        <div>
+                            <h3 class="font-outfit font-bold text-slate-900 text-sm">
+                                Terdapat {{ number_format($stats['failed']) }} Email Gagal Terkirim
+                            </h3>
+                            <p class="text-xs text-rose-800/90 mt-0.5 leading-relaxed">
+                                Masukkan seluruh email gagal ke sistem antrian (Laravel Jobs Queue) agar dikirim ulang secara bertahap di latar belakang, menghindari server timeout dan Error 500.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                        <form action="{{ route('admin.mail.outbox.resend-all-failed') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="button-primary min-h-[44px] px-4 py-2.5 text-xs font-bold rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer bg-rose-700 hover:bg-rose-800" onclick="return confirm('Masukkan seluruh {{ $stats['failed'] }} email gagal ke antrian Jobs Queue untuk dikirim ulang?')">
+                                <span>🔄</span> Masukkan Semua ke Antrian (Kirim Ulang)
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Banner Monitoring Antrian Jobs Aktif -->
+            @if(($stats['queued'] ?? 0) > 0 || ($stats['pending_jobs'] ?? 0) > 0)
+                <div class="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg shrink-0">
+                            ⏳
+                        </div>
+                        <div>
+                            <div class="text-xs sm:text-sm font-bold text-amber-950">
+                                Sistem Antrian Email Aktif: {{ $stats['queued'] ?? 0 }} email dalam antrian ({{ $stats['pending_jobs'] ?? 0 }} pending jobs)
+                            </div>
+                            <div class="text-[11px] text-amber-800 mt-0.5">
+                                Seluruh pengiriman diproses bertahap di latar belakang. Jalankan <code class="bg-amber-100 px-1 py-0.5 rounded font-mono text-amber-950 font-semibold">php artisan queue:work</code> atau klik tombol proses di samping.
+                            </div>
+                        </div>
+                    </div>
+                    <form action="{{ route('admin.mail.queue.process') }}" method="POST" class="shrink-0">
+                        @csrf
+                        <button type="submit" class="button-secondary min-h-[44px] px-4 py-2 text-xs font-bold rounded-xl shadow-2xs inline-flex items-center gap-1.5 bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 cursor-pointer">
+                            <span>⚡</span> Proses Antrian Sekarang
+                        </button>
+                    </form>
+                </div>
+            @endif
 
             <!-- Outbox Table & Filters -->
             <div class="content-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4">
@@ -239,6 +318,10 @@
                         <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['status' => 'failed'])) }}" 
                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $statusFilter === 'failed' ? 'bg-rose-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             ❌ Gagal ({{ $stats['failed'] }})
+                        </a>
+                        <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['status' => 'queued'])) }}" 
+                           class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ $statusFilter === 'queued' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                            ⏳ Antrian ({{ $stats['queued'] ?? 0 }})
                         </a>
                         <a href="{{ route('admin.mail.outbox', array_merge(request()->except(['page']), ['type' => 'broadcasts'])) }}" 
                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition {{ in_array($typeFilter, ['broadcasts', 'ktam_broadcast', 'event_broadcast', 'general_broadcast']) ? 'bg-amber-600 text-white shadow-xs font-bold' : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100' }}">
@@ -278,9 +361,25 @@
                 <!-- Messages Table (Desktop) -->
                 @if($outboxes->isEmpty())
                     <div class="text-center py-12 px-4">
-                        <div class="text-3xl mb-2">📤</div>
-                        <h3 class="text-sm font-bold text-slate-800">Tidak ada log email keluar yang sesuai</h3>
-                        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Kotak keluar kosong atau belum ada email terkirim dengan filter saat ini.</p>
+                        <div class="text-3xl mb-2">
+                            @if($statusFilter === 'failed')
+                                ✨
+                            @elseif($statusFilter === 'queued')
+                                ⏳
+                            @else
+                                📤
+                            @endif
+                        </div>
+                        @if($statusFilter === 'failed')
+                            <h3 class="text-sm font-bold text-emerald-800">Tidak Ada Email yang Gagal</h3>
+                            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Seluruh email berhasil terkirim melalui SMTP atau sedang berada dalam antrian jobs.</p>
+                        @elseif($statusFilter === 'queued')
+                            <h3 class="text-sm font-bold text-slate-800">Antrian Email Kosong</h3>
+                            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Tidak ada email yang sedang menunggu giliran pengiriman saat ini.</p>
+                        @else
+                            <h3 class="text-sm font-bold text-slate-800">Tidak ada log email keluar yang sesuai</h3>
+                            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">Kotak keluar kosong atau belum ada email terkirim dengan filter saat ini.</p>
+                        @endif
                         <div class="mt-3 flex items-center justify-center gap-3">
                             <button type="button" @click="showBroadcastModal = true" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-xs">
                                 📢 Kirim Broadcast Email
@@ -374,10 +473,14 @@
                                                 @if($out->status === 'failed')
                                                     <form action="{{ route('admin.mail.outbox.resend', $out->id) }}" method="POST" class="inline">
                                                         @csrf
-                                                        <button type="submit" class="button-primary text-xs font-bold py-1.5 px-2.5 rounded-lg shadow-2xs" title="Coba Kirim Ulang via SMTP">
+                                                        <button type="submit" class="button-primary text-xs font-bold min-h-[44px] py-2 px-3 rounded-lg shadow-2xs" title="Masukkan ke Antrian Jobs untuk Kirim Ulang (Tanpa Error 500)">
                                                             <span>🔄</span> Kirim Ulang
                                                         </button>
                                                     </form>
+                                                @elseif($out->status === 'queued')
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="Email sedang berada di antrian job untuk dikirim">
+                                                        <span>⏳</span> Di Antrian
+                                                    </span>
                                                 @endif
 
                                                 <form action="{{ route('admin.mail.outbox.destroy', $out->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus log email keluar ini?')">
@@ -429,10 +532,14 @@
                                         @if($out->status === 'failed')
                                             <form action="{{ route('admin.mail.outbox.resend', $out->id) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="button-primary text-xs font-bold py-1 px-2 rounded-lg">
-                                                    🔄
+                                                <button type="submit" class="button-primary text-xs font-bold min-h-[44px] px-3 py-2 rounded-lg inline-flex items-center gap-1" title="Kirim Ulang via Jobs Queue">
+                                                    <span>🔄</span> Kirim Ulang
                                                 </button>
                                             </form>
+                                        @elseif($out->status === 'queued')
+                                            <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                                                ⏳ Di Antrian
+                                            </span>
                                         @endif
                                         <form action="{{ route('admin.mail.outbox.destroy', $out->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus log ini?')">
                                             @csrf
@@ -580,7 +687,7 @@
                                 <option value="">-- Pilih Agenda Kegiatan --</option>
                                 @foreach($activeEvents as $ev)
                                     <option value="{{ $ev->id }}">
-                                        {{ $ev->date ? $ev->date->format('d/m/Y') : '-' }} — {{ $ev->title }} ({{ $ev->location }})
+                                        {{ $ev->date ? $ev->date->format('d/m/Y') : '-' }} - {{ $ev->title }} ({{ $ev->location }})
                                     </option>
                                 @endforeach
                             </select>

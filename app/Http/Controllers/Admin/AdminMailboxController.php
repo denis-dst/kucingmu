@@ -14,8 +14,11 @@ use App\Mail\AdminDirectMail;
 use App\Mail\SmtpTestMail;
 use App\Mail\KtamUpdateNotificationMail;
 use App\Mail\BroadcastAnnouncementMail;
+use App\Jobs\SendOutboxEmailJob;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -178,9 +181,9 @@ class AdminMailboxController extends Controller
     {
         $query = EmailOutbox::with(['sender', 'contactMessage'])->latest();
 
-        // Filter status: all, sent, failed
+        // Filter status: all, sent, failed, queued
         $statusFilter = $request->get('status', 'all');
-        if (in_array($statusFilter, ['sent', 'failed'])) {
+        if (in_array($statusFilter, ['sent', 'failed', 'queued'])) {
             $query->where('status', $statusFilter);
         }
 
@@ -209,9 +212,11 @@ class AdminMailboxController extends Controller
             'total' => EmailOutbox::count(),
             'sent' => EmailOutbox::where('status', 'sent')->count(),
             'failed' => EmailOutbox::where('status', 'failed')->count(),
+            'queued' => EmailOutbox::where('status', 'queued')->count(),
             'direct' => EmailOutbox::where('mail_type', 'direct_compose')->count(),
             'replies' => EmailOutbox::where('mail_type', 'contact_reply')->count(),
             'broadcasts' => EmailOutbox::whereIn('mail_type', ['ktam_broadcast', 'event_broadcast', 'general_broadcast'])->count(),
+            'pending_jobs' => DB::table('jobs')->count(),
         ];
 
         $unreadInboxCount = ContactMessage::where('status', 'unread')->count();
@@ -566,36 +571,76 @@ class AdminMailboxController extends Controller
     }
 
     /**
-     * Resend an email that failed or needs to be resent.
+     * Resend an email using Laravel Jobs Queue to avoid HTTP 500 timeout.
      */
     public function resendOutbox(EmailOutbox $outbox)
     {
         $adminUser = Auth::user();
-        $status = 'sent';
-        $errorMessage = null;
-
-        try {
-            if ($outbox->mail_type === 'contact_reply' && $outbox->contactMessage) {
-                Mail::to($outbox->recipient_email)->send(new ContactResponseMail($outbox->contactMessage, $outbox->body, $adminUser->name));
-            } else {
-                Mail::to($outbox->recipient_email)->send(new AdminDirectMail($outbox->subject, $outbox->body, $outbox->recipient_name ?: '', $adminUser->name));
-            }
-        } catch (\Throwable $e) {
-            $status = 'failed';
-            $errorMessage = $e->getMessage();
-            Log::error("Gagal mengirim ulang email ID {$outbox->id} ke {$outbox->recipient_email}: " . $e->getMessage());
-        }
 
         $outbox->update([
-            'status' => $status,
-            'error_message' => $errorMessage,
-            'sent_at' => $status === 'sent' ? now() : $outbox->sent_at,
+            'status' => 'queued',
+            'error_message' => 'Dimasukkan ke antrian pengiriman (Queue Job).',
         ]);
 
-        if ($status === 'sent') {
-            return redirect()->back()->with('success', "Email berhasil dikirim ulang ke {$outbox->recipient_email} melalui SMTP.");
-        } else {
-            return redirect()->back()->with('error', "Gagal mengirim ulang email: {$errorMessage}");
+        SendOutboxEmailJob::dispatch($outbox, $adminUser?->id);
+
+        return redirect()->back()->with('success', "Email ke {$outbox->recipient_email} berhasil dimasukkan ke sistem antrian (Jobs Queue). Email akan diproses dan dikirim di latar belakang tanpa risiko timeout server (Error 500).");
+    }
+
+    /**
+     * Resend all failed emails using Laravel Jobs Queue.
+     */
+    public function resendAllFailed(Request $request)
+    {
+        $adminUser = Auth::user();
+        $adminId = $adminUser?->id;
+
+        $failedOutboxes = EmailOutbox::where('status', 'failed')->get();
+
+        if ($failedOutboxes->isEmpty()) {
+            return redirect()->back()->with('warning', 'Tidak ada email dengan status gagal kirim saat ini.');
+        }
+
+        $count = 0;
+        foreach ($failedOutboxes as $outbox) {
+            $outbox->update([
+                'status' => 'queued',
+                'error_message' => 'Dimasukkan ke antrian pengiriman ulang massal (Queue Job).',
+            ]);
+
+            SendOutboxEmailJob::dispatch($outbox, $adminId);
+            $count++;
+        }
+
+        return redirect()->route('admin.mail.outbox', ['status' => 'queued'])
+            ->with('success', "Berhasil memasukkan {$count} email gagal ke sistem antrian (Jobs Queue). Seluruh email akan diproses dan dikirim ulang di latar belakang secara aman tanpa error 500.");
+    }
+
+    /**
+     * Process pending queue jobs safely via Artisan if worker is not running.
+     */
+    public function processQueue()
+    {
+        $pendingJobs = DB::table('jobs')->count();
+        if ($pendingJobs === 0) {
+            return redirect()->back()->with('warning', 'Tidak ada antrian pekerjaan email di database saat ini.');
+        }
+
+        @set_time_limit(60);
+        try {
+            Artisan::call('queue:work', [
+                '--stop-when-empty' => true,
+                '--max-jobs' => 25,
+                '--max-time' => 20,
+            ]);
+
+            $remainingJobs = DB::table('jobs')->count();
+            $processed = max(0, $pendingJobs - $remainingJobs);
+
+            return redirect()->back()->with('success', "Antrian berhasil diproses. {$processed} pekerjaan selesai dikirim. Sisa antrian: {$remainingJobs}.");
+        } catch (\Throwable $e) {
+            Log::error('Gagal memproses antrian queue: ' . $e->getMessage());
+            return redirect()->back()->with('error', "Gagal memproses antrian: " . $e->getMessage());
         }
     }
 

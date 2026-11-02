@@ -16,17 +16,23 @@
             </div>
             
             <div class="flex items-center gap-2 flex-wrap">
-                <form action="{{ route('admin.mail.outbox.resend', $outbox->id) }}" method="POST" class="inline">
-                    @csrf
-                    <button type="submit" class="button-primary text-xs px-3.5 py-2 rounded-xl font-bold shadow-2xs inline-flex items-center gap-1.5">
-                        <span>🔄</span> Kirim Ulang via SMTP
-                    </button>
-                </form>
+                @if($outbox->status !== 'queued')
+                    <form action="{{ route('admin.mail.outbox.resend', $outbox->id) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="button-primary min-h-[44px] text-xs px-3.5 py-2 rounded-xl font-bold shadow-2xs inline-flex items-center gap-1.5">
+                            <span>🔄</span> Kirim Ulang via Antrian Jobs
+                        </button>
+                    </form>
+                @else
+                    <span class="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-xl text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                        <span>⏳</span> Sedang di Antrian Jobs
+                    </span>
+                @endif
 
                 <form action="{{ route('admin.mail.outbox.destroy', $outbox->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus log email keluar ini?')">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn-action-danger text-xs px-3 py-2 rounded-xl font-semibold">
+                    <button type="submit" class="btn-action-danger min-h-[44px] text-xs px-3.5 py-2 rounded-xl font-semibold inline-flex items-center gap-1.5">
                         <span>🗑</span> Hapus Log
                     </button>
                 </form>

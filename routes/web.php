@@ -156,6 +156,8 @@ Route::middleware(['auth', 'role:admin,superadmin'])->group(function () {
     Route::get('/admin/mail/broadcast-ktam', fn() => redirect()->route('admin.mail.outbox'));
     Route::post('/admin/mail/broadcast-ktam', [AdminMailboxController::class, 'broadcastKtamUpdate'])->name('admin.mail.broadcast-ktam');
     Route::post('/admin/mail/outbox/{outbox}/resend', [AdminMailboxController::class, 'resendOutbox'])->name('admin.mail.outbox.resend');
+    Route::post('/admin/mail/outbox/resend-all-failed', [AdminMailboxController::class, 'resendAllFailed'])->name('admin.mail.outbox.resend-all-failed');
+    Route::post('/admin/mail/queue/process', [AdminMailboxController::class, 'processQueue'])->name('admin.mail.queue.process');
     Route::post('/admin/mail/test-smtp', [AdminMailboxController::class, 'testSmtp'])->name('admin.mail.test-smtp');
     Route::delete('/admin/mail/outbox/{outbox}', [AdminMailboxController::class, 'destroyOutbox'])->name('admin.mail.outbox.destroy');
 

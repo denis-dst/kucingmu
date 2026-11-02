@@ -36,8 +36,13 @@ class AdminDirectMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $prefix = "[{$this->appName}]";
+        $subject = str_starts_with($this->emailSubject, $prefix)
+            ? $this->emailSubject
+            : "{$prefix} {$this->emailSubject}";
+
         return new Envelope(
-            subject: "[{$this->appName}] {$this->emailSubject}",
+            subject: $subject,
         );
     }
 

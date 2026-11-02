@@ -1007,7 +1007,8 @@
                             Pantau sebaran kader penggerak KucingMu di seluruh Indonesia serta titik pendataan anabul di
                             sekitar lingkungan Anda dalam satu visualisasi spasial interaktif.
                         @else
-                            Pantau sebaran kader penggerak KucingMu di seluruh Indonesia serta titik pendataan kucing liar di
+                            Pantau sebaran kader penggerak KucingMu di seluruh Indonesia serta titik pendataan kucing liar
+                            di
                             sekitar lingkungan Anda dalam satu visualisasi spasial interaktif.
                         @endauth
                     </p>
