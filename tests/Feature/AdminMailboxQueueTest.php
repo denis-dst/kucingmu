@@ -230,3 +230,4 @@ class AdminMailboxQueueTest extends TestCase
         $response->assertSessionHas('warning');
     }
 }
+

@@ -33,9 +33,29 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
+    <!-- Leaflet & MarkerCluster JS in HEAD to ensure available for Alpine initialization -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
     <style>
         [x-cloak] {
             display: none !important;
+        }
+
+        /* Community Map Container */
+        #welcome-community-map {
+            width: 100% !important;
+            height: 520px !important;
+            min-height: 440px !important;
+            display: block !important;
+        }
+
+        @media (max-width: 640px) {
+            #welcome-community-map {
+                height: 420px !important;
+                min-height: 380px !important;
+            }
         }
 
         /* Representative Marker Pin */
@@ -1029,7 +1049,7 @@
                                 class="flex-1 sm:flex-initial min-h-[44px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer"
                                 :class="activeTab === 'representative' ? 'bg-teal-800 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'">
                                 <span class="text-base">🎖️</span>
-                                <span>Peta Representatif Disetujui</span>
+                                <span>Representatif KucingMu</span>
                                 <span class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider"
                                     :class="activeTab === 'representative' ? 'bg-teal-700 text-teal-100' : 'bg-slate-100 text-slate-600'"
                                     x-text="repCount !== null ? repCount : '...'">
@@ -1107,8 +1127,8 @@
                     <!-- Map Container Area -->
                     <div class="relative overflow-hidden">
                         <!-- The Leaflet Map Instance -->
-                        <div id="welcome-community-map"
-                            class="w-full h-[440px] sm:h-[520px] lg:h-[580px] bg-slate-100 z-10"></div>
+                        <div id="welcome-community-map" class="w-full bg-slate-100 z-10"
+                            style="width: 100%; height: 520px; min-height: 440px; display: block;"></div>
 
                         <!-- Loading Indicator Overlay -->
                         <div x-show="isLoading" x-cloak
@@ -1491,15 +1511,10 @@
         </div>
     </footer>
 
-    <!-- Leaflet & Clustering Script for Community Map -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-
     <script>
         function petaSebaranKomunitas() {
             return {
-                activeTab: 'representative',
+                activeTab: '{{ ($stats['approved_representatives'] ?? 0) > 0 ? 'representative' : 'anabul' }}',
                 map: null,
                 markerCluster: null,
                 isLoading: false,
@@ -1511,13 +1526,24 @@
                 catData: null,
 
                 init() {
+                    const start = () => {
+                        if (typeof L !== 'undefined' && typeof L.markerClusterGroup !== 'undefined') {
+                            this.initMap();
+                        } else {
+                            setTimeout(start, 50);
+                        }
+                    };
+
                     this.$nextTick(() => {
-                        this.initMap();
+                        start();
                     });
                 },
 
                 initMap() {
                     if (this.map) return;
+
+                    const container = document.getElementById('welcome-community-map');
+                    if (!container) return;
 
                     // Centered on Indonesia archipelago
                     this.map = L.map('welcome-community-map', {
@@ -1536,8 +1562,14 @@
                     });
                     this.map.addLayer(this.markerCluster);
 
+                    setTimeout(() => {
+                        if (this.map) {
+                            this.map.invalidateSize();
+                        }
+                    }, 150);
+
                     // Load initial tab
-                    this.switchTab('representative');
+                    this.switchTab(this.activeTab);
                 },
 
                 switchTab(tab) {
@@ -1546,11 +1578,11 @@
                         this.markerCluster.clearLayers();
                     }
 
-                    this.$nextTick(() => {
+                    setTimeout(() => {
                         if (this.map) {
                             this.map.invalidateSize();
                         }
-                    });
+                    }, 100);
 
                     if (tab === 'representative') {
                         this.loadRepresentativeMarkers();
