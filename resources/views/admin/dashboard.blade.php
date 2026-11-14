@@ -575,11 +575,10 @@
                                 scrollWheelZoom: false,
                             });
 
-                            // High-quality CartoDB Positron / OSM tiles
-                            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-                                maxZoom: 18,
-                                subdomains: 'abcd',
+                            // Standard OpenStreetMap tiles (sama seperti Peta Anabul & Sebaran Representatif)
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | KucingMu GIS',
+                                maxZoom: 19,
                             }).addTo(this.mapInstance);
 
                             // Invalidate size once visible
