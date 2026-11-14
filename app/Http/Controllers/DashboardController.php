@@ -210,8 +210,225 @@ class DashboardController extends Controller
 
         $cats = $catQuery->paginate(10)->withQueryString();
         $appointments = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos'])->orderBy('date', 'desc')->take(5)->get();
+        $analytics = $this->getExecutiveAnalyticsData();
 
-        return view('admin.dashboard', compact('stats', 'cats', 'appointments', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter'));
+        return view('admin.dashboard', compact('stats', 'cats', 'appointments', 'sort', 'direction', 'statusFilter', 'ktamStatusFilter', 'analytics'));
+    }
+
+    /**
+     * Compile executive charts and GIS geo-mapping data for executive overview.
+     */
+    protected function getExecutiveAnalyticsData(): array
+    {
+        // 1. Daily Trend (Last 30 Days)
+        $startDaily = Carbon::now()->subDays(29)->startOfDay();
+        $endDaily = Carbon::now()->endOfDay();
+
+        $catDailyRaw = Cat::whereBetween('created_at', [$startDaily, $endDaily])
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->all();
+
+        $userDailyRaw = User::whereBetween('created_at', [$startDaily, $endDaily])
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->all();
+
+        $dailyLabels = [];
+        $dailyCatData = [];
+        $dailyUserData = [];
+        $cursor = clone $startDaily;
+        while ($cursor <= $endDaily) {
+            $d = $cursor->format('Y-m-d');
+            $dailyLabels[] = $cursor->translatedFormat('d M');
+            $dailyCatData[] = (int) ($catDailyRaw[$d] ?? 0);
+            $dailyUserData[] = (int) ($userDailyRaw[$d] ?? 0);
+            $cursor->addDay();
+        }
+
+        // 2. Monthly Trend (Last 12 Months)
+        $startMonthly = Carbon::now()->subMonths(11)->startOfMonth();
+        $catMonthlyRaw = Cat::where('created_at', '>=', $startMonthly)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as total")
+            ->groupBy('ym')
+            ->pluck('total', 'ym')
+            ->all();
+
+        $userMonthlyRaw = User::where('created_at', '>=', $startMonthly)
+            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as total")
+            ->groupBy('ym')
+            ->pluck('total', 'ym')
+            ->all();
+
+        $monthlyLabels = [];
+        $monthlyCatData = [];
+        $monthlyUserData = [];
+        $mCursor = clone $startMonthly;
+        for ($i = 0; $i < 12; $i++) {
+            $ym = $mCursor->format('Y-m');
+            $monthlyLabels[] = $mCursor->translatedFormat('M Y');
+            $monthlyCatData[] = (int) ($catMonthlyRaw[$ym] ?? 0);
+            $monthlyUserData[] = (int) ($userMonthlyRaw[$ym] ?? 0);
+            $mCursor->addMonth();
+        }
+
+        // 3. Wilayah Coordinates & Statistics (Top Regions for Bar & Map)
+        $coordsMap = [
+            '34' => ['name' => 'D.I. Yogyakarta', 'singkatan' => 'DIY', 'lat' => -7.7956, 'lng' => 110.3695],
+            '33' => ['name' => 'Jawa Tengah', 'singkatan' => 'JATENG', 'lat' => -7.1510, 'lng' => 110.1403],
+            '35' => ['name' => 'Jawa Timur', 'singkatan' => 'JATIM', 'lat' => -7.5361, 'lng' => 112.2384],
+            '31' => ['name' => 'DKI Jakarta', 'singkatan' => 'DKI', 'lat' => -6.2088, 'lng' => 106.8456],
+            '32' => ['name' => 'Jawa Barat', 'singkatan' => 'JABAR', 'lat' => -6.9147, 'lng' => 107.6098],
+            '36' => ['name' => 'Banten', 'singkatan' => 'BANTEN', 'lat' => -6.4058, 'lng' => 106.0640],
+            '11' => ['name' => 'Aceh', 'singkatan' => 'ACEH', 'lat' => 4.6951, 'lng' => 96.7494],
+            '12' => ['name' => 'Sumatera Utara', 'singkatan' => 'SUMUT', 'lat' => 2.1154, 'lng' => 99.5451],
+            '13' => ['name' => 'Sumatera Barat', 'singkatan' => 'SUMBAR', 'lat' => -0.7399, 'lng' => 100.8000],
+            '14' => ['name' => 'Riau', 'singkatan' => 'RIAU', 'lat' => 0.2933, 'lng' => 101.7068],
+            '15' => ['name' => 'Jambi', 'singkatan' => 'JAMBI', 'lat' => -1.6101, 'lng' => 103.6131],
+            '16' => ['name' => 'Sumatera Selatan', 'singkatan' => 'SUMSEL', 'lat' => -3.3194, 'lng' => 104.9144],
+            '17' => ['name' => 'Bengkulu', 'singkatan' => 'BENGKULU', 'lat' => -3.5778, 'lng' => 102.3464],
+            '18' => ['name' => 'Lampung', 'singkatan' => 'LAMPUNG', 'lat' => -4.5586, 'lng' => 105.4068],
+            '19' => ['name' => 'Kep. Bangka Belitung', 'singkatan' => 'BABEL', 'lat' => -2.7411, 'lng' => 106.4406],
+            '21' => ['name' => 'Kepulauan Riau', 'singkatan' => 'KEPRI', 'lat' => 3.9457, 'lng' => 108.1429],
+            '51' => ['name' => 'Bali', 'singkatan' => 'BALI', 'lat' => -8.4095, 'lng' => 115.1889],
+            '52' => ['name' => 'Nusa Tenggara Barat', 'singkatan' => 'NTB', 'lat' => -8.6529, 'lng' => 117.3616],
+            '53' => ['name' => 'Nusa Tenggara Timur', 'singkatan' => 'NTT', 'lat' => -8.6574, 'lng' => 121.0794],
+            '61' => ['name' => 'Kalimantan Barat', 'singkatan' => 'KALBAR', 'lat' => -0.2787, 'lng' => 111.4753],
+            '62' => ['name' => 'Kalimantan Tengah', 'singkatan' => 'KALTENG', 'lat' => -1.6815, 'lng' => 113.3824],
+            '63' => ['name' => 'Kalimantan Selatan', 'singkatan' => 'KALSEL', 'lat' => -3.0926, 'lng' => 115.2838],
+            '64' => ['name' => 'Kalimantan Timur', 'singkatan' => 'KALTIM', 'lat' => 0.5387, 'lng' => 116.4194],
+            '65' => ['name' => 'Kalimantan Utara', 'singkatan' => 'KALTARA', 'lat' => 2.7259, 'lng' => 116.9110],
+            '71' => ['name' => 'Sulawesi Utara', 'singkatan' => 'SULUT', 'lat' => 0.6247, 'lng' => 123.9750],
+            '72' => ['name' => 'Sulawesi Tengah', 'singkatan' => 'SULTENG', 'lat' => -1.4300, 'lng' => 121.4456],
+            '73' => ['name' => 'Sulawesi Selatan', 'singkatan' => 'SULSEL', 'lat' => -3.6687, 'lng' => 119.9741],
+            '74' => ['name' => 'Sulawesi Tenggara', 'singkatan' => 'SULTRA', 'lat' => -4.1449, 'lng' => 122.1746],
+            '75' => ['name' => 'Gorontalo', 'singkatan' => 'GORONTALO', 'lat' => 0.6999, 'lng' => 122.4467],
+            '76' => ['name' => 'Sulawesi Barat', 'singkatan' => 'SULBAR', 'lat' => -2.8441, 'lng' => 119.2321],
+            '81' => ['name' => 'Maluku', 'singkatan' => 'MALUKU', 'lat' => -3.2385, 'lng' => 130.1453],
+            '82' => ['name' => 'Maluku Utara', 'singkatan' => 'MALUT', 'lat' => 1.5709, 'lng' => 127.8088],
+            '91' => ['name' => 'Papua', 'singkatan' => 'PAPUA', 'lat' => -4.2699, 'lng' => 138.0804],
+            '92' => ['name' => 'Papua Barat', 'singkatan' => 'PAPBAR', 'lat' => -1.3361, 'lng' => 133.1747],
+            '00' => ['name' => 'Pusat (PP Muhammadiyah)', 'singkatan' => 'PUSAT', 'lat' => -6.1754, 'lng' => 106.8272],
+        ];
+
+        $masterWilayahDb = MasterWilayah::all()->keyBy('kode');
+
+        $wilayahCatStats = Cat::selectRaw('
+                wilayah_code,
+                COUNT(*) as total_cats,
+                COUNT(CASE WHEN unique_code IS NOT NULL AND unique_code != "" THEN 1 END) as ktam_issued
+            ')
+            ->whereNotNull('wilayah_code')
+            ->where('wilayah_code', '!=', '')
+            ->groupBy('wilayah_code')
+            ->orderByDesc('total_cats')
+            ->get();
+
+        $barLabels = [];
+        $barData = [];
+        $mapLocations = [];
+
+        foreach ($wilayahCatStats as $stat) {
+            $code = (string) $stat->wilayah_code;
+            $meta = $coordsMap[$code] ?? null;
+            $dbName = $masterWilayahDb->get($code)?->nama ?? ($meta['name'] ?? "Wilayah {$code}");
+            $shortName = $masterWilayahDb->get($code)?->singkatan ?? ($meta['singkatan'] ?? $code);
+
+            if (count($barLabels) < 8) {
+                $barLabels[] = $shortName ?: $dbName;
+                $barData[] = (int) $stat->total_cats;
+            }
+
+            if ($meta) {
+                $mapLocations[] = [
+                    'code' => $code,
+                    'name' => $dbName,
+                    'short_name' => $shortName,
+                    'total_cats' => (int) $stat->total_cats,
+                    'ktam_issued' => (int) $stat->ktam_issued,
+                    'lat' => $meta['lat'],
+                    'lng' => $meta['lng'],
+                ];
+            }
+        }
+
+        // Include representative / major centers for full map coverage
+        foreach ($coordsMap as $code => $meta) {
+            if (!collect($mapLocations)->contains('code', $code)) {
+                $dbName = $masterWilayahDb->get($code)?->nama ?? $meta['name'];
+                $mapLocations[] = [
+                    'code' => $code,
+                    'name' => $dbName,
+                    'short_name' => $meta['singkatan'],
+                    'total_cats' => 0,
+                    'ktam_issued' => 0,
+                    'lat' => $meta['lat'],
+                    'lng' => $meta['lng'],
+                ];
+            }
+        }
+
+        // 4. Donut: Breed / Ras Distribution
+        $breedStats = Cat::selectRaw('COALESCE(NULLIF(TRIM(breed), ""), "Lainnya") as breed_name, COUNT(*) as total')
+            ->groupBy('breed_name')
+            ->orderByDesc('total')
+            ->take(6)
+            ->get();
+
+        $breedLabels = $breedStats->pluck('breed_name')->all();
+        $breedData = $breedStats->pluck('total')->map(fn($v) => (int)$v)->all();
+
+        // 5. Donut: Status Penerbitan KTAKuMu
+        $ktamIssued = KtamCard::whereNotNull('ktam_number')->where('ktam_number', '!=', '')->count();
+        $ktamPendingMedis = Cat::where(function($q) {
+            $q->whereNull('unique_code')->orWhere('unique_code', '');
+        })->whereHas('medicalRecords')->count();
+        $ktamUnverified = Cat::where(function($q) {
+            $q->whereNull('unique_code')->orWhere('unique_code', '');
+        })->whereDoesntHave('medicalRecords')->count();
+
+        $ktamPieLabels = ['KTAKuMu Terbit', 'Perlu Verifikasi', 'Belum Verifikasi'];
+        $ktamPieData = [$ktamIssued, $ktamPendingMedis, $ktamUnverified];
+
+        // 6. Donut: Gender Distribution
+        $maleCount = Cat::whereIn('gender', ['male', 'jantan'])->count();
+        $femaleCount = Cat::whereIn('gender', ['female', 'betina'])->count();
+        $unknownGender = Cat::whereNotIn('gender', ['male', 'jantan', 'female', 'betina'])->orWhereNull('gender')->count();
+
+        $genderPieLabels = ['Jantan (♂)', 'Betina (♀)', 'Belum Diketahui'];
+        $genderPieData = [$maleCount, $femaleCount, $unknownGender];
+
+        return [
+            'daily' => [
+                'labels' => $dailyLabels,
+                'cats' => $dailyCatData,
+                'users' => $dailyUserData,
+            ],
+            'monthly' => [
+                'labels' => $monthlyLabels,
+                'cats' => $monthlyCatData,
+                'users' => $monthlyUserData,
+            ],
+            'barWilayah' => [
+                'labels' => $barLabels,
+                'data' => $barData,
+            ],
+            'mapLocations' => $mapLocations,
+            'breeds' => [
+                'labels' => $breedLabels,
+                'data' => $breedData,
+            ],
+            'ktamPie' => [
+                'labels' => $ktamPieLabels,
+                'data' => $ktamPieData,
+            ],
+            'genderPie' => [
+                'labels' => $genderPieLabels,
+                'data' => $genderPieData,
+            ],
+        ];
     }
 
     /**

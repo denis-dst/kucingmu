@@ -34,7 +34,12 @@ class TemuAnabulPhoto extends Model
             return $this->photo_path;
         }
 
-        return asset('storage/' . $this->photo_path);
+        $fullPath = storage_path('app/public/' . $this->photo_path);
+        if (file_exists($fullPath)) {
+            return asset('storage/' . $this->photo_path);
+        }
+
+        return asset('images/default-cat.png');
     }
 }
 

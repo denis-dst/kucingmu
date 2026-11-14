@@ -146,12 +146,12 @@ class TemuAnabul extends Model
     public function getThumbnailUrlAttribute(): string
     {
         $primary = $this->photos->firstWhere('is_primary', true) ?? $this->photos->first();
-        if ($primary) {
+        if ($primary && $primary->url) {
             return $primary->url;
         }
 
-        if ($this->cat && $this->cat->photo_path) {
-            return asset('storage/' . $this->cat->photo_path);
+        if ($this->cat) {
+            return $this->cat->primary_photo_url ?: asset('images/default-cat.png');
         }
 
         return asset('images/default-cat.png');

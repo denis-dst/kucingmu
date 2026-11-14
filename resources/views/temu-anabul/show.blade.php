@@ -152,7 +152,9 @@
                 <div class="lg:col-span-5 space-y-4">
                     <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs space-y-3">
                         <div class="relative aspect-4/3 rounded-xl overflow-hidden bg-slate-100">
-                            <img :src="activePhoto" alt="{{ $temuAnabul->cat_name }}" class="w-full h-full object-cover">
+                            <img :src="activePhoto" alt="{{ $temuAnabul->cat_name }}" 
+                                 onerror="this.onerror=null;this.src='{{ asset('images/default-cat.png') }}'"
+                                 class="w-full h-full object-cover">
                         </div>
 
                         <!-- Thumbnails -->
@@ -317,7 +319,9 @@
                                 class="bg-white rounded-xl border border-slate-200 p-3 hover:shadow-md transition flex flex-col justify-between">
                                 <div>
                                     <div class="relative aspect-video rounded-lg overflow-hidden bg-slate-100 mb-2">
-                                        <img src="{{ $match->thumbnail_url }}" alt="{{ $match->cat_name }}" class="w-full h-full object-cover">
+                                        <img src="{{ $match->thumbnail_url }}" alt="{{ $match->cat_name }}" 
+                                             onerror="this.onerror=null;this.src='{{ asset('images/default-cat.png') }}'"
+                                             class="w-full h-full object-cover">
                                         <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded text-[9px] font-bold text-white {{ $match->isLost() ? 'bg-rose-600' : 'bg-indigo-600' }}">
                                             {{ $match->type_label }}
                                         </span>

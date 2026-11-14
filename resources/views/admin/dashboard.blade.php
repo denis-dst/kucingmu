@@ -1,4 +1,9 @@
 <x-app-layout>
+    <!-- Executive Dashboard Dependencies: Leaflet & Chart.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <div class="py-8" x-data="{ searchKtam: '', showModal: false, activeCat: null }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
@@ -180,6 +185,481 @@
 
                 </div>
             </div>
+
+            <!-- Executive Visual Analytics Dashboard (Line, Bar, GIS Map & Pie/Donut) -->
+            <div class="space-y-6" x-data="executiveDashboardAnalytics()">
+                <!-- Analytics Header with Filter Switcher -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-100 text-teal-800">
+                                📊 Executive Analytics
+                            </span>
+                            <span class="text-xs text-slate-400 font-medium">Monitoring Real-Time Nasional</span>
+                        </div>
+                        <h2 class="font-outfit text-xl font-bold text-slate-900 mt-1">
+                            Tren Pendaftaran & Sebaran Wilayah Anabul
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Analisis strategis lonjakan registrasi, konsentrasi populasi daerah, varian ras, dan status penerbitan KTAKuMu.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div class="inline-flex p-1 bg-slate-100 rounded-xl text-xs font-bold">
+                            <button type="button" 
+                                    @click="switchTrendMode('daily')" 
+                                    :class="trendMode === 'daily' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+                                    class="px-3 py-1.5 rounded-lg transition">
+                                📅 30 Hari Terakhir
+                            </button>
+                            <button type="button" 
+                                    @click="switchTrendMode('monthly')" 
+                                    :class="trendMode === 'monthly' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+                                    class="px-3 py-1.5 rounded-lg transition">
+                                🗓️ 12 Bulan Terakhir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 1: Line Chart (Trend Pendaftaran) & Bar Chart (Top Wilayah) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- 1. Line Chart: Tren Kapan Daftar -->
+                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-teal-700">Line Chart</span>
+                                    <h3 class="font-outfit text-base font-bold text-slate-900">Tren Pendaftaran Anabul & Anggota</h3>
+                                </div>
+                                <div class="flex items-center gap-3 text-xs font-semibold">
+                                    <span class="flex items-center gap-1.5 text-teal-700">
+                                        <span class="w-3 h-1 bg-teal-600 rounded-full inline-block"></span> Kucing
+                                    </span>
+                                    <span class="flex items-center gap-1.5 text-sky-600">
+                                        <span class="w-3 h-1 bg-sky-500 rounded-full inline-block"></span> Member
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 relative h-64 sm:h-72 w-full">
+                                <canvas id="chartTrendRegistration"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                            <span>📈 Menunjukkan dinamika adopsi platform dan kapan waktu puncak registrasi publik terjadi.</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Bar Chart: Daerah Mana Terbanyak -->
+                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700">Bar Chart</span>
+                                    <h3 class="font-outfit text-base font-bold text-slate-900">Top Daerah Sebaran Terbanyak</h3>
+                                </div>
+                                <span class="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md">
+                                    PWM / Provinsi
+                                </span>
+                            </div>
+
+                            <div class="mt-4 relative h-64 sm:h-72 w-full">
+                                <canvas id="chartBarWilayah"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                            <span>📍 Pemetaan konsentrasi tertinggi anabul per PWM untuk alokasi program kesehatan.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Peta Sebaran GIS Interaktif & Donut/Pie Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- 3. Peta Sebaran Nasional (GIS Map) -->
+                    <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Geospatial GIS Map</span>
+                                    <h3 class="font-outfit text-base font-bold text-slate-900">Peta Sebaran Daerah Nasional KucingMu</h3>
+                                </div>
+                                <button type="button" @click="resetMapCenter()" class="button-secondary text-[11px] px-2.5 py-1">
+                                    🎯 Center Indonesia
+                                </button>
+                            </div>
+
+                            <!-- Leaflet Map Container -->
+                            <div class="mt-4 relative h-80 sm:h-96 w-full rounded-xl overflow-hidden border border-slate-200 shadow-inner">
+                                <div id="executiveMap" class="w-full h-full" style="min-height: 320px; z-index: 1;"></div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+                            <div class="flex items-center gap-3">
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-teal-600 inline-block"></span> Populasi Aktif</span>
+                                <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-300 inline-block"></span> Sentra Wilayah</span>
+                            </div>
+                            <span>💡 Klik lingkaran pada peta untuk melihat rincian anabul & KTAKuMu di daerah terkait.</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Pie / Donut Chart: Komposisi Karakteristik Anabul -->
+                    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">Pie / Donut Chart</span>
+                                    <h3 class="font-outfit text-base font-bold text-slate-900">Komposisi Karakteristik Anabul</h3>
+                                </div>
+                                
+                                <!-- Donut view toggle tabs -->
+                                <div class="inline-flex p-0.5 bg-slate-100 rounded-lg text-[10px] font-bold">
+                                    <button type="button" 
+                                            @click="switchDonut('breeds')" 
+                                            :class="donutView === 'breeds' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+                                            class="px-2 py-1 rounded transition">
+                                        Ras
+                                    </button>
+                                    <button type="button" 
+                                            @click="switchDonut('ktam')" 
+                                            :class="donutView === 'ktam' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+                                            class="px-2 py-1 rounded transition">
+                                        KTAM
+                                    </button>
+                                    <button type="button" 
+                                            @click="switchDonut('gender')" 
+                                            :class="donutView === 'gender' ? 'bg-white text-teal-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'"
+                                            class="px-2 py-1 rounded transition">
+                                        Gender
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 relative h-64 sm:h-72 w-full flex items-center justify-center">
+                                <canvas id="chartDonutExecutive"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                            <span x-show="donutView === 'breeds'">Proporsi varian ras anabul terdata (Persia, Domestik, Campuran, dll).</span>
+                            <span x-show="donutView === 'ktam'">Tingkat kepatuhan verifikasi dan penerbitan identitas resmi KTAKuMu.</span>
+                            <span x-show="donutView === 'gender'">Perbandingan jenis kelamin (Jantan vs Betina) populasi anabul terdaftar.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Script Initializer for Executive Analytics -->
+            <script>
+                function executiveDashboardAnalytics() {
+                    return {
+                        trendMode: 'daily',
+                        donutView: 'breeds',
+                        analyticsData: @json($analytics ?? []),
+                        trendChart: null,
+                        barChart: null,
+                        donutChart: null,
+                        mapInstance: null,
+
+                        init() {
+                            this.$nextTick(() => {
+                                this.initTrendChart();
+                                this.initBarChart();
+                                this.initDonutChart();
+                                this.initLeafletMap();
+                            });
+                        },
+
+                        switchTrendMode(mode) {
+                            this.trendMode = mode;
+                            if (!this.trendChart) return;
+
+                            const source = mode === 'daily' ? this.analyticsData.daily : this.analyticsData.monthly;
+                            if (!source) return;
+
+                            this.trendChart.data.labels = source.labels || [];
+                            this.trendChart.data.datasets[0].data = source.cats || [];
+                            this.trendChart.data.datasets[1].data = source.users || [];
+                            this.trendChart.update();
+                        },
+
+                        switchDonut(view) {
+                            this.donutView = view;
+                            if (!this.donutChart) return;
+
+                            let labels = [];
+                            let data = [];
+                            let colors = [];
+
+                            if (view === 'breeds') {
+                                labels = this.analyticsData.breeds?.labels || ['Belum Ada Data'];
+                                data = this.analyticsData.breeds?.data || [1];
+                                colors = ['#0f766e', '#0284c7', '#8b5cf6', '#f59e0b', '#ec4899', '#94a3b8'];
+                            } else if (view === 'ktam') {
+                                labels = this.analyticsData.ktamPie?.labels || ['KTAKuMu Terbit', 'Perlu Verifikasi', 'Belum Verifikasi'];
+                                data = this.analyticsData.ktamPie?.data || [0, 0, 0];
+                                colors = ['#10b981', '#f59e0b', '#94a3b8'];
+                            } else if (view === 'gender') {
+                                labels = this.analyticsData.genderPie?.labels || ['Jantan (♂)', 'Betina (♀)', 'Belum Diketahui'];
+                                data = this.analyticsData.genderPie?.data || [0, 0, 0];
+                                colors = ['#3b82f6', '#ec4899', '#94a3b8'];
+                            }
+
+                            this.donutChart.data.labels = labels;
+                            this.donutChart.data.datasets[0].data = data;
+                            this.donutChart.data.datasets[0].backgroundColor = colors;
+                            this.donutChart.update();
+                        },
+
+                        initTrendChart() {
+                            const ctx = document.getElementById('chartTrendRegistration');
+                            if (!ctx) return;
+
+                            const initial = this.analyticsData.daily || { labels: [], cats: [], users: [] };
+
+                            this.trendChart = new Chart(ctx, {
+                                type: 'line',
+                                data: {
+                                    labels: initial.labels || [],
+                                    datasets: [
+                                        {
+                                            label: 'Pendaftaran Kucing',
+                                            data: initial.cats || [],
+                                            borderColor: '#0f766e',
+                                            backgroundColor: 'rgba(15, 118, 110, 0.1)',
+                                            fill: true,
+                                            tension: 0.35,
+                                            borderWidth: 2.5,
+                                            pointRadius: 3,
+                                            pointBackgroundColor: '#0f766e',
+                                        },
+                                        {
+                                            label: 'Pendaftaran Member',
+                                            data: initial.users || [],
+                                            borderColor: '#0284c7',
+                                            backgroundColor: 'rgba(2, 132, 199, 0.08)',
+                                            fill: true,
+                                            tension: 0.35,
+                                            borderWidth: 2,
+                                            pointRadius: 2.5,
+                                            pointBackgroundColor: '#0284c7',
+                                        }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: {
+                                            mode: 'index',
+                                            intersect: false,
+                                            padding: 10,
+                                            cornerRadius: 8,
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            grid: { color: '#f8fafc' },
+                                            ticks: { font: { size: 10 }, maxRotation: 45 }
+                                        },
+                                        y: {
+                                            beginAtZero: true,
+                                            grid: { color: '#f1f5f9' },
+                                            ticks: { precision: 0, font: { size: 10 } }
+                                        }
+                                    }
+                                }
+                            });
+                        },
+
+                        initBarChart() {
+                            const ctx = document.getElementById('chartBarWilayah');
+                            if (!ctx) return;
+
+                            const barData = this.analyticsData.barWilayah || { labels: [], data: [] };
+
+                            this.barChart = new Chart(ctx, {
+                                type: 'bar',
+                                data: {
+                                    labels: barData.labels && barData.labels.length > 0 ? barData.labels : ['Belum ada wilayah'],
+                                    datasets: [{
+                                        label: 'Populasi Anabul',
+                                        data: barData.data && barData.data.length > 0 ? barData.data : [0],
+                                        backgroundColor: '#6366f1',
+                                        borderRadius: 6,
+                                        borderSkipped: false,
+                                    }]
+                                },
+                                options: {
+                                    indexAxis: 'y',
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: { display: false },
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(context) {
+                                                    return ` ${context.raw} ekor anabul terdaftar`;
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        x: {
+                                            beginAtZero: true,
+                                            grid: { color: '#f1f5f9' },
+                                            ticks: { precision: 0, font: { size: 10 } }
+                                        },
+                                        y: {
+                                            grid: { display: false },
+                                            ticks: { font: { size: 10, weight: 'bold' } }
+                                        }
+                                    }
+                                }
+                            });
+                        },
+
+                        initDonutChart() {
+                            const ctx = document.getElementById('chartDonutExecutive');
+                            if (!ctx) return;
+
+                            const breedsData = this.analyticsData.breeds || { labels: [], data: [] };
+                            const labels = breedsData.labels && breedsData.labels.length > 0 ? breedsData.labels : ['Belum Ada Data'];
+                            const data = breedsData.data && breedsData.data.length > 0 ? breedsData.data : [1];
+
+                            this.donutChart = new Chart(ctx, {
+                                type: 'doughnut',
+                                data: {
+                                    labels: labels,
+                                    datasets: [{
+                                        data: data,
+                                        backgroundColor: ['#0f766e', '#0284c7', '#8b5cf6', '#f59e0b', '#ec4899', '#94a3b8'],
+                                        borderWidth: 2,
+                                        borderColor: '#ffffff',
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    cutout: '65%',
+                                    plugins: {
+                                        legend: {
+                                            position: 'bottom',
+                                            labels: {
+                                                boxWidth: 12,
+                                                padding: 12,
+                                                font: { size: 11 }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        },
+
+                        initLeafletMap() {
+                            const mapEl = document.getElementById('executiveMap');
+                            if (!mapEl || typeof L === 'undefined') return;
+
+                            // Default center Indonesia
+                            const defaultCenter = [-2.5, 118.0];
+                            const defaultZoom = 5;
+
+                            this.mapInstance = L.map(mapEl, {
+                                center: defaultCenter,
+                                zoom: defaultZoom,
+                                scrollWheelZoom: false,
+                            });
+
+                            // High-quality CartoDB Positron / OSM tiles
+                            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                                maxZoom: 18,
+                                subdomains: 'abcd',
+                            }).addTo(this.mapInstance);
+
+                            // Invalidate size once visible
+                            setTimeout(() => {
+                                if (this.mapInstance) this.mapInstance.invalidateSize();
+                            }, 300);
+
+                            const locations = this.analyticsData.mapLocations || [];
+                            const activeMarkers = [];
+
+                            locations.forEach(loc => {
+                                if (!loc.lat || !loc.lng) return;
+
+                                const hasPopulation = loc.total_cats > 0;
+                                const radius = hasPopulation 
+                                    ? Math.max(12, Math.min(28, 9 + Math.sqrt(loc.total_cats) * 5))
+                                    : 6;
+
+                                const marker = L.circleMarker([loc.lat, loc.lng], {
+                                    radius: radius,
+                                    color: hasPopulation ? '#0f766e' : '#94a3b8',
+                                    fillColor: hasPopulation ? '#14b8a6' : '#cbd5e1',
+                                    fillOpacity: hasPopulation ? 0.75 : 0.4,
+                                    weight: hasPopulation ? 2 : 1,
+                                });
+
+                                marker.bindTooltip(`<b>${loc.short_name || loc.name}</b>: ${loc.total_cats} anabul`, {
+                                    direction: 'top',
+                                    offset: [0, -radius]
+                                });
+
+                                const popupHtml = `
+                                    <div class="p-2.5 font-sans text-slate-800 text-xs min-w-[200px]">
+                                        <div class="font-bold text-sm text-teal-900 border-b border-slate-100 pb-1.5 flex items-center justify-between">
+                                            <span>${loc.name}</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-teal-50 text-teal-800 font-bold">${loc.short_name}</span>
+                                        </div>
+                                        <div class="mt-2 space-y-1.5">
+                                            <div class="flex justify-between items-center text-slate-600">
+                                                <span>🐱 Populasi Anabul:</span>
+                                                <span class="font-bold text-teal-800">${loc.total_cats} ekor</span>
+                                            </div>
+                                            <div class="flex justify-between items-center text-slate-600">
+                                                <span>💳 KTAKuMu Terbit:</span>
+                                                <span class="font-bold text-emerald-700">${loc.ktam_issued} kartu</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-400 flex items-center justify-between">
+                                            <span>Sentra PWM Wilayah</span>
+                                            <span class="font-semibold text-teal-700">KucingMu GIS</span>
+                                        </div>
+                                    </div>
+                                `;
+
+                                marker.bindPopup(popupHtml);
+                                marker.addTo(this.mapInstance);
+
+                                if (hasPopulation) {
+                                    activeMarkers.push([loc.lat, loc.lng]);
+                                }
+                            });
+
+                            if (activeMarkers.length > 0 && this.mapInstance) {
+                                try {
+                                    const bounds = L.latLngBounds(activeMarkers);
+                                    if (bounds.isValid()) {
+                                        this.mapInstance.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 });
+                                    }
+                                } catch (e) {}
+                            }
+                        },
+
+                        resetMapCenter() {
+                            if (this.mapInstance) {
+                                this.mapInstance.setView([-2.5, 118.0], 5, { animate: true });
+                            }
+                        }
+                    };
+                }
+            </script>
 
             <!-- Main Full-Width Cat Registry Datatable Card -->
             <div id="cat-registry-table" class="content-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-6">

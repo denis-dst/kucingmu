@@ -68,7 +68,9 @@
             <!-- Photo & Name -->
             <div class="space-y-3 text-center">
                 <div class="w-full aspect-4/3 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-md bg-slate-50">
-                    <img src="{{ $temuAnabul->thumbnail_url }}" alt="{{ $temuAnabul->cat_name }}" class="w-full h-full object-cover">
+                    <img src="{{ $temuAnabul->thumbnail_url }}" alt="{{ $temuAnabul->cat_name }}" 
+                         onerror="this.onerror=null;this.src='{{ asset('images/default-cat.png') }}'"
+                         class="w-full h-full object-cover">
                 </div>
 
                 <div>

@@ -264,9 +264,10 @@
                         const markerClass = isReunited ? 'temu-pin-reunited' : (isLost ? 'temu-pin-lost' : 'temu-pin-found');
                         const badgeEmoji = isReunited ? '✨' : (isLost ? '🚨' : '🐱');
 
+                        const defaultImg = "{{ asset('images/default-cat.png') }}";
                         const iconHtml = `
                             <div class="temu-pin ${markerClass}">
-                                <img src="${r.thumbnail_url}" alt="${r.cat_name}" class="temu-pin-img" loading="lazy" />
+                                <img src="${r.thumbnail_url}" alt="${r.cat_name}" class="temu-pin-img" loading="lazy" onerror="this.onerror=null;this.src='${defaultImg}'" />
                                 <span class="temu-pin-badge">${badgeEmoji}</span>
                             </div>
                         `;
@@ -282,7 +283,7 @@
                         const popupHtml = `
                             <div class="font-sans text-slate-800">
                                 <div class="relative w-full h-28 bg-slate-100 overflow-hidden">
-                                    <img src="${r.thumbnail_url}" alt="${r.cat_name}" class="w-full h-full object-cover">
+                                    <img src="${r.thumbnail_url}" alt="${r.cat_name}" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='${defaultImg}'">
                                     <span class="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${isReunited ? 'bg-emerald-600 text-white' : (isLost ? 'bg-rose-600 text-white' : 'bg-indigo-600 text-white')}" style="color: #ffffff !important;">
                                         ${r.type_label}
                                     </span>

@@ -205,7 +205,9 @@
                             <div>
                                 <!-- Card Image -->
                                 <div class="relative aspect-4/3 bg-slate-100 overflow-hidden">
-                                    <img src="{{ $report->thumbnail_url }}" alt="{{ $report->cat_name }}" class="w-full h-full object-cover">
+                                    <img src="{{ $report->thumbnail_url }}" alt="{{ $report->cat_name }}" 
+                                         onerror="this.onerror=null;this.src='{{ asset('images/default-cat.png') }}'"
+                                         class="w-full h-full object-cover">
                                     
                                     <!-- Badges -->
                                     <div class="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
