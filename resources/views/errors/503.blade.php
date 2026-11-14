@@ -567,7 +567,7 @@
 
         <!-- Footer -->
         <div class="footer-note">
-            <span>&copy; <span id="year"></span> KucingMu &bull; </span>
+            <span>&copy; <span id="year"></span> KucingMu &bull; Warga Muhammadiyah Peduli Hewan.</span>
             <span>Kode Status: <strong>503 Service Unavailable</strong></span>
         </div>
     </div>
