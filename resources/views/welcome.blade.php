@@ -1182,50 +1182,216 @@
                         {{ app()->getLocale() == 'en' ? 'Frequently Asked Questions' : 'Pertanyaan Yang Sering Diajukan' }}
                     </h2>
                     <p class="mt-3 text-sm text-slate-600 leading-relaxed">
-                        {{ app()->getLocale() == 'en' ? 'Frequently asked questions about the KucingMu platform and verification.' : 'Jawaban seputar pendaftaran, pemeriksaan kesehatan hewan, dan kartu KTAKuMu Kucing.' }}
+                        {{ app()->getLocale() == 'en' ? 'Frequently asked questions regarding cat registration, medical checkups, digital KTAKuMu cards, GIS mapping, and community initiatives.' : 'Jawaban lengkap seputar pendaftaran anabul, rekam medis dokter hewan, kartu KTAKuMu, Peta GIS, pelaporan Temu Anabul, dan keikutsertaan kader.' }}
                     </p>
                 </div>
 
-                <div class="space-y-3" x-data="{ activeFaq: null }">
-                    <!-- FAQ Item 1 -->
-                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                        <button type="button" @click="activeFaq = activeFaq === 1 ? null : 1"
-                            class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
-                            <span>{{ app()->getLocale() == 'en' ? 'What is KucingMu and who is it for?' : 'Apa itu KucingMu dan untuk siapa platform ini?' }}</span>
-                            <span class="text-teal-800 font-bold text-base transition-transform"
-                                :class="activeFaq === 1 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                <div x-data="{ activeCategory: 'all', activeFaq: null }" class="space-y-6">
+                    <!-- Filter Kategori FAQ -->
+                    <div class="flex items-center justify-center gap-2 flex-wrap" role="tablist" aria-label="Kategori FAQ">
+                        <button type="button" @click="activeCategory = 'all'"
+                            :class="activeCategory === 'all' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                            class="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+                            {{ app()->getLocale() == 'en' ? 'All Topics' : 'Semua Topik' }}
                         </button>
-                        <div x-show="activeFaq === 1"
-                            class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
-                            {{ app()->getLocale() == 'en' ? 'KucingMu is a community platform for registering pet cats, recording veterinary checkups, and issuing digital KTAKuMu cards.' : 'KucingMu adalah platform web terpadu bagi warga komunitas untuk mendaftarkan kucing peliharaan, mencatat riwayat pemeriksaan dokter hewan, serta menerbitkan Kartu Tanda Anggota KucingMu (KTAKuMu) secara digital.' }}
-                        </div>
+                        <button type="button" @click="activeCategory = 'ktakumu'"
+                            :class="activeCategory === 'ktakumu' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                            class="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+                            {{ app()->getLocale() == 'en' ? 'KTAKuMu & Profile' : 'KTAKuMu & Akun' }}
+                        </button>
+                        <button type="button" @click="activeCategory = 'kesehatan'"
+                            :class="activeCategory === 'kesehatan' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                            class="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+                            {{ app()->getLocale() == 'en' ? 'Health & Vet Checkups' : 'Pemeriksaan Medis' }}
+                        </button>
+                        <button type="button" @click="activeCategory = 'gis'"
+                            :class="activeCategory === 'gis' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                            class="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+                            {{ app()->getLocale() == 'en' ? 'GIS Map & Lost Pets' : 'Peta & Temu Anabul' }}
+                        </button>
+                        <button type="button" @click="activeCategory = 'kader'"
+                            :class="activeCategory === 'kader' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                            class="min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700">
+                            {{ app()->getLocale() == 'en' ? 'Cadres & Events' : 'Kader & Agenda' }}
+                        </button>
                     </div>
 
-                    <!-- FAQ Item 2 -->
-                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                        <button type="button" @click="activeFaq = activeFaq === 2 ? null : 2"
-                            class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
-                            <span>{{ app()->getLocale() == 'en' ? 'How can my cat get a KTAKuMu Card?' : 'Bagaimana cara kucing saya mendapatkan kartu KTAKuMu?' }}</span>
-                            <span class="text-teal-800 font-bold text-base transition-transform"
-                                :class="activeFaq === 2 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
-                        </button>
-                        <div x-show="activeFaq === 2"
-                            class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
-                            {{ app()->getLocale() == 'en' ? 'Register your cat profile, upload photos, and complete a health checkup with a partner veterinarian. Admin will review and issue the verified card.' : 'Daftarkan profil kucing di dashboard, unggah foto/biometrik, dan ikuti sesi pemeriksaan kesehatan bersama dokter hewan mitra. Administrator akan meninjau data sebelum menerbitkan kartu KTAKuMu resmi.' }}
+                    <!-- Accordion Daftar Pertanyaan -->
+                    <div class="space-y-3">
+                        <!-- FAQ Item 1: Tentang Platform -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'ktakumu'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 1 ? null : 1"
+                                :aria-expanded="activeFaq === 1 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'What is KucingMu and who can join?' : 'Apa itu platform KucingMu dan siapa yang bisa bergabung?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 1 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 1"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'KucingMu is an integrated community platform connecting cat guardians, volunteers, regional cadres, and partner veterinarians. Anyone caring for feline welfare across Indonesia can register as a member at no cost.' : 'KucingMu adalah platform terpadu yang menghubungkan pemilik anabul, relawan, kader wilayah, dan dokter hewan mitra. Siapa saja yang peduli terhadap kesejahteraan kucing di Indonesia dapat mendaftar sebagai anggota komunitas secara gratis.' }}
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- FAQ Item 3 -->
-                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                        <button type="button" @click="activeFaq = activeFaq === 3 ? null : 3"
-                            class="w-full min-h-[44px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700">
-                            <span>{{ app()->getLocale() == 'en' ? 'Are the clinic checkups and KTAKuMu cards free?' : 'Apakah pemeriksaan klinik dan kartu KTAKuMu ini gratis?' }}</span>
-                            <span class="text-teal-800 font-bold text-base transition-transform"
-                                :class="activeFaq === 3 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
-                        </button>
-                        <div x-show="activeFaq === 3"
-                            class="p-4 pt-0 text-xs text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
-                            {{ app()->getLocale() == 'en' ? 'Yes, the pilot project checkups and digital card issuance are provided free of charge for community members.' : 'Ya, pemeriksaan kesehatan dasar (obat cacing, obat kutu, vitamin) serta penerbitan kartu KTAKuMu digital pada program percontohan ini disediakan gratis untuk warga komunitas.' }}
+                        <!-- FAQ Item 2: Alur KTAKuMu -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'ktakumu'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 2 ? null : 2"
+                                :aria-expanded="activeFaq === 2 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'How do I register my cat and obtain a digital KTAKuMu card?' : 'Bagaimana alur pendaftaran anabul hingga mendapatkan kartu KTAKuMu digital?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 2 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 2"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Create an account, log in to the member dashboard, and submit your cat registration details (photos, coat color, sex, and physical marks). Once recorded, bring your cat to a partner clinic or community checkup session for health verification before your official KTAKuMu card with a unique NIAKuMu number is issued.' : 'Daftarkan akun Anda, masuk ke dashboard member, lalu isi formulir pendaftaran anabul (foto biometrik, warna bulu, jenis kelamin, dan ciri fisik). Setelah profil tersimpan, bawa kucing ke sesi klinik atau baksos mitra untuk verifikasi kesehatan sebelum kartu resmi dengan nomor NIAKuMu diterbitkan.' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 3: Validasi Keaslian -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'ktakumu'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 3 ? null : 3"
+                                :aria-expanded="activeFaq === 3 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'How can the public verify the authenticity of a KTAKuMu card?' : 'Bagaimana cara memeriksa keaslian kartu KTAKuMu secara publik?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 3 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 3"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Anyone can check card validity without logging in. Simply scan the QR code on the KTAKuMu card or enter the NIAKuMu number (e.g. 34.kcg.0001) into the verification form on the KucingMu home page.' : 'Keaslian kartu dapat diperiksa langsung tanpa perlu login. Anda dapat memindai kode QR pada kartu KTAKuMu atau memasukkan nomor identitas NIAKuMu (contoh: 34.kcg.0001) pada kolom validasi di halaman beranda KucingMu.' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 4: Layanan Medis Dokter Hewan -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'kesehatan'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 4 ? null : 4"
+                                :aria-expanded="activeFaq === 4 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'What medical services do partner veterinarians provide?' : 'Layanan medis apa saja yang diberikan dokter hewan mitra KucingMu?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 4 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 4"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Partner veterinarians perform standardized physical examinations (SOAP method: general condition, weight, temperature, eyes, ears, dental, and coat). Services include deworming, flea treatments, vitamins, rabies vaccinations, and neutering consultations. All entries are preserved in your cat digital medical record.' : 'Dokter hewan mitra mencatat pemeriksaan fisik terstandar (metode SOAP: kondisi umum, bobot, suhu tubuh, mata, telinga, gigi, dan kulit). Layanan meliputi pemberian obat cacing, obat kutu, vitamin, vaksinasi rabies, serta konsultasi sterilisasi. Semua riwayat tersimpan aman di buku rekam medis digital anabul.' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 5: Biaya Pemeriksaan & Kartu -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'kesehatan' || activeCategory === 'ktakumu'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 5 ? null : 5"
+                                :aria-expanded="activeFaq === 5 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'Are the clinic checkups and digital KTAKuMu cards free of charge?' : 'Apakah pemeriksaan klinik dan penerbitan kartu KTAKuMu ini gratis?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 5 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 5"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Yes. For community outreach events and pilot projects, basic veterinary checkups (parasite treatments and vitamins) along with digital KTAKuMu cards are provided free of charge for registered community members.' : 'Ya. Pada program bakti sosial dan percontohan komunitas KucingMu, pemeriksaan kesehatan dasar (pemberian obat kutu, obat cacing, dan vitamin) serta kartu KTAKuMu digital disediakan tanpa biaya bagi warga komunitas yang terdaftar.' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 6: Peta Anabul (GIS) -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'gis'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 6 ? null : 6"
+                                :aria-expanded="activeFaq === 6 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'What is the Peta Anabul (GIS) feature and how do I map a cat location?' : 'Apa itu fitur Peta Anabul (GIS) dan bagaimana cara memetakan titik kucing?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 6 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 6"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Peta Anabul is an OpenStreetMap-based spatial tracking tool to observe cat populations in local neighborhoods. Anyone can view stray cat markers. Logged-in members can also add new cat pins with location coordinates, photos, and current health status (healthy, sick, or needs neutering).' : 'Peta Anabul adalah sistem pemetaan spasial berbasis OpenStreetMap untuk memantau sebaran kucing di lingkungan sekitar. Siapa saja dapat melihat sebaran kucing liar. Khusus member yang sudah login, Anda dapat menambahkan titik temuan kucing baru lengkap dengan koordinat, foto, dan status kondisi (sehat, sakit, atau butuh steril).' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 7: Lapor Kucing Hilang -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'gis'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 7 ? null : 7"
+                                :aria-expanded="activeFaq === 7 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'How do I report a missing cat using Temu Anabul?' : 'Bagaimana cara melaporkan anabul yang hilang melalui Temu Anabul?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 7 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 7"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Open the Temu Anabul page and click Report. Select the Lost Cat category, choose whether to select from your registered cats or enter new details, mark the last seen pin on the interactive map, and submit. The platform instantly generates a shareable search poster ready for download.' : 'Buka menu Temu Anabul lalu klik Buat Laporan. Pilih kategori Kucing Hilang, tentukan apakah anabul diambil dari daftar kucing Anda yang sudah terdaftar atau input baru, tentukan titik lokasi terakhir pada peta interaktif, dan simpan. Sistem akan otomatis menerbitkan poster pencarian digital yang dapat diunduh dan dibagikan ke media sosial.' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 8: Lapor Kucing Ditemukan & Jejak Sighting -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'gis'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 8 ? null : 8"
+                                :aria-expanded="activeFaq === 8 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'What should I do if I find a lost or stray cat on the street?' : 'Apa yang harus saya lakukan jika menemukan kucing tersesat di jalan?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 8 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 8"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Access Temu Anabul and submit a Found Cat report with clear photos, distinct markings, and map coordinates. Other community members can contribute sighting updates with photos and notes to help reunite the cat with its guardian.' : 'Buka Temu Anabul dan buat laporan Kucing Ditemukan dengan mengunggah foto jelas, ciri khusus, serta titik koordinat lokasi penemuan. Anggota komunitas lain yang melihat anabul tersebut juga dapat menambahkan catatan penampakan (sighting report) untuk mempercepat anabul berkumpul kembali dengan keluarganya.' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 9: Representatif Wilayah -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'kader'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 9 ? null : 9"
+                                :aria-expanded="activeFaq === 9 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'What is the role of KucingMu Representatives and how can one apply?' : 'Apa peran Representatif KucingMu dan bagaimana cara mendaftar?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 9 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 9"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Representatives are regional organizers (PWM/PWA or local networks) who coordinate cat censuses, welfare events, and community education. Candidates apply via the Representative Registration form by attaching their credentials and regional recommendation documents.' : 'Representatif adalah kader penggerak di tingkat daerah (PWM/PWA atau komunitas lokal) yang mengoordinasikan pendataan kucing, bakti sosial, dan edukasi warga. Pendaftaran dilakukan melalui formulir Penjaringan Representatif dengan melampirkan identitas diri serta surat mandat atau rekomendasi organisasi.' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 10: Agenda Kegiatan & Baksos -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'kader'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 10 ? null : 10"
+                                :aria-expanded="activeFaq === 10 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'How do I participate in KucingMu events and community clinics?' : 'Bagaimana cara mengikuti agenda kegiatan dan bakti sosial KucingMu?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 10 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 10"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'Browse scheduled activities in the Events section on the KucingMu homepage. Each listing includes event dates, clinic venues, available quotas, and participating veterinarians. Registered members can enroll their cats directly from the event details page.' : 'Anda dapat melihat daftar agenda aktif pada bagian Kegiatan & Agenda di halaman utama KucingMu. Setiap kegiatan memuat informasi tanggal, lokasi klinik, kuota kupon, dan dokter hewan penanggung jawab. Member yang login dapat mendaftarkan anabul langsung melalui halaman detail agenda.' }}
+                            </div>
+                        </div>
+
+                        <!-- FAQ Item 11: Sensus Kucing PTMA & Volunteer -->
+                        <div x-show="activeCategory === 'all' || activeCategory === 'kader'"
+                            class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 transition-colors">
+                            <button type="button" @click="activeFaq = activeFaq === 11 ? null : 11"
+                                :aria-expanded="activeFaq === 11 ? 'true' : 'false'"
+                                class="w-full min-h-[48px] flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:outline-none">
+                                <span class="pr-3">{{ app()->getLocale() == 'en' ? 'What is the PTMA Cat Census and the role of field volunteers?' : 'Apa itu Sensus Kucing PTMA dan bagaimana peran relawan lapangan?' }}</span>
+                                <span class="text-teal-800 font-bold text-lg transition-transform flex-shrink-0"
+                                    :class="activeFaq === 11 ? 'rotate-45' : ''" aria-hidden="true">＋</span>
+                            </button>
+                            <div x-show="activeFaq === 11"
+                                class="p-4 pt-0 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200 bg-white">
+                                {{ app()->getLocale() == 'en' ? 'The PTMA Cat Census is a systematic initiative tracking feline populations across university grounds and institutional facilities. Field volunteers record physical descriptions, take photo documentation, and monitor stray cat health conditions with offline data sync support.' : 'Sensus Kucing PTMA adalah program pendataan populasi kucing di lingkungan kampus dan fasilitas Perguruan Tinggi Muhammadiyah \'Aisyiyah. Relawan bertugas melakukan pendataan fisik, pencatatan ciri bulu, dokumentasi foto, serta pemantauan kesehatan kucing jalanan dengan dukungan sinkronisasi data lapangan.' }}
+                            </div>
                         </div>
                     </div>
                 </div>
