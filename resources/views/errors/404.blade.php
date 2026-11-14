@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>404 - Halaman Tidak Ditemukan &bull; KucingMu</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --primary: #0f766e;
@@ -95,10 +98,12 @@
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6);
             }
+
             70% {
                 transform: scale(1);
                 box-shadow: 0 0 0 6px rgba(225, 29, 72, 0);
             }
+
             100% {
                 transform: scale(0.95);
                 box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
@@ -138,25 +143,60 @@
         }
 
         @keyframes tailSwing {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(-14deg); }
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            50% {
+                transform: rotate(-14deg);
+            }
         }
 
         @keyframes eyeBlink {
-            0%, 93%, 100% { transform: scaleY(1); }
-            96% { transform: scaleY(0.1); }
+
+            0%,
+            93%,
+            100% {
+                transform: scaleY(1);
+            }
+
+            96% {
+                transform: scaleY(0.1);
+            }
         }
 
         @keyframes floatUpSlow {
-            0% { opacity: 0; transform: translateY(6px) scale(0.85); }
-            40% { opacity: 0.9; }
-            100% { opacity: 0; transform: translateY(-18px) scale(1.05); }
+            0% {
+                opacity: 0;
+                transform: translateY(6px) scale(0.85);
+            }
+
+            40% {
+                opacity: 0.9;
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-18px) scale(1.05);
+            }
         }
 
         @keyframes headTilt {
-            0%, 100% { transform: rotate(0deg); }
-            30% { transform: rotate(2.5deg); }
-            70% { transform: rotate(-2.5deg); }
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            30% {
+                transform: rotate(2.5deg);
+            }
+
+            70% {
+                transform: rotate(-2.5deg);
+            }
         }
 
         /* Typography */
@@ -278,6 +318,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -289,181 +330,200 @@
 
         <!-- SVG Cute Lost Cat Illustration -->
         <div class="illustration-wrapper">
-            <svg viewBox="0 0 340 230" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ilustrasi Kucing Lucu Tersesat Membawa Peta">
+            <svg viewBox="0 0 340 230" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg" role="img"
+                aria-label="Ilustrasi Kucing Lucu Tersesat Membawa Peta">
                 <defs>
                     <!-- Shadow Filter -->
                     <filter id="cat-shadow" x="-10%" y="-10%" width="130%" height="130%">
-                        <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f766e" flood-opacity="0.12"/>
+                        <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#0f766e" flood-opacity="0.12" />
                     </filter>
-                    
+
                     <!-- Orange Fur Gradient -->
                     <linearGradient id="fur-gradient" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stop-color="#fb923c"/>
-                        <stop offset="100%" stop-color="#ea580c"/>
+                        <stop offset="0%" stop-color="#fb923c" />
+                        <stop offset="100%" stop-color="#ea580c" />
                     </linearGradient>
 
                     <!-- Wooden Signpost Gradient -->
                     <linearGradient id="wood-grad" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stop-color="#b45309"/>
-                        <stop offset="100%" stop-color="#78350f"/>
+                        <stop offset="0%" stop-color="#b45309" />
+                        <stop offset="100%" stop-color="#78350f" />
                     </linearGradient>
 
                     <!-- Paper Map Gradient -->
                     <linearGradient id="paper-grad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#fef3c7"/>
-                        <stop offset="100%" stop-color="#fde68a"/>
+                        <stop offset="0%" stop-color="#fef3c7" />
+                        <stop offset="100%" stop-color="#fde68a" />
                     </linearGradient>
                 </defs>
 
                 <!-- Ground Shadow / Path -->
-                <ellipse cx="170" cy="208" rx="145" ry="14" fill="#e2e8f0" opacity="0.75"/>
+                <ellipse cx="170" cy="208" rx="145" ry="14" fill="#e2e8f0" opacity="0.75" />
 
                 <!-- Paw Prints Trail on Path -->
                 <g fill="#cbd5e1" opacity="0.8">
                     <!-- Paw 1 (Far left) -->
-                    <ellipse cx="45" cy="204" rx="3.5" ry="2.5"/>
-                    <circle cx="42" cy="199" r="1.2"/>
-                    <circle cx="45" cy="198" r="1.2"/>
-                    <circle cx="48" cy="199" r="1.2"/>
+                    <ellipse cx="45" cy="204" rx="3.5" ry="2.5" />
+                    <circle cx="42" cy="199" r="1.2" />
+                    <circle cx="45" cy="198" r="1.2" />
+                    <circle cx="48" cy="199" r="1.2" />
 
                     <!-- Paw 2 -->
-                    <ellipse cx="75" cy="208" rx="3.5" ry="2.5"/>
-                    <circle cx="72" cy="203" r="1.2"/>
-                    <circle cx="75" cy="202" r="1.2"/>
-                    <circle cx="78" cy="203" r="1.2"/>
+                    <ellipse cx="75" cy="208" rx="3.5" ry="2.5" />
+                    <circle cx="72" cy="203" r="1.2" />
+                    <circle cx="75" cy="202" r="1.2" />
+                    <circle cx="78" cy="203" r="1.2" />
 
                     <!-- Paw 3 (Near Cat) -->
-                    <ellipse cx="108" cy="205" rx="3.5" ry="2.5"/>
-                    <circle cx="105" cy="200" r="1.2"/>
-                    <circle cx="108" cy="199" r="1.2"/>
-                    <circle cx="111" cy="200" r="1.2"/>
+                    <ellipse cx="108" cy="205" rx="3.5" ry="2.5" />
+                    <circle cx="105" cy="200" r="1.2" />
+                    <circle cx="108" cy="199" r="1.2" />
+                    <circle cx="111" cy="200" r="1.2" />
                 </g>
 
                 <!-- WOODEN SIGNPOST (Left Side) -->
                 <g transform="translate(48, 60)">
                     <!-- Post Pole -->
-                    <rect x="22" y="25" width="8" height="125" rx="2" fill="url(#wood-grad)"/>
+                    <rect x="22" y="25" width="8" height="125" rx="2" fill="url(#wood-grad)" />
 
                     <!-- Sign 1: Beranda (Pointing Left) -->
-                    <path d="M 0 35 L 35 35 L 35 53 L 0 53 L -10 44 Z" fill="#d97706" stroke="#92400e" stroke-width="1.2"/>
-                    <text x="5" y="47" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="bold" fill="#ffffff">&larr; Beranda</text>
+                    <path d="M 0 35 L 35 35 L 35 53 L 0 53 L -10 44 Z" fill="#d97706" stroke="#92400e"
+                        stroke-width="1.2" />
+                    <text x="5" y="47" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="bold"
+                        fill="#ffffff">&larr; Beranda</text>
 
                     <!-- Sign 2: Peta Anabul (Pointing Right) -->
-                    <path d="M 18 62 L 60 62 L 70 71 L 60 80 L 18 80 Z" fill="#0f766e" stroke="#115e59" stroke-width="1.2"/>
-                    <text x="24" y="74" font-family="'Outfit', sans-serif" font-size="8" font-weight="bold" fill="#ffffff">Peta GIS &rarr;</text>
+                    <path d="M 18 62 L 60 62 L 70 71 L 60 80 L 18 80 Z" fill="#0f766e" stroke="#115e59"
+                        stroke-width="1.2" />
+                    <text x="24" y="74" font-family="'Outfit', sans-serif" font-size="8" font-weight="bold"
+                        fill="#ffffff">Peta GIS &rarr;</text>
 
                     <!-- Sign 3: Temu Kucing (Pointing Left) -->
-                    <path d="M 2 89 L 40 89 L 40 107 L 2 107 L -7 98 Z" fill="#ea580c" stroke="#9a3412" stroke-width="1.2"/>
-                    <text x="6" y="101" font-family="'Outfit', sans-serif" font-size="7.5" font-weight="bold" fill="#ffffff">&larr; Temu</text>
+                    <path d="M 2 89 L 40 89 L 40 107 L 2 107 L -7 98 Z" fill="#ea580c" stroke="#9a3412"
+                        stroke-width="1.2" />
+                    <text x="6" y="101" font-family="'Outfit', sans-serif" font-size="7.5" font-weight="bold"
+                        fill="#ffffff">&larr; Temu</text>
 
                     <!-- Top 404 Marker Sign -->
-                    <rect x="14" y="10" width="24" height="16" rx="4" fill="#e11d48" stroke="#9f1239" stroke-width="1.2"/>
-                    <text x="18" y="22" font-family="'Outfit', sans-serif" font-size="9" font-weight="900" fill="#ffffff">404</text>
+                    <rect x="14" y="10" width="24" height="16" rx="4" fill="#e11d48" stroke="#9f1239"
+                        stroke-width="1.2" />
+                    <text x="18" y="22" font-family="'Outfit', sans-serif" font-size="9" font-weight="900"
+                        fill="#ffffff">404</text>
                 </g>
 
                 <!-- Floating Question Marks (Confusion) -->
                 <g>
                     <!-- Question Mark 1 -->
                     <g class="float-q1" transform="translate(195, 65)">
-                        <text x="0" y="0" font-family="'Outfit', sans-serif" font-size="24" font-weight="900" fill="#0f766e" opacity="0.85">?</text>
+                        <text x="0" y="0" font-family="'Outfit', sans-serif" font-size="24" font-weight="900"
+                            fill="#0f766e" opacity="0.85">?</text>
                     </g>
                     <!-- Question Mark 2 -->
                     <g class="float-q2" transform="translate(225, 80)">
-                        <text x="0" y="0" font-family="'Outfit', sans-serif" font-size="18" font-weight="900" fill="#f59e0b" opacity="0.85">?</text>
+                        <text x="0" y="0" font-family="'Outfit', sans-serif" font-size="18" font-weight="900"
+                            fill="#f59e0b" opacity="0.85">?</text>
                     </g>
                 </g>
 
                 <!-- CAT (Center-Right) -->
                 <!-- Cat Tail with gentle wag -->
-                <path class="tail-swing" d="M 205 185 Q 248 180 245 150 Q 242 135 228 142" fill="none" stroke="url(#fur-gradient)" stroke-width="12" stroke-linecap="round"/>
+                <path class="tail-swing" d="M 205 185 Q 248 180 245 150 Q 242 135 228 142" fill="none"
+                    stroke="url(#fur-gradient)" stroke-width="12" stroke-linecap="round" />
 
                 <!-- Little Adventurer Backpack on Cat's Back -->
                 <g transform="translate(192, 140) rotate(8)">
-                    <rect x="0" y="0" width="18" height="24" rx="5" fill="#0284c7" stroke="#0369a1" stroke-width="1.5"/>
-                    <rect x="3" y="14" width="12" height="7" rx="2" fill="#38bdf8"/>
-                    <path d="M 9 0 L 9 -6 Q 4 -6 4 0" fill="none" stroke="#0369a1" stroke-width="2"/>
+                    <rect x="0" y="0" width="18" height="24" rx="5" fill="#0284c7" stroke="#0369a1"
+                        stroke-width="1.5" />
+                    <rect x="3" y="14" width="12" height="7" rx="2" fill="#38bdf8" />
+                    <path d="M 9 0 L 9 -6 Q 4 -6 4 0" fill="none" stroke="#0369a1" stroke-width="2" />
                 </g>
 
                 <!-- Cat Body -->
-                <ellipse cx="172" cy="165" rx="38" ry="32" fill="url(#fur-gradient)" filter="url(#cat-shadow)"/>
+                <ellipse cx="172" cy="165" rx="38" ry="32" fill="url(#fur-gradient)" filter="url(#cat-shadow)" />
                 <!-- Cream Chest Patch -->
-                <ellipse cx="168" cy="170" rx="20" ry="18" fill="#fff7ed"/>
+                <ellipse cx="168" cy="170" rx="20" ry="18" fill="#fff7ed" />
 
                 <!-- Cat Head Group (with curious tilt animation) -->
                 <g class="head-bob">
                     <!-- Left Ear -->
-                    <polygon points="144,115 130,75 160,95" fill="url(#fur-gradient)"/>
-                    <polygon points="145,110 136,83 157,97" fill="#fed7aa"/>
+                    <polygon points="144,115 130,75 160,95" fill="url(#fur-gradient)" />
+                    <polygon points="145,110 136,83 157,97" fill="#fed7aa" />
 
                     <!-- Right Ear (Slightly tilted) -->
-                    <polygon points="196,115 212,78 182,95" fill="url(#fur-gradient)"/>
-                    <polygon points="194,110 205,86 185,97" fill="#fed7aa"/>
+                    <polygon points="196,115 212,78 182,95" fill="url(#fur-gradient)" />
+                    <polygon points="194,110 205,86 185,97" fill="#fed7aa" />
 
                     <!-- Head Base -->
-                    <circle cx="170" cy="122" r="34" fill="url(#fur-gradient)" filter="url(#cat-shadow)"/>
+                    <circle cx="170" cy="122" r="34" fill="url(#fur-gradient)" filter="url(#cat-shadow)" />
 
                     <!-- Tabby Forehead Stripes -->
-                    <path d="M 170 96 L 170 106" stroke="#c2410c" stroke-width="2.5" stroke-linecap="round"/>
-                    <path d="M 163 98 L 165 107" stroke="#c2410c" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M 177 98 L 175 107" stroke="#c2410c" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 170 96 L 170 106" stroke="#c2410c" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M 163 98 L 165 107" stroke="#c2410c" stroke-width="2" stroke-linecap="round" />
+                    <path d="M 177 98 L 175 107" stroke="#c2410c" stroke-width="2" stroke-linecap="round" />
 
                     <!-- Big Curious Eyes (Blinking Animation) -->
                     <g class="eye-blink">
                         <!-- Left Eye -->
-                        <ellipse cx="157" cy="124" rx="5.5" ry="6.5" fill="#0f172a"/>
-                        <circle cx="155" cy="122" r="2.2" fill="#ffffff"/>
-                        <circle cx="158" cy="126" r="1.1" fill="#ffffff"/>
+                        <ellipse cx="157" cy="124" rx="5.5" ry="6.5" fill="#0f172a" />
+                        <circle cx="155" cy="122" r="2.2" fill="#ffffff" />
+                        <circle cx="158" cy="126" r="1.1" fill="#ffffff" />
 
                         <!-- Right Eye -->
-                        <ellipse cx="183" cy="124" rx="5.5" ry="6.5" fill="#0f172a"/>
-                        <circle cx="181" cy="122" r="2.2" fill="#ffffff"/>
-                        <circle cx="184" cy="126" r="1.1" fill="#ffffff"/>
+                        <ellipse cx="183" cy="124" rx="5.5" ry="6.5" fill="#0f172a" />
+                        <circle cx="181" cy="122" r="2.2" fill="#ffffff" />
+                        <circle cx="184" cy="126" r="1.1" fill="#ffffff" />
                     </g>
 
                     <!-- Rosy Cheeks (Blushing confused look) -->
-                    <ellipse cx="147" cy="132" rx="4.5" ry="3" fill="#fca5a5" opacity="0.65"/>
-                    <ellipse cx="193" cy="132" rx="4.5" ry="3" fill="#fca5a5" opacity="0.65"/>
+                    <ellipse cx="147" cy="132" rx="4.5" ry="3" fill="#fca5a5" opacity="0.65" />
+                    <ellipse cx="193" cy="132" rx="4.5" ry="3" fill="#fca5a5" opacity="0.65" />
 
                     <!-- Nose & Curious W-Mouth -->
-                    <polygon points="170,131 166,128 174,128" fill="#f43f5e"/>
-                    <path d="M 166 132 Q 170 136 170 134 Q 170 136 174 132" fill="none" stroke="#78350f" stroke-width="1.6" stroke-linecap="round"/>
+                    <polygon points="170,131 166,128 174,128" fill="#f43f5e" />
+                    <path d="M 166 132 Q 170 136 170 134 Q 170 136 174 132" fill="none" stroke="#78350f"
+                        stroke-width="1.6" stroke-linecap="round" />
 
                     <!-- Whiskers -->
                     <g stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.9">
-                        <line x1="150" y1="130" x2="128" y2="126"/>
-                        <line x1="149" y1="134" x2="126" y2="135"/>
-                        <line x1="190" y1="130" x2="212" y2="126"/>
-                        <line x1="191" y1="134" x2="214" y2="135"/>
+                        <line x1="150" y1="130" x2="128" y2="126" />
+                        <line x1="149" y1="134" x2="126" y2="135" />
+                        <line x1="190" y1="130" x2="212" y2="126" />
+                        <line x1="191" y1="134" x2="214" y2="135" />
                     </g>
                 </g>
 
                 <!-- UNFOLDED PAPER MAP HELD IN PAWS -->
                 <g transform="translate(136, 150) rotate(-6)">
                     <!-- Map Paper Folds -->
-                    <polygon points="0,0 26,-4 26,38 0,42" fill="url(#paper-grad)" stroke="#d97706" stroke-width="1"/>
-                    <polygon points="26,-4 52,0 52,42 26,38" fill="#fef9c3" stroke="#d97706" stroke-width="1"/>
-                    <polygon points="52,0 76,-4 76,38 52,42" fill="url(#paper-grad)" stroke="#d97706" stroke-width="1"/>
+                    <polygon points="0,0 26,-4 26,38 0,42" fill="url(#paper-grad)" stroke="#d97706" stroke-width="1" />
+                    <polygon points="26,-4 52,0 52,42 26,38" fill="#fef9c3" stroke="#d97706" stroke-width="1" />
+                    <polygon points="52,0 76,-4 76,38 52,42" fill="url(#paper-grad)" stroke="#d97706"
+                        stroke-width="1" />
 
                     <!-- Doodle Map Route on Paper -->
-                    <path d="M 10 30 Q 25 15 38 24 T 66 10" fill="none" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="3,2" stroke-linecap="round"/>
+                    <path d="M 10 30 Q 25 15 38 24 T 66 10" fill="none" stroke="#ea580c" stroke-width="1.8"
+                        stroke-dasharray="3,2" stroke-linecap="round" />
                     <!-- Little Red X Destination Mark -->
-                    <text x="63" y="12" font-family="'Outfit', sans-serif" font-size="10" font-weight="bold" fill="#e11d48">✕</text>
+                    <text x="63" y="12" font-family="'Outfit', sans-serif" font-size="10" font-weight="bold"
+                        fill="#e11d48">✕</text>
                     <!-- Little Fish Doodle on Map -->
-                    <path d="M 16 14 Q 22 10 25 14 Q 22 18 16 14 Z" fill="#0f766e" opacity="0.7"/>
+                    <path d="M 16 14 Q 22 10 25 14 Q 22 18 16 14 Z" fill="#0f766e" opacity="0.7" />
                 </g>
 
                 <!-- Paws Holding The Map -->
-                <ellipse cx="146" cy="172" rx="7" ry="5.5" fill="#fff7ed" stroke="url(#fur-gradient)" stroke-width="2"/>
-                <ellipse cx="204" cy="168" rx="7" ry="5.5" fill="#fff7ed" stroke="url(#fur-gradient)" stroke-width="2"/>
+                <ellipse cx="146" cy="172" rx="7" ry="5.5" fill="#fff7ed" stroke="url(#fur-gradient)"
+                    stroke-width="2" />
+                <ellipse cx="204" cy="168" rx="7" ry="5.5" fill="#fff7ed" stroke="url(#fur-gradient)"
+                    stroke-width="2" />
 
                 <!-- Little Compass on the Grass (Bottom Right) -->
                 <g transform="translate(255, 192)">
-                    <circle cx="12" cy="12" r="11" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
-                    <circle cx="12" cy="12" r="9" fill="#f8fafc"/>
+                    <circle cx="12" cy="12" r="11" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5" />
+                    <circle cx="12" cy="12" r="9" fill="#f8fafc" />
                     <!-- Compass Needle -->
-                    <polygon points="12,4 14.5,12 9.5,12" fill="#ef4444"/>
-                    <polygon points="12,20 14.5,12 9.5,12" fill="#3b82f6"/>
-                    <circle cx="12" cy="12" r="2" fill="#0f172a"/>
+                    <polygon points="12,4 14.5,12 9.5,12" fill="#ef4444" />
+                    <polygon points="12,20 14.5,12 9.5,12" fill="#3b82f6" />
+                    <circle cx="12" cy="12" r="2" fill="#0f172a" />
                 </g>
             </svg>
         </div>
@@ -471,7 +531,8 @@
         <!-- Headline & Narrative Copy -->
         <h1>Meow! Sepertinya Anabul Ini Tersesat...</h1>
         <p class="description">
-            Halaman yang Anda tuju mungkin telah dipindahkan, tautannya kedaluwarsa, atau alamat URL yang diketikkan kurang tepat. Mari bantu anabul ini kembali ke jalan yang benar!
+            Halaman yang Anda tuju mungkin telah dipindahkan, tautannya kedaluwarsa, atau alamat URL yang diketikkan
+            kurang tepat. Mari bantu anabul ini kembali ke jalan yang benar!
         </p>
 
         <!-- Help Suggestion Box -->
@@ -484,7 +545,8 @@
         <div class="actions">
             <a href="{{ url('/') }}" class="btn btn-primary">
                 <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 <span>Kembali ke Beranda</span>
             </a>
@@ -498,7 +560,7 @@
 
         <!-- Footer -->
         <div class="footer-note">
-            <span>&copy; <span id="year"></span> KucingMu &bull; Komunitas Pecinta Kucing Indonesia</span>
+            <span>&copy; <span id="year"></span> KucingMu &bull; Warga Muhammadiyah Peduli Hewan</span>
             <span>Kode Status: <strong>404 Not Found</strong></span>
         </div>
     </div>
@@ -507,5 +569,5 @@
         document.getElementById('year').textContent = new Date().getFullYear();
     </script>
 </body>
-</html>
 
+</html>
