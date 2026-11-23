@@ -39,6 +39,8 @@ class DashboardController extends Controller
             return $this->verifikatorDashboard($request);
         } elseif ($activeRole === 'dokter') {
             return $this->dokterDashboard();
+        } elseif ($activeRole === 'farmasi') {
+            return $this->farmasiDashboard($request);
         } elseif ($activeRole === 'volunteer') {
             return $this->volunteerDashboard();
         } else {
@@ -603,18 +605,24 @@ class DashboardController extends Controller
     }
 
     /**
-     * Render Volunteer Dashboard.
+     * Render Volunteer Dashboard (Sensus PTMA & eSurveillance Kucing Liar).
      */
     protected function volunteerDashboard()
     {
-        $todayAppointments = Appointment::whereHas('cat')->with(['cat.owner', 'cat.photos', 'cat.ktamCard'])
-            ->whereDate('date', Carbon::today())
-            ->orderBy('id', 'desc')
-            ->get();
-        $masterBreeds = MasterBreed::getAllBreedNames();
-        $masterWilayahs = MasterWilayah::getActiveList();
+        $recentCensus = PtmaCatCensus::with(['creator'])->latest()->take(10)->get();
+        $recentSurveys = StrayCatSurvey::latest()->take(10)->get();
+        $totalCensusCount = PtmaCatCensus::count();
+        $totalSurveyCount = StrayCatSurvey::count();
 
-        return view('volunteer.dashboard', compact('todayAppointments', 'masterBreeds', 'masterWilayahs'));
+        return view('volunteer.dashboard', compact('recentCensus', 'recentSurveys', 'totalCensusCount', 'totalSurveyCount'));
+    }
+
+    /**
+     * Render Pharmacy (Farmasi & Apotek) Dashboard.
+     */
+    protected function farmasiDashboard(Request $request)
+    {
+        return redirect()->route('farmasi.prescriptions.index');
     }
 
     /**
@@ -715,6 +723,7 @@ class DashboardController extends Controller
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'photos_cam.*' => 'nullable|string',
             'photo_labels.*' => 'nullable|string|max:255',
+            'gallery_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'primary_photo_index' => 'nullable|integer',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
             'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
@@ -816,6 +825,22 @@ class DashboardController extends Controller
                 }
             }
 
+            // Batch upload for additional gallery photos
+            if ($request->hasFile('gallery_photos')) {
+                $gCount = CatPhoto::where('cat_id', $cat->id)->count();
+                foreach ($request->file('gallery_photos') as $gFile) {
+                    if (!$gFile || !$gFile->isValid()) continue;
+                    $gCount++;
+                    $gSavedPath = $this->compressAndStorePhoto($gFile);
+                    CatPhoto::create([
+                        'cat_id' => $cat->id,
+                        'photo_path' => $gSavedPath,
+                        'label' => 'Galeri Foto #' . $gCount,
+                        'is_primary' => false,
+                    ]);
+                }
+            }
+
             DB::commit();
 
             return redirect()->route('dashboard')
@@ -874,6 +899,7 @@ class DashboardController extends Controller
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'photos_cam.*' => 'nullable|string',
             'photo_labels.*' => 'nullable|string|max:255',
+            'gallery_photos.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'biometric_type' => 'nullable|in:none,paw,nose,both',
             'biometric_photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
             'biometric_photo_cam' => 'nullable|string',
@@ -992,9 +1018,26 @@ class DashboardController extends Controller
                 }
             }
 
+            // Batch upload for additional gallery photos (Point 1.2)
+            if ($request->hasFile('gallery_photos')) {
+                $gCount = CatPhoto::where('cat_id', $cat->id)->count();
+                foreach ($request->file('gallery_photos') as $gFile) {
+                    if (!$gFile || !$gFile->isValid()) continue;
+                    $gCount++;
+                    $gSavedPath = $this->compressAndStorePhoto($gFile);
+                    CatPhoto::create([
+                        'cat_id' => $cat->id,
+                        'photo_path' => $gSavedPath,
+                        'label' => 'Galeri Foto #' . $gCount,
+                        'is_primary' => false,
+                    ]);
+                }
+            }
+
             DB::commit();
 
-            return redirect()->route('dashboard')->with('success', 'Profil kucing berhasil diperbarui.');
+            // Tetap di halaman edit kucing (Point 1.1)
+            return redirect()->route('cat.edit', $cat->id)->with('success', 'Profil kucing berhasil diperbarui.');
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Gagal memperbarui data kucing: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);

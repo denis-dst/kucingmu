@@ -58,7 +58,7 @@ class VetMedicalRecordController extends Controller
         if ($request->ownership === 'mine' || (!$user->isAdmin() && !$user->hasRole('dokter', 'verifikator'))) {
             $query->where(function ($q) use ($user) {
                 $q->where('vet_id', $user->id)
-                  ->orWhere('created_by', $user->id);
+                    ->orWhere('created_by', $user->id);
             });
         }
 
@@ -77,17 +77,17 @@ class VetMedicalRecordController extends Controller
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('record_number', 'like', "%{$search}%")
-                  ->orWhere('chief_complaint', 'like', "%{$search}%")
-                  ->orWhereHas('cat', function ($cq) use ($search) {
-                      $cq->where('name', 'like', "%{$search}%")
-                         ->orWhere('breed', 'like', "%{$search}%")
-                         ->orWhere('unique_code', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('member', function ($mq) use ($search) {
-                      $mq->where('name', 'like', "%{$search}%")
-                         ->orWhere('phone', 'like', "%{$search}%")
-                         ->orWhere('muhammadiyah_id', 'like', "%{$search}%");
-                  });
+                    ->orWhere('chief_complaint', 'like', "%{$search}%")
+                    ->orWhereHas('cat', function ($cq) use ($search) {
+                        $cq->where('name', 'like', "%{$search}%")
+                            ->orWhere('breed', 'like', "%{$search}%")
+                            ->orWhere('unique_code', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('member', function ($mq) use ($search) {
+                        $mq->where('name', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%")
+                            ->orWhere('muhammadiyah_id', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -330,8 +330,8 @@ class VetMedicalRecordController extends Controller
                         'composition' => $item->composition,
                         'instructions' => $item->usage_instructions,
                         'summary' => ($item->is_racikan ? 'Racikan: ' : 'Dosis: ') .
-                                     ($item->is_racikan ? $item->dosage_form : ($item->dose_value . ' ' . $item->dose_unit)) .
-                                     ' • ' . $item->frequency_value . ' • ' . $item->duration_value,
+                            ($item->is_racikan ? $item->dosage_form : ($item->dose_value . ' ' . $item->dose_unit)) .
+                            ' • ' . $item->frequency_value . ' • ' . $item->duration_value,
                     ];
                 }),
                 'search_text' => strtolower(
@@ -347,7 +347,7 @@ class VetMedicalRecordController extends Controller
         })->values();
 
         $activeStep = $request->query('step');
-        if (!$activeStep || !in_array((int)$activeStep, [1, 2, 3, 4, 5])) {
+        if (!$activeStep || !in_array((int) $activeStep, [1, 2, 3, 4, 5])) {
             $activeStep = $record->determineLastFilledStep();
         }
 
@@ -384,6 +384,14 @@ class VetMedicalRecordController extends Controller
     public function saveStep(Request $request, MedicalRecord $record, string $step)
     {
         $this->authorizeEdit($record);
+
+        /** @var User $user */
+        $user = Auth::user();
+        if ($user->hasRole('verifikator') && !$user->hasRole('dokter', 'admin', 'superadmin')) {
+            if ($step !== 'subjective') {
+                abort(403, 'Peran Verifikator hanya berwenang untuk pengisian dan verifikasi data awal (Subjective/Triage). Pemeriksaan klinis objektif, asesmen, dan resep obat dilakukan oleh Dokter Hewan.');
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -460,6 +468,12 @@ class VetMedicalRecordController extends Controller
     public function addPrescriptionItem(Request $request, MedicalRecord $record)
     {
         $this->authorizeEdit($record);
+
+        /** @var User $user */
+        $user = Auth::user();
+        if ($user->hasRole('verifikator') && !$user->hasRole('dokter', 'admin', 'superadmin')) {
+            abort(403, 'Hanya Dokter Hewan yang berwenang menambahkan atau mengubah resep obat.');
+        }
 
         $isRacikan = $request->boolean('is_racikan');
 
@@ -772,6 +786,12 @@ class VetMedicalRecordController extends Controller
     {
         $this->authorizeEdit($record);
 
+        /** @var User $user */
+        $user = Auth::user();
+        if ($user->hasRole('verifikator') && !$user->hasRole('dokter', 'admin', 'superadmin')) {
+            abort(403, 'Hanya Dokter Hewan yang berwenang memfinalisasi rekam medis dan menerbitkan resep obat.');
+        }
+
         // Validation against clinical requirements in PRD Section 10.2
         if (!$record->diagnoses()->where('is_primary', true)->exists() && !$record->diagnoses()->exists()) {
             return redirect()->back()->with('error', 'Validasi Gagal: Rekam medis wajib memiliki minimal satu diagnosis (Assessment) sebelum difinalisasi.');
@@ -1041,7 +1061,7 @@ class VetMedicalRecordController extends Controller
             'doctor',
             'primaryDiagnosis',
             'prescriptions' => function ($q) {
-                $q->where('status', 'issued')->with('items.medicine');
+                $q->whereIn('status', ['issued', 'dispensed'])->with(['items.medicine', 'dispenser']);
             },
             'advices' => function ($q) {
                 $q->where('visible_to_member', true);
@@ -1080,7 +1100,7 @@ class VetMedicalRecordController extends Controller
             'doctor',
             'primaryDiagnosis',
             'prescriptions' => function ($q) {
-                $q->where('status', 'issued')->with('items.medicine');
+                $q->whereIn('status', ['issued', 'dispensed'])->with(['items.medicine', 'dispenser']);
             },
             'advices' => function ($q) {
                 $q->where('visible_to_member', true);
@@ -1112,7 +1132,7 @@ class VetMedicalRecordController extends Controller
         if (!empty($term)) {
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', "%{$term}%")
-                  ->orWhere('active_ingredient', 'like', "%{$term}%");
+                    ->orWhere('active_ingredient', 'like', "%{$term}%");
             });
         }
 
@@ -1295,7 +1315,8 @@ class VetMedicalRecordController extends Controller
         // 2. Secondary / Differential Diagnoses
         if ($request->filled('secondary_diagnoses')) {
             foreach ($request->secondary_diagnoses as $sec) {
-                if (empty($sec['name'])) continue;
+                if (empty($sec['name']))
+                    continue;
 
                 MedicalRecordDiagnosis::create([
                     'medical_record_id' => $record->id,

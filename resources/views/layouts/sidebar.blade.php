@@ -173,6 +173,23 @@
                 </div>
             @endif
 
+            <!-- Section: Farmasi & Apotek -->
+            @if($activeRole === 'farmasi' || in_array($activeRole, ['admin', 'superadmin']) || ($authUser && $authUser->hasRole('farmasi') && !in_array($activeRole, ['member', 'volunteer'])))
+                <div class="space-y-1">
+                    <div class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Farmasi & Apotek
+                    </div>
+
+                    <!-- Antrean Resep Obat -->
+                    <a href="{{ route('farmasi.prescriptions.index') }}" @click="mobileSidebarOpen = false"
+                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('farmasi.prescriptions.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <span
+                            class="text-base {{ request()->routeIs('farmasi.prescriptions.*') ? 'text-white' : 'text-slate-500' }}">💊</span>
+                        <span>Antrean Resep Obat</span>
+                    </a>
+                </div>
+            @endif
+
             <!-- Section 3: Relawan & Surveilans Medis -->
             @if($activeRole === 'volunteer' || ($authUser && $authUser->hasRole('volunteer') && $activeRole !== 'member'))
                 <div class="space-y-1">

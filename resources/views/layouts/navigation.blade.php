@@ -6,6 +6,12 @@
     $unreadContactCount = in_array($activeRole, ['admin', 'superadmin']) 
         ? \App\Models\ContactMessage::where('status', 'unread')->count() 
         : 0;
+    $unreadNotifCount = $authUser 
+        ? \App\Models\UserNotification::where('user_id', $authUser->id)->unread()->count() 
+        : 0;
+    $recentNotifs = $authUser 
+        ? \App\Models\UserNotification::where('user_id', $authUser->id)->latest()->take(5)->get() 
+        : collect();
 @endphp
 
 <header class="bg-white border-b border-slate-200 sticky top-0 z-30 h-16 shrink-0 flex items-center shadow-xs">
@@ -59,6 +65,68 @@
                         <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse"></span>
                     @endif
                 </a>
+            @endif
+
+            <!-- User Notifications Bell -->
+            @if($authUser)
+                <x-dropdown align="right" width="80">
+                    <x-slot name="trigger">
+                        <button type="button" 
+                                class="relative p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition focus-visible:ring-2 focus-visible:ring-teal-700 cursor-pointer flex items-center justify-center"
+                                title="Notifikasi ({{ $unreadNotifCount }} belum dibaca)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            @if($unreadNotifCount > 0)
+                                <span class="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white shadow-xs">
+                                    {{ $unreadNotifCount > 9 ? '9+' : $unreadNotifCount }}
+                                </span>
+                            @endif
+                        </button>
+                    </x-slot>
+
+                    <x-slot name="content">
+                        <div class="p-3 border-b border-slate-100 flex items-center justify-between">
+                            <div class="text-xs font-bold text-slate-800">Pemberitahuan</div>
+                            @if($unreadNotifCount > 0)
+                                <form method="POST" action="{{ route('notifications.mark-all-read') }}">
+                                    @csrf
+                                    <button type="submit" class="text-[10px] font-bold text-teal-700 hover:underline">
+                                        Tandai Semua Dibaca
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                        <div class="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                            @forelse($recentNotifs as $notif)
+                                <a href="{{ route('notifications.read', $notif->id) }}" class="block p-3 hover:bg-slate-50 transition {{ !$notif->read_at ? 'bg-teal-50/50' : '' }}">
+                                    <div class="flex items-start gap-2.5">
+                                        <span class="text-base shrink-0 mt-0.5">
+                                            @if($notif->icon === 'heart') 🤍
+                                            @elseif($notif->icon === 'pill') 💊
+                                            @else 🔔
+                                            @endif
+                                        </span>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="text-xs font-bold text-slate-800 leading-snug">{{ $notif->title }}</div>
+                                            <p class="text-[11px] text-slate-600 line-clamp-2 mt-0.5 leading-relaxed">{{ $notif->message }}</p>
+                                            <div class="text-[10px] text-slate-400 mt-1">{{ $notif->created_at->diffForHumans() }}</div>
+                                        </div>
+                                    </div>
+                                </a>
+                            @empty
+                                <div class="p-4 text-center text-xs text-slate-400">
+                                    Belum ada notifikasi baru.
+                                </div>
+                            @endforelse
+                        </div>
+                        <div class="p-2 border-t border-slate-100 text-center bg-slate-50">
+                            <a href="{{ route('notifications.index') }}" class="text-xs font-semibold text-teal-700 hover:underline">
+                                Lihat Semua Notifikasi &rarr;
+                            </a>
+                        </div>
+                    </x-slot>
+                </x-dropdown>
             @endif
 
             <!-- Workspace / Role Switcher (If user has multiple roles) -->

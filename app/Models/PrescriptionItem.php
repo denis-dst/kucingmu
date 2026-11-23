@@ -32,10 +32,14 @@ class PrescriptionItem extends Model
         'quantity_unit',
         'usage_instructions',
         'warnings',
+        'is_dispensed',
+        'dispensed_at',
     ];
 
     protected $casts = [
         'is_racikan' => 'boolean',
+        'is_dispensed' => 'boolean',
+        'dispensed_at' => 'datetime',
         'concentration_value' => 'decimal:2',
         'dose_value' => 'decimal:2',
         'quantity_value' => 'decimal:2',

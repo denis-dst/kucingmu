@@ -355,6 +355,29 @@
                                 </div>
                             </div>
                         @endif
+
+                        <!-- Batch / Multiple Gallery Photos Upload (Point 1.2) -->
+                        <div class="mt-4 p-4 rounded-2xl bg-teal-50/70 border border-teal-200 space-y-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <h4 class="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+                                        <span>📁</span> Unggah Foto Sekaligus dalam Jumlah Banyak (Galeri Tambahan)
+                                    </h4>
+                                    <p class="text-[11px] text-teal-700 mt-0.5 leading-relaxed">
+                                        Pilih beberapa file foto sekaligus dari perangkat Anda. Sistem otomatis memproses, mengompresi maks 200 KB per foto, dan menyimpannya secara lengkap.
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <input type="file"
+                                       id="gallery_photos"
+                                       name="gallery_photos[]"
+                                       multiple
+                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                       class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-700 file:text-white hover:file:bg-teal-800 cursor-pointer">
+                                <p class="text-[10px] text-teal-800 mt-1">Dapat memilih beberapa file foto sekaligus. Format: JPG, PNG, WEBP.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Biometrics Section -->

@@ -426,6 +426,13 @@
                                                     @endif
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
+                                                    @if($cat->isDeceased())
+                                                        <a href="{{ route('cat.memorial', $cat->id) }}"
+                                                            class="button-secondary px-3 py-1.5 text-xs font-bold text-amber-900 border-amber-300 bg-amber-50 hover:bg-amber-100"
+                                                            title="Halaman Kenangan & Belasungkawa">
+                                                            🕊️ Belasungkawa
+                                                        </a>
+                                                    @endif
                                                     @if($latestCompletedRecord)
                                                         <a href="{{ route('member.medical-records.summary', $latestCompletedRecord->id) }}"
                                                             class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100"
@@ -467,6 +474,13 @@
                                                         &bull; Menunggu KTAKuMu</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
+                                                    @if($cat->isDeceased())
+                                                        <a href="{{ route('cat.memorial', $cat->id) }}"
+                                                            class="button-secondary px-3 py-1.5 text-xs font-bold text-amber-900 border-amber-300 bg-amber-50 hover:bg-amber-100"
+                                                            title="Halaman Kenangan & Belasungkawa">
+                                                            🕊️ Belasungkawa
+                                                        </a>
+                                                    @endif
                                                     <a href="{{ route('member.medical-records.summary', $latestCompletedRecord->id) }}"
                                                         class="button-secondary px-3 py-1.5 text-xs font-semibold text-teal-800 border-teal-200 bg-teal-50 hover:bg-teal-100">
                                                         🩺 Rekam Medis
@@ -504,6 +518,13 @@
                                                         Booth/Event</span>
                                                 </div>
                                                 <div class="flex flex-wrap items-center gap-1.5">
+                                                    @if($cat->isDeceased())
+                                                        <a href="{{ route('cat.memorial', $cat->id) }}"
+                                                            class="button-secondary px-3 py-1.5 text-xs font-bold text-amber-900 border-amber-300 bg-amber-50 hover:bg-amber-100"
+                                                            title="Halaman Kenangan & Belasungkawa">
+                                                            🕊️ Belasungkawa
+                                                        </a>
+                                                    @endif
                                                     <button type="button"
                                                         @click.prevent="draftUrl = '{{ route('ktam.preview', $cat->id) }}'; openDraftModal = true"
                                                         class="button-secondary px-3 py-1.5 text-xs font-semibold">

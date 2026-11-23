@@ -283,4 +283,31 @@ Route::middleware(['auth', 'role:member'])->group(function () {
 Route::get('/temu-anabul/{temuAnabul}/poster', [TemuAnabulController::class, 'poster'])->name('temu-anabul.poster');
 Route::get('/temu-anabul/{temuAnabul}', [TemuAnabulController::class, 'show'])->name('temu-anabul.show');
 
+// ── Farmasi & Apotek Routes ──
+use App\Http\Controllers\PharmacyController;
+
+Route::middleware(['auth', 'role:farmasi,admin,superadmin'])->prefix('farmasi')->name('farmasi.')->group(function () {
+    Route::get('/prescriptions', [PharmacyController::class, 'index'])->name('prescriptions.index');
+    Route::get('/prescriptions/{prescription}', [PharmacyController::class, 'show'])->name('prescriptions.show');
+    Route::post('/prescriptions/{prescription}/dispense', [PharmacyController::class, 'dispense'])->name('prescriptions.dispense');
+});
+
+// ── Belasungkawa & Memorial Kucing Routes ──
+use App\Http\Controllers\CatCondolenceController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/cat/{cat}/memorial', [CatCondolenceController::class, 'show'])->name('cat.memorial');
+    Route::post('/cat/{cat}/condolence', [CatCondolenceController::class, 'store'])->name('cat.memorial.store');
+    Route::get('/cat/{cat}/memorial-poster', [CatCondolenceController::class, 'poster'])->name('cat.memorial.poster');
+});
+
+// ── Notifikasi Pengguna Routes ──
+use App\Http\Controllers\NotificationController;
+
+Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/', [NotificationController::class, 'index'])->name('index');
+    Route::post('/mark-all-read', [NotificationController::class, 'markAllRead'])->name('mark-all-read');
+    Route::post('/{notification}/read', [NotificationController::class, 'markRead'])->name('read');
+});
+
 require __DIR__.'/auth.php';

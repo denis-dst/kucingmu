@@ -101,7 +101,7 @@ class User extends Authenticatable
             return strtolower(trim($sessionRole));
         }
 
-        $priorities = ['superadmin', 'admin', 'verifikator', 'dokter', 'volunteer', 'member'];
+        $priorities = ['superadmin', 'admin', 'dokter', 'farmasi', 'verifikator', 'volunteer', 'member'];
         foreach ($priorities as $p) {
             if (in_array($p, $available)) {
                 return $p;
@@ -165,12 +165,19 @@ class User extends Authenticatable
                 'badge_class' => 'bg-emerald-100 text-emerald-900 border-emerald-200',
                 'desc' => 'Pemeriksaan antrian kucing pasien, diagnosis, dan rekam medis.',
             ],
+            'farmasi' => [
+                'name' => 'Ruang Farmasi & Apotek',
+                'short_name' => 'Farmasi',
+                'icon' => '💊',
+                'badge_class' => 'bg-teal-100 text-teal-900 border-teal-200',
+                'desc' => 'Daftar resep obat dokter, verifikasi penyiapan, dan penyerahan obat ke member.',
+            ],
             'volunteer' => [
                 'name' => 'Ruang Relawan Lapangan',
                 'short_name' => 'Relawan',
                 'icon' => '📋',
                 'badge_class' => 'bg-indigo-100 text-indigo-900 border-indigo-200',
-                'desc' => 'Sensus stray cat PTMA, surveilans kampus, dan registrasi di lokasi.',
+                'desc' => 'Sensus stray cat PTMA, surveilans kampus, dan pencatatan lapangan.',
             ],
             default => [
                 'name' => 'Ruang Kucing Saya (Member)',
@@ -202,6 +209,11 @@ class User extends Authenticatable
         return $this->hasRole('dokter');
     }
 
+    public function isFarmasi(): bool
+    {
+        return $this->hasRole('farmasi', 'admin', 'superadmin');
+    }
+
     public function isVolunteer(): bool
     {
         return $this->hasRole('volunteer');
@@ -210,6 +222,21 @@ class User extends Authenticatable
     public function isMember(): bool
     {
         return $this->hasRole('member');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(UserNotification::class, 'user_id')->latest();
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->hasMany(UserNotification::class, 'user_id')->unread()->latest();
+    }
+
+    public function condolencesGiven()
+    {
+        return $this->hasMany(CatCondolence::class, 'user_id');
     }
 
     public function cats()

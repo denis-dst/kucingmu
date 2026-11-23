@@ -386,6 +386,11 @@ class Cat extends Model
     {
         return $this->hasMany(TemuAnabul::class);
     }
+
+    public function condolences()
+    {
+        return $this->hasMany(CatCondolence::class)->where('is_visible', true)->latest();
+    }
 }
 
 

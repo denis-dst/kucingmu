@@ -24,11 +24,15 @@ class Prescription extends Model
         'cancelled_at',
         'cancellation_reason',
         'replaces_prescription_id',
+        'dispensed_at',
+        'dispensed_by',
+        'dispense_notes',
     ];
 
     protected $casts = [
         'issued_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'dispensed_at' => 'datetime',
     ];
 
     public function medicalRecord()
@@ -46,6 +50,11 @@ class Prescription extends Model
         return $this->hasMany(PrescriptionItem::class);
     }
 
+    public function dispenser()
+    {
+        return $this->belongsTo(User::class, 'dispensed_by');
+    }
+
     public function replaces()
     {
         return $this->belongsTo(Prescription::class, 'replaces_prescription_id');
@@ -54,6 +63,11 @@ class Prescription extends Model
     public function replacedBy()
     {
         return $this->hasOne(Prescription::class, 'replaces_prescription_id');
+    }
+
+    public function isDispensed(): bool
+    {
+        return !empty($this->dispensed_at) || $this->status === 'dispensed';
     }
 
     public function isIssued(): bool

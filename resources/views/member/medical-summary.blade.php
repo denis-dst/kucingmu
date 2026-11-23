@@ -119,17 +119,47 @@
                     </div>
                 </div>
 
-                <!-- Resep Obat yang Diterbitkan (Issued) -->
+                <!-- Resep Obat yang Diterbitkan (Issued & Dispensed) -->
                 <div class="space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <h2 class="font-outfit font-bold text-slate-900 text-base flex items-center gap-2">
-                            <span>💊</span>
-                            <span>Resep Obat & Aturan Pakai</span>
-                        </h2>
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2 flex-wrap gap-2">
+                        <div class="flex items-center gap-2">
+                            <h2 class="font-outfit font-bold text-slate-900 text-base flex items-center gap-2">
+                                <span>💊</span>
+                                <span>Resep Obat & Aturan Pakai</span>
+                            </h2>
+                            @if($issuedRx)
+                                @if($issuedRx->isDispensed())
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                        ✓ Obat Sudah Diberikan oleh Farmasi
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                        ⏳ Menunggu Pengambilan di Farmasi
+                                    </span>
+                                @endif
+                            @endif
+                        </div>
                         @if($issuedRx)
-                            <span class="text-xs font-mono font-semibold text-slate-500">No. Rx: {{ $issuedRx->prescription_number }}</span>
+                            <div class="text-right">
+                                <span class="text-xs font-mono font-semibold text-slate-500 block">No. Rx: {{ $issuedRx->prescription_number }}</span>
+                                @if($issuedRx->isDispensed() && $issuedRx->dispensed_at)
+                                    <span class="text-[10px] text-emerald-700 font-medium block">
+                                        Diserahkan: {{ $issuedRx->dispensed_at->format('d M Y, H:i') }} WIB {{ $issuedRx->dispenser ? '(' . $issuedRx->dispenser->name . ')' : '' }}
+                                    </span>
+                                @endif
+                            </div>
                         @endif
                     </div>
+
+                    @if($issuedRx && $issuedRx->isDispensed() && $issuedRx->dispense_notes)
+                        <div class="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs text-emerald-950 flex items-start gap-2">
+                            <span class="text-base">ℹ️</span>
+                            <div>
+                                <strong class="font-bold text-emerald-900">Catatan Petugas Farmasi:</strong>
+                                <p class="text-emerald-800 mt-0.5 leading-relaxed">{{ $issuedRx->dispense_notes }}</p>
+                            </div>
+                        </div>
+                    @endif
 
                     @if($issuedRx && $issuedRx->isManual())
                         <div class="p-4 rounded-xl border border-amber-300 bg-amber-50/80 text-xs space-y-2">
@@ -164,7 +194,14 @@
                                                 {{ $item->dosage_form }}
                                             </span>
                                         </div>
-                                        <span class="text-slate-500 font-medium">Qty: {{ $item->quantity_value }} {{ $item->quantity_unit }}</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-slate-500 font-medium">Qty: {{ $item->quantity_value }} {{ $item->quantity_unit }}</span>
+                                            @if($item->is_dispensed)
+                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    ✓ Diserahkan
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
 
                                     @if($item->is_racikan && $item->composition)
