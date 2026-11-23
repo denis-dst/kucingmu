@@ -21,7 +21,7 @@ class AdminUserController extends Controller
 
         $query = User::withCount(['cats', 'vetRecords']);
 
-        if ($roleFilter !== 'all' && in_array($roleFilter, ['admin', 'superadmin', 'verifikator', 'dokter', 'volunteer', 'member'])) {
+        if ($roleFilter !== 'all' && in_array($roleFilter, ['admin', 'superadmin', 'farmasi', 'verifikator', 'dokter', 'volunteer', 'member'])) {
             $query->where(function ($q) use ($roleFilter) {
                 $q->where('role', $roleFilter)
                   ->orWhereJsonContains('roles', $roleFilter);
@@ -64,19 +64,21 @@ class AdminUserController extends Controller
 
         $users = $query->paginate(15)->withQueryString();
 
-        // Statistics for widgets in a single aggregated query
+        // Statistics for widgets in a single aggregated query (cross-database compatible: MySQL and SQLite)
         $userStats = User::selectRaw("
             COUNT(*) as total,
-            COUNT(CASE WHEN role = 'member' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"member\"') THEN 1 END) as member,
-            COUNT(CASE WHEN role = 'verifikator' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"verifikator\"') THEN 1 END) as verifikator,
-            COUNT(CASE WHEN role = 'dokter' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"dokter\"') THEN 1 END) as dokter,
-            COUNT(CASE WHEN role = 'volunteer' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"volunteer\"') THEN 1 END) as volunteer,
-            COUNT(CASE WHEN role IN ('admin', 'superadmin') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"admin\"') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"superadmin\"') THEN 1 END) as admin
+            COUNT(CASE WHEN role = 'member' OR roles LIKE '%\"member\"%' THEN 1 END) as member,
+            COUNT(CASE WHEN role = 'farmasi' OR roles LIKE '%\"farmasi\"%' THEN 1 END) as farmasi,
+            COUNT(CASE WHEN role = 'verifikator' OR roles LIKE '%\"verifikator\"%' THEN 1 END) as verifikator,
+            COUNT(CASE WHEN role = 'dokter' OR roles LIKE '%\"dokter\"%' THEN 1 END) as dokter,
+            COUNT(CASE WHEN role = 'volunteer' OR roles LIKE '%\"volunteer\"%' THEN 1 END) as volunteer,
+            COUNT(CASE WHEN role IN ('admin', 'superadmin') OR roles LIKE '%\"admin\"%' OR roles LIKE '%\"superadmin\"%' THEN 1 END) as admin
         ")->first();
 
         $stats = [
             'total' => (int) ($userStats->total ?? 0),
             'member' => (int) ($userStats->member ?? 0),
+            'farmasi' => (int) ($userStats->farmasi ?? 0),
             'verifikator' => (int) ($userStats->verifikator ?? 0),
             'dokter' => (int) ($userStats->dokter ?? 0),
             'volunteer' => (int) ($userStats->volunteer ?? 0),
@@ -94,8 +96,8 @@ class AdminUserController extends Controller
     {
         $validated = $request->validate([
             'roles' => ['nullable', 'array'],
-            'roles.*' => [Rule::in(['member', 'volunteer', 'dokter', 'verifikator', 'admin', 'superadmin'])],
-            'role' => ['nullable', Rule::in(['member', 'volunteer', 'dokter', 'verifikator', 'admin', 'superadmin'])],
+            'roles.*' => [Rule::in(['member', 'volunteer', 'dokter', 'verifikator', 'farmasi', 'admin', 'superadmin'])],
+            'role' => ['nullable', Rule::in(['member', 'volunteer', 'dokter', 'verifikator', 'farmasi', 'admin', 'superadmin'])],
         ]);
 
         $currentUser = Auth::user();
@@ -131,8 +133,8 @@ class AdminUserController extends Controller
         }
 
         // Determine primary role column (for legacy backward compatibility)
-        // Order of priority for primary role: superadmin > admin > verifikator > dokter > volunteer > member
-        $priorities = ['superadmin', 'admin', 'verifikator', 'dokter', 'volunteer', 'member'];
+        // Order of priority for primary role: superadmin > admin > verifikator > dokter > farmasi > volunteer > member
+        $priorities = ['superadmin', 'admin', 'verifikator', 'dokter', 'farmasi', 'volunteer', 'member'];
         $primaryRole = 'member';
         foreach ($priorities as $p) {
             if (in_array($p, $selectedRoles)) {
@@ -149,6 +151,7 @@ class AdminUserController extends Controller
             'member' => 'Member (Pemilik Kucing)',
             'volunteer' => 'Relawan Sensus',
             'dokter' => 'Dokter Hewan',
+            'farmasi' => 'Farmasi / Apoteker',
             'verifikator' => 'Verifikator KTAKuMu',
             'admin' => 'Administrator',
             'superadmin' => 'Super Administrator',

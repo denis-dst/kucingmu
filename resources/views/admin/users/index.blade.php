@@ -90,7 +90,7 @@
             </div>
 
             <!-- Stats Widgets -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
                 <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'all', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-teal-400 {{ $roleFilter === 'all' ? 'ring-2 ring-teal-600 bg-teal-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -127,18 +127,6 @@
                     </div>
                 </a>
 
-                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer', 'page' => 1])) }}" 
-                   class="content-card p-4 transition hover:border-indigo-400 {{ $roleFilter === 'volunteer' ? 'ring-2 ring-indigo-600 bg-indigo-50/40' : 'bg-white' }}">
-                    <div class="flex items-center justify-between text-xs font-bold text-indigo-700 uppercase tracking-wider">
-                        <span>Relawan</span>
-                        <span>📋</span>
-                    </div>
-                    <div class="mt-2 flex items-baseline gap-1.5">
-                        <span class="font-outfit text-2xl sm:text-3xl font-bold text-indigo-900">{{ $stats['volunteer'] }}</span>
-                        <span class="text-xs font-semibold text-indigo-700">Orang</span>
-                    </div>
-                </a>
-
                 <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'dokter', 'page' => 1])) }}" 
                    class="content-card p-4 transition hover:border-emerald-400 {{ $roleFilter === 'dokter' ? 'ring-2 ring-emerald-600 bg-emerald-50/40' : 'bg-white' }}">
                     <div class="flex items-center justify-between text-xs font-bold text-emerald-700 uppercase tracking-wider">
@@ -148,6 +136,30 @@
                     <div class="mt-2 flex items-baseline gap-1.5">
                         <span class="font-outfit text-2xl sm:text-3xl font-bold text-emerald-900">{{ $stats['dokter'] }}</span>
                         <span class="text-xs font-semibold text-emerald-700">Dokter</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'farmasi', 'page' => 1])) }}" 
+                   class="content-card p-4 transition hover:border-teal-400 {{ $roleFilter === 'farmasi' ? 'ring-2 ring-teal-600 bg-teal-50/40' : 'bg-white' }}">
+                    <div class="flex items-center justify-between text-xs font-bold text-teal-700 uppercase tracking-wider">
+                        <span>Farmasi</span>
+                        <span>💊</span>
+                    </div>
+                    <div class="mt-2 flex items-baseline gap-1.5">
+                        <span class="font-outfit text-2xl sm:text-3xl font-bold text-teal-900">{{ $stats['farmasi'] }}</span>
+                        <span class="text-xs font-semibold text-teal-700">Apoteker</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer', 'page' => 1])) }}" 
+                   class="content-card p-4 transition hover:border-indigo-400 {{ $roleFilter === 'volunteer' ? 'ring-2 ring-indigo-600 bg-indigo-50/40' : 'bg-white' }}">
+                    <div class="flex items-center justify-between text-xs font-bold text-indigo-700 uppercase tracking-wider">
+                        <span>Relawan</span>
+                        <span>📋</span>
+                    </div>
+                    <div class="mt-2 flex items-baseline gap-1.5">
+                        <span class="font-outfit text-2xl sm:text-3xl font-bold text-indigo-900">{{ $stats['volunteer'] }}</span>
+                        <span class="text-xs font-semibold text-indigo-700">Orang</span>
                     </div>
                 </a>
 
@@ -182,13 +194,17 @@
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'verifikator' ? 'bg-sky-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             ✅ Verifikator ({{ $stats['verifikator'] }})
                         </a>
-                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer', 'page' => 1])) }}" 
-                           class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'volunteer' ? 'bg-indigo-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
-                            📋 Relawan ({{ $stats['volunteer'] }})
-                        </a>
                         <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'dokter', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'dokter' ? 'bg-emerald-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
                             🩺 Dokter ({{ $stats['dokter'] }})
+                        </a>
+                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'farmasi', 'page' => 1])) }}" 
+                           class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'farmasi' ? 'bg-teal-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                            💊 Farmasi ({{ $stats['farmasi'] }})
+                        </a>
+                        <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'volunteer', 'page' => 1])) }}" 
+                           class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'volunteer' ? 'bg-indigo-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                            📋 Relawan ({{ $stats['volunteer'] }})
                         </a>
                         <a href="{{ route('admin.users.index', array_merge(request()->query(), ['role' => 'admin', 'page' => 1])) }}" 
                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $roleFilter === 'admin' ? 'bg-amber-700 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
@@ -467,7 +483,20 @@
                                 </div>
                             </label>
 
-                            <!-- 4. Verifikator KTAKuMu -->
+                            <!-- 4. Farmasi & Apoteker -->
+                            <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition select-none"
+                                   :class="hasRole('farmasi') ? 'border-teal-600 bg-teal-50/70 ring-2 ring-teal-100' : 'border-slate-200 bg-white hover:bg-slate-50'">
+                                <input type="checkbox" name="roles[]" value="farmasi" :checked="hasRole('farmasi')" @change="toggleRole('farmasi')" class="mt-1 rounded text-teal-700 focus:ring-teal-500">
+                                <div class="flex-1">
+                                    <div class="font-bold text-xs text-slate-900 flex items-center justify-between">
+                                        <span class="flex items-center gap-1.5"><span>💊</span> Tenaga Farmasi & Apoteker</span>
+                                        <span x-show="hasRole('farmasi')" class="text-[9px] bg-teal-100 text-teal-800 font-bold px-1.5 py-0.2 rounded">Aktif</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">Akses ke Ruang Farmasi untuk antrean resep obat dokter, verifikasi penyiapan, dan penyerahan obat ke member.</p>
+                                </div>
+                            </label>
+
+                            <!-- 5. Verifikator KTAKuMu -->
                             <label class="flex items-start gap-3 p-3 rounded-2xl border cursor-pointer transition select-none"
                                    :class="hasRole('verifikator') ? 'border-sky-600 bg-sky-50/70 ring-2 ring-sky-100' : 'border-slate-200 bg-white hover:bg-slate-50'">
                                 <input type="checkbox" name="roles[]" value="verifikator" :checked="hasRole('verifikator')" @change="toggleRole('verifikator')" class="mt-1 rounded text-sky-700 focus:ring-sky-500">

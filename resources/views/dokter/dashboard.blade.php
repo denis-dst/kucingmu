@@ -51,9 +51,12 @@
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
                 <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Draft Pemeriksaan</div>
                 <div class="mt-2 flex items-baseline gap-2">
-                    <span class="font-outfit text-2xl font-bold text-amber-600">{{ $stats['in_progress'] ?? ($inProgressDrafts->count() ?? 0) }}</span>
+                    <span class="font-outfit text-2xl font-bold text-amber-600">{{ ($draftFilter ?? 'today') === 'today' ? ($todayDraftsCount ?? 0) : ($allDraftsCount ?? 0) }}</span>
                     <span class="text-xs text-slate-500">berjalan</span>
                 </div>
+                <span class="text-[11px] text-slate-400 mt-1 block">
+                    {{ ($draftFilter ?? 'today') === 'today' ? 'Hari Ini (Semua: ' . ($allDraftsCount ?? 0) . ')' : 'Semua tanggal' }}
+                </span>
             </div>
 
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -74,33 +77,68 @@
         </div>
 
         <!-- In-Progress Drafts Alert Banner (if any) -->
-        @if(isset($inProgressDrafts) && $inProgressDrafts->isNotEmpty())
-            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-5 space-y-3">
-                <div class="flex items-center justify-between">
+        @if(($allDraftsCount ?? 0) > 0 || (isset($inProgressDrafts) && $inProgressDrafts->isNotEmpty()))
+            <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-4 sm:p-5 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div class="flex items-center gap-2">
                         <span class="text-lg">⏳</span>
-                        <h3 class="font-outfit font-bold text-amber-900 text-sm">Pemeriksaan Berjalan (Draft Belum Selesai)</h3>
-                    </div>
-                    <span class="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">{{ $inProgressDrafts->count() }} Draft</span>
-                </div>
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    @foreach($inProgressDrafts as $draft)
-                        <div class="p-3 bg-white rounded-xl border border-amber-200/80 flex items-center justify-between gap-3 text-xs">
-                            <div>
-                                <div class="font-bold text-slate-900">{{ $draft->cat->name }}</div>
-                                <div class="text-[11px] text-slate-500 font-mono">{{ $draft->record_number }} &bull; {{ $draft->created_at->diffForHumans() }}</div>
-                                @if($draft->created_by && $draft->creator && (int) $draft->created_by !== (int) Auth::id())
-                                    <div class="text-[10px] text-amber-800 font-semibold mt-0.5">
-                                        Inisiator: {{ $draft->creator->name }}
-                                    </div>
-                                @endif
-                            </div>
-                            <a href="{{ route('dokter.medical-records.examine', $draft) }}" class="px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold text-[11px] transition shrink-0 shadow-2xs">
-                                Lanjutkan SOAP &rarr;
-                            </a>
+                        <div>
+                            <h3 class="font-outfit font-bold text-amber-900 text-sm">Pemeriksaan Berjalan (Draft Belum Selesai)</h3>
+                            <p class="text-[11px] text-amber-700">Lanjutkan pengisian SOAP dan penerbitan resep anabul yang belum difinalisasi.</p>
                         </div>
-                    @endforeach
+                    </div>
+
+                    <!-- Filter Tabs: Hari Ini vs Semua Draft -->
+                    <div class="flex items-center gap-1 bg-amber-100/80 p-1 rounded-xl self-start sm:self-auto shrink-0">
+                        <a href="{{ route('dashboard', array_merge(request()->query(), ['draft_filter' => 'today'])) }}"
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap {{ ($draftFilter ?? 'today') === 'today' ? 'bg-amber-800 text-white shadow-2xs' : 'text-amber-900 hover:bg-amber-200/60' }}">
+                            <span>📅</span>
+                            <span>Hari Ini</span>
+                            <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ ($draftFilter ?? 'today') === 'today' ? 'bg-white/20 text-white' : 'bg-amber-200 text-amber-900' }}">{{ $todayDraftsCount ?? 0 }}</span>
+                        </a>
+                        <a href="{{ route('dashboard', array_merge(request()->query(), ['draft_filter' => 'all'])) }}"
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap {{ ($draftFilter ?? 'today') === 'all' ? 'bg-amber-800 text-white shadow-2xs' : 'text-amber-900 hover:bg-amber-200/60' }}">
+                            <span>🗓️</span>
+                            <span>Semua Draft</span>
+                            <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ ($draftFilter ?? 'today') === 'all' ? 'bg-white/20 text-white' : 'bg-amber-200 text-amber-900' }}">{{ $allDraftsCount ?? 0 }}</span>
+                        </a>
+                    </div>
                 </div>
+
+                @if($inProgressDrafts->isNotEmpty())
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                        @foreach($inProgressDrafts as $draft)
+                            <div class="p-3 bg-white rounded-xl border border-amber-200/80 flex items-center justify-between gap-3 text-xs shadow-2xs hover:border-amber-300 transition">
+                                <div class="min-w-0">
+                                    <div class="font-bold text-slate-900 truncate">{{ $draft->cat->name ?? 'Pasien' }}</div>
+                                    <div class="text-[11px] text-slate-500 font-mono truncate">
+                                        {{ $draft->record_number }} &bull; {{ $draft->updated_at ? $draft->updated_at->diffForHumans() : $draft->created_at->diffForHumans() }}
+                                    </div>
+                                    @if($draft->created_by && $draft->creator && (int) $draft->created_by !== (int) Auth::id())
+                                        <div class="text-[10px] text-amber-800 font-semibold mt-0.5 truncate">
+                                            Inisiator: {{ $draft->creator->name }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <a href="{{ route('dokter.medical-records.examine', $draft) }}" class="px-3 py-1.5 rounded-lg bg-teal-700 hover:bg-teal-800 text-white font-semibold text-[11px] transition shrink-0 shadow-2xs">
+                                    Lanjutkan SOAP &rarr;
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-3.5 bg-white/90 rounded-xl border border-amber-200/80 text-xs text-amber-900 flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center gap-2">
+                            <span>✨</span>
+                            <span>Tidak ada pemeriksaan draft baru untuk <strong>hari ini</strong>.</span>
+                        </div>
+                        @if(($allDraftsCount ?? 0) > 0)
+                            <a href="{{ route('dashboard', array_merge(request()->query(), ['draft_filter' => 'all'])) }}" class="font-bold text-amber-800 hover:text-amber-950 underline">
+                                Tampilkan {{ $allDraftsCount }} Draft dari Hari Sebelumnya &rarr;
+                            </a>
+                        @endif
+                    </div>
+                @endif
             </div>
         @endif
 

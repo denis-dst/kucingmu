@@ -38,7 +38,7 @@ class DashboardController extends Controller
         } elseif ($activeRole === 'verifikator') {
             return $this->verifikatorDashboard($request);
         } elseif ($activeRole === 'dokter') {
-            return $this->dokterDashboard();
+            return $this->dokterDashboard($request);
         } elseif ($activeRole === 'farmasi') {
             return $this->farmasiDashboard($request);
         } elseif ($activeRole === 'volunteer') {
@@ -95,9 +95,7 @@ class DashboardController extends Controller
         $unverifiedCount = Cat::where(function($q) {
             $q->whereNull('unique_code')->orWhere('unique_code', '');
         })->whereDoesntHave('medicalRecords')->count();
-        $pendingVerificationCount = Cat::where(function($q) {
-            $q->whereNull('unique_code')->orWhere('unique_code', '');
-        })->count();
+        $pendingVerificationCount = $needVerificationCount + $unverifiedCount;
 
         $stats = [
             'cats_count' => (int) ($catStats->total ?? 0),
@@ -453,9 +451,7 @@ class DashboardController extends Controller
         $unverifiedCount = Cat::where(function($q) {
             $q->whereNull('unique_code')->orWhere('unique_code', '');
         })->whereDoesntHave('medicalRecords')->count();
-        $pendingVerificationCount = Cat::where(function($q) {
-            $q->whereNull('unique_code')->orWhere('unique_code', '');
-        })->count();
+        $pendingVerificationCount = $needVerificationCount + $unverifiedCount;
         $myVerifiedCount = KtamCard::where('verified_by', Auth::id())->count();
 
         $stats = [
@@ -568,8 +564,10 @@ class DashboardController extends Controller
     /**
      * Render Vet Dashboard.
      */
-    protected function dokterDashboard()
+    protected function dokterDashboard(?Request $request = null)
     {
+        $request = $request ?: request();
+
         // Queue for today
         Appointment::whereIn('status', ['scheduled', 'checked_in'])
             ->whereHas('trashedMedicalRecords')
@@ -584,10 +582,21 @@ class DashboardController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        $inProgressDrafts = MedicalRecord::whereIn('status', ['draft', 'in_progress'])
-            ->with(['cat.owner', 'cat.photos', 'doctor', 'creator'])
-            ->latest()
-            ->get();
+        $today = Carbon::today();
+        $draftFilter = $request->input('draft_filter', 'today'); // 'today' (default) atau 'all'
+
+        $draftBaseQuery = MedicalRecord::whereIn('status', ['draft', 'in_progress'])
+            ->with(['cat.owner', 'cat.photos', 'doctor', 'creator']);
+
+        $allDraftsCount = (clone $draftBaseQuery)->count();
+        $todayDraftsCount = (clone $draftBaseQuery)->whereDate('created_at', $today)->count();
+
+        // Filter pemeriksaan berjalan: Hari Ini vs Semua Tanggal
+        if ($draftFilter === 'today') {
+            $draftBaseQuery->whereDate('created_at', $today);
+        }
+
+        $inProgressDrafts = $draftBaseQuery->latest('created_at')->get();
 
         $recentRecords = MedicalRecord::whereHas('cat')->with(['cat.owner', 'cat.photos', 'appointment', 'primaryDiagnosis', 'prescriptions', 'doctor', 'creator'])
             ->latest()
@@ -597,11 +606,13 @@ class DashboardController extends Controller
         $stats = [
             'today_queue' => $queue->count(),
             'in_progress' => $inProgressDrafts->count(),
+            'today_in_progress' => $todayDraftsCount,
+            'all_in_progress' => $allDraftsCount,
             'completed' => MedicalRecord::where('status', 'completed')->count(),
             'total_prescriptions' => \App\Models\Prescription::where('status', 'issued')->count(),
         ];
 
-        return view('dokter.dashboard', compact('queue', 'inProgressDrafts', 'recentRecords', 'stats'));
+        return view('dokter.dashboard', compact('queue', 'inProgressDrafts', 'recentRecords', 'stats', 'draftFilter', 'allDraftsCount', 'todayDraftsCount'));
     }
 
     /**
