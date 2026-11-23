@@ -26,6 +26,7 @@ class PharmacyController extends Controller
         }
 
         $status = $request->input('status', 'waiting'); // 'waiting', 'dispensed', 'all'
+        $timeframe = $request->input('timeframe', 'today'); // 'today' (default: fokus resep hari ini), 'all'
         $search = trim($request->input('search', ''));
 
         $query = Prescription::whereIn('status', ['issued', 'dispensed'])
@@ -38,11 +39,23 @@ class PharmacyController extends Controller
                 'dispenser',
             ]);
 
+        // Filter status penyerahan obat
         if ($status === 'waiting') {
             $query->whereNull('dispensed_at')->where('status', 'issued');
         } elseif ($status === 'dispensed') {
             $query->where(function ($q) {
                 $q->whereNotNull('dispensed_at')->orWhere('status', 'dispensed');
+            });
+        }
+
+        // Filter timeframe: Fokus Resep Hari Ini vs Semua Tanggal
+        $today = Carbon::today();
+        if ($timeframe === 'today') {
+            $query->where(function ($q) use ($today) {
+                $q->whereDate('issued_at', $today)
+                  ->orWhere(function ($sub) use ($today) {
+                      $sub->whereNull('issued_at')->whereDate('created_at', $today);
+                  });
             });
         }
 
@@ -65,13 +78,39 @@ class PharmacyController extends Controller
 
         $prescriptions = $query->latest('issued_at')->paginate(15)->withQueryString();
 
+        $todayCondition = function ($q) use ($today) {
+            $q->whereDate('issued_at', $today)
+              ->orWhere(function ($sub) use ($today) {
+                  $sub->whereNull('issued_at')->whereDate('created_at', $today);
+              });
+        };
+
+        $todayWaiting = Prescription::where('status', 'issued')->whereNull('dispensed_at')->where($todayCondition)->count();
+        $todayDispensed = Prescription::where(function ($q) {
+            $q->whereNotNull('dispensed_at')->orWhere('status', 'dispensed');
+        })->where(function ($q) use ($today) {
+            $q->whereDate('dispensed_at', $today)->orWhereDate('issued_at', $today);
+        })->count();
+        $todayTotal = Prescription::where($todayCondition)->count();
+
+        $allWaiting = Prescription::where('status', 'issued')->whereNull('dispensed_at')->count();
+        $allDispensed = Prescription::where(function ($q) {
+            $q->whereNotNull('dispensed_at')->orWhere('status', 'dispensed');
+        })->count();
+        $allTotal = Prescription::whereIn('status', ['issued', 'dispensed'])->count();
+
         $stats = [
-            'waiting_count' => Prescription::where('status', 'issued')->whereNull('dispensed_at')->count(),
-            'dispensed_count' => Prescription::whereNotNull('dispensed_at')->count(),
-            'today_count' => Prescription::whereDate('issued_at', Carbon::today())->count(),
+            'waiting_count' => $timeframe === 'today' ? $todayWaiting : $allWaiting,
+            'dispensed_count' => $timeframe === 'today' ? $todayDispensed : $allDispensed,
+            'today_count' => $todayTotal,
+            'today_waiting_count' => $todayWaiting,
+            'today_dispensed_count' => $todayDispensed,
+            'all_waiting_count' => $allWaiting,
+            'all_dispensed_count' => $allDispensed,
+            'all_total_count' => $allTotal,
         ];
 
-        return view('farmasi.prescriptions.index', compact('prescriptions', 'stats', 'status', 'search'));
+        return view('farmasi.prescriptions.index', compact('prescriptions', 'stats', 'status', 'timeframe', 'search'));
     }
 
     /**
