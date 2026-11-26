@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +9,8 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@700;800;900&display=swap">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Outfit:wght@700;800;900&display=swap">
 
     @vite(['resources/css/app.css'])
 
@@ -18,9 +20,11 @@
                 background: white !important;
                 padding: 0 !important;
             }
+
             .no-print {
                 display: none !important;
             }
+
             .poster-card {
                 box-shadow: none !important;
                 border: 2px solid #e11d48 !important;
@@ -29,7 +33,9 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-4 sm:p-8 flex flex-col items-center justify-center font-sans antialiased text-slate-800">
+
+<body
+    class="bg-slate-100 min-h-screen p-4 sm:p-8 flex flex-col items-center justify-center font-sans antialiased text-slate-800">
 
     <!-- Action Toolbar (No Print) -->
     <div class="no-print max-w-xl w-full mb-4 flex items-center justify-between gap-3">
@@ -47,8 +53,9 @@
     </div>
 
     <!-- Printable Poster Canvas (A4 Aspect Ratio Optimized) -->
-    <div class="poster-card max-w-xl w-full bg-white rounded-3xl border-4 border-rose-600 shadow-2xl overflow-hidden flex flex-col justify-between">
-        
+    <div
+        class="poster-card max-w-xl w-full bg-white rounded-3xl border-4 border-rose-600 shadow-2xl overflow-hidden flex flex-col justify-between">
+
         <!-- Top Banner Header -->
         <div class="bg-rose-600 text-white py-6 px-6 text-center space-y-1">
             <div class="text-xs font-black uppercase tracking-[0.25em] text-rose-200">
@@ -67,10 +74,11 @@
 
             <!-- Photo & Name -->
             <div class="space-y-3 text-center">
-                <div class="w-full aspect-4/3 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-md bg-slate-50">
-                    <img src="{{ $temuAnabul->thumbnail_url }}" alt="{{ $temuAnabul->cat_name }}" 
-                         onerror="this.onerror=null;this.src='{{ asset('images/default-cat.png') }}'"
-                         class="w-full h-full object-cover">
+                <div
+                    class="w-full aspect-4/3 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-md bg-slate-50">
+                    <img src="{{ $temuAnabul->thumbnail_url }}" alt="{{ $temuAnabul->cat_name }}"
+                        onerror="this.onerror=null;this.src='{{ asset('images/default-cat.png') }}'"
+                        class="w-full h-full object-cover">
                 </div>
 
                 <div>
@@ -98,7 +106,8 @@
             <!-- Reward Banner (If Any) -->
             @if($temuAnabul->reward_info)
                 <div class="p-3.5 bg-amber-400 border-2 border-amber-500 rounded-2xl text-center shadow-xs">
-                    <span class="text-xs uppercase font-extrabold tracking-wider text-amber-950 block">HADIAH / IMBALAN</span>
+                    <span class="text-xs uppercase font-extrabold tracking-wider text-amber-950 block">HADIAH /
+                        IMBALAN</span>
                     <span class="text-base font-outfit font-black text-amber-950">{{ $temuAnabul->reward_info }}</span>
                 </div>
             @endif
@@ -117,11 +126,13 @@
             <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-1">
                 <div class="flex items-start gap-2">
                     <span class="font-bold text-slate-700 shrink-0">📍 Terakhir Terlihat:</span>
-                    <span class="text-slate-800 font-semibold">{{ $temuAnabul->formatted_address ?: ($temuAnabul->district . ', ' . $temuAnabul->city) }}</span>
+                    <span
+                        class="text-slate-800 font-semibold">{{ $temuAnabul->formatted_address ?: ($temuAnabul->district . ', ' . $temuAnabul->city) }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="font-bold text-slate-700 shrink-0">⏰ Waktu:</span>
-                    <span class="text-slate-800">{{ $temuAnabul->incident_date ? $temuAnabul->incident_date->translatedFormat('l, d F Y - H:i WIB') : '-' }}</span>
+                    <span
+                        class="text-slate-800">{{ $temuAnabul->incident_date ? $temuAnabul->incident_date->translatedFormat('l, d F Y - H:i WIB') : '-' }}</span>
                 </div>
             </div>
 
@@ -134,25 +145,27 @@
                     {{ $temuAnabul->contact_phone }}
                 </div>
                 <div class="text-xs text-slate-300 font-medium">
-                    Kontak: <span class="font-bold text-white">{{ $temuAnabul->contact_name }}</span> (WhatsApp / Telepon)
+                    Kontak: <span class="font-bold text-white">{{ $temuAnabul->contact_name }}</span> (WhatsApp /
+                    Telepon)
                 </div>
             </div>
 
         </div>
 
         <!-- Poster Footer -->
-        <div class="bg-slate-100 border-t border-slate-200 px-6 py-4 flex items-center justify-between text-slate-500 text-[11px]">
+        <div
+            class="bg-slate-100 border-t border-slate-200 px-6 py-4 flex items-center justify-between text-slate-500 text-[11px]">
             <div class="flex items-center gap-2">
                 <span class="text-base">🐱</span>
                 <span class="font-bold text-slate-700">KucingMU Community</span>
             </div>
             <div>
-                kucingmu.id/temu-anabul/{{ $temuAnabul->id }}
+                kucingmu.online/temu-anabul/{{ $temuAnabul->id }}
             </div>
         </div>
 
     </div>
 
 </body>
-</html>
 
+</html>

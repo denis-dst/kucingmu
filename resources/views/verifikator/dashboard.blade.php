@@ -142,8 +142,8 @@
             <!-- Database Anggota KucingMu Table -->
             <div id="cat-registry-table" class="content-card bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden scroll-mt-6">
                 @php
-                    $currentSort = $sort ?? 'created_at';
-                    $currentDir = $direction ?? 'desc';
+                    $currentSort = $sort ?? 'unique_code';
+                    $currentDir = $direction ?? 'asc';
                     $currentStatus = $statusFilter ?? 'all';
                     $currentKtamStatus = $ktamStatusFilter ?? 'all';
                     
@@ -231,6 +231,8 @@
                                     this.form.submit();
                                 }
                             " class="w-full text-xs py-2.5 px-3 rounded-xl border border-slate-300 bg-slate-50/70 focus:bg-white focus:border-sky-600 focus:ring-2 focus:ring-sky-100 transition font-medium text-slate-700">
+                                <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor Urut NIAKuMu (Urut Terkecil)</option>
+                                <option value="unique_code:desc" {{ ($currentSort == 'unique_code' && $currentDir == 'desc') ? 'selected' : '' }}>Nomor Urut NIAKuMu (Urut Terbesar)</option>
                                 <option value="created_at:desc" {{ ($currentSort == 'created_at' && $currentDir == 'desc') ? 'selected' : '' }}>Urutan: Terbaru</option>
                                 <option value="created_at:asc" {{ ($currentSort == 'created_at' && $currentDir == 'asc') ? 'selected' : '' }}>Urutan: Terlama</option>
                                 <option value="name:asc" {{ ($currentSort == 'name' && $currentDir == 'asc') ? 'selected' : '' }}>Nama Kucing (A - Z)</option>
@@ -240,7 +242,6 @@
                                 <option value="breed:asc" {{ ($currentSort == 'breed' && $currentDir == 'asc') ? 'selected' : '' }}>Ras Kucing (A - Z)</option>
                                 <option value="date_of_birth:asc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'asc') ? 'selected' : '' }}>Umur (Paling Tua)</option>
                                 <option value="date_of_birth:desc" {{ ($currentSort == 'date_of_birth' && $currentDir == 'desc') ? 'selected' : '' }}>Umur (Paling Muda)</option>
-                                <option value="unique_code:asc" {{ ($currentSort == 'unique_code' && $currentDir == 'asc') ? 'selected' : '' }}>Nomor NIAKuMu</option>
                                 <option value="status:asc" {{ ($currentSort == 'status' && $currentDir == 'asc') ? 'selected' : '' }}>Status Hidup/Mati</option>
                             </select>
                             <input type="hidden" name="sort" value="{{ $currentSort }}">

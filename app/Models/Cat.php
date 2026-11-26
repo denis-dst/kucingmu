@@ -48,6 +48,35 @@ class Cat extends Model
     ];
 
     /**
+     * Scope query to order by NIAKuMu sequence number (ignoring wilayah code).
+     * Format: xx.kcg.urut -> sorted strictly by the integer value of 'urut'.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param string $direction
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeOrderByNiakumuSequence($query, string $direction = 'asc')
+    {
+        $dir = strtolower($direction) === 'desc' ? 'DESC' : 'ASC';
+
+        if (DB::getDriverName() === 'sqlite') {
+            return $query->orderByRaw("
+                CASE WHEN cats.unique_code IS NULL OR cats.unique_code = '' THEN 1 ELSE 0 END ASC,
+                CASE WHEN INSTR(cats.unique_code, '.kcg.') > 0 
+                     THEN CAST(SUBSTR(cats.unique_code, INSTR(cats.unique_code, '.kcg.') + 5) AS INTEGER) 
+                     ELSE CAST(cats.unique_code AS INTEGER) END {$dir},
+                cats.created_at DESC
+            ");
+        }
+
+        return $query->orderByRaw("
+            CASE WHEN cats.unique_code IS NULL OR cats.unique_code = '' THEN 1 ELSE 0 END ASC,
+            CAST(SUBSTRING_INDEX(cats.unique_code, '.', -1) AS UNSIGNED) {$dir},
+            cats.created_at DESC
+        ");
+    }
+
+    /**
      * Check if cat is currently alive.
      */
     public function isAlive(): bool

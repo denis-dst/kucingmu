@@ -173,11 +173,16 @@ class DashboardController extends Controller
             });
         }
 
-        // Sorting
-        $sort = $request->get('sort', 'created_at');
-        $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+        // Sorting: default to unique_code (Nomor Urut NIAKuMu)
+        $sort = $request->get('sort', 'unique_code');
+        $direction = strtolower($request->get('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
 
         switch ($sort) {
+            case 'unique_code':
+            case 'ktam':
+            case 'niakumu':
+                $catQuery->orderByNiakumuSequence($direction);
+                break;
             case 'name':
                 $catQuery->orderBy('cats.name', $direction);
                 break;
@@ -196,10 +201,6 @@ class DashboardController extends Controller
             case 'date_of_birth':
                 $catQuery->orderBy('cats.date_of_birth', $direction);
                 break;
-            case 'unique_code':
-            case 'ktam':
-                $catQuery->orderBy('cats.unique_code', $direction);
-                break;
             case 'status':
                 $catQuery->orderBy('cats.status', $direction);
                 break;
@@ -207,8 +208,10 @@ class DashboardController extends Controller
                 $catQuery->orderBy('cats.wilayah_code', $direction);
                 break;
             case 'created_at':
-            default:
                 $catQuery->orderBy('cats.created_at', $direction);
+                break;
+            default:
+                $catQuery->orderByNiakumuSequence($direction);
                 break;
         }
 
@@ -254,14 +257,18 @@ class DashboardController extends Controller
 
         // 2. Monthly Trend (Last 12 Months)
         $startMonthly = Carbon::now()->subMonths(11)->startOfMonth();
+        $dateFormatExpr = DB::getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', created_at)"
+            : "DATE_FORMAT(created_at, '%Y-%m')";
+
         $catMonthlyRaw = Cat::where('created_at', '>=', $startMonthly)
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as total")
+            ->selectRaw("{$dateFormatExpr} as ym, COUNT(*) as total")
             ->groupBy('ym')
             ->pluck('total', 'ym')
             ->all();
 
         $userMonthlyRaw = User::where('created_at', '>=', $startMonthly)
-            ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as total")
+            ->selectRaw("{$dateFormatExpr} as ym, COUNT(*) as total")
             ->groupBy('ym')
             ->pluck('total', 'ym')
             ->all();
@@ -521,11 +528,16 @@ class DashboardController extends Controller
             });
         }
 
-        // Sorting
-        $sort = $request->get('sort', 'created_at');
-        $direction = strtolower($request->get('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+        // Sorting: default to unique_code (Nomor Urut NIAKuMu)
+        $sort = $request->get('sort', 'unique_code');
+        $direction = strtolower($request->get('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
 
         switch ($sort) {
+            case 'unique_code':
+            case 'ktam':
+            case 'niakumu':
+                $catQuery->orderByNiakumuSequence($direction);
+                break;
             case 'name':
                 $catQuery->orderBy('cats.name', $direction);
                 break;
@@ -544,10 +556,6 @@ class DashboardController extends Controller
             case 'date_of_birth':
                 $catQuery->orderBy('cats.date_of_birth', $direction);
                 break;
-            case 'unique_code':
-            case 'ktam':
-                $catQuery->orderBy('cats.unique_code', $direction);
-                break;
             case 'status':
                 $catQuery->orderBy('cats.status', $direction);
                 break;
@@ -555,8 +563,10 @@ class DashboardController extends Controller
                 $catQuery->orderBy('cats.wilayah_code', $direction);
                 break;
             case 'created_at':
-            default:
                 $catQuery->orderBy('cats.created_at', $direction);
+                break;
+            default:
+                $catQuery->orderByNiakumuSequence($direction);
                 break;
         }
 
