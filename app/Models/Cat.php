@@ -503,6 +503,42 @@ class Cat extends Model
     {
         return $this->hasMany(CatCondolence::class)->where('is_visible', true)->latest();
     }
+
+    /**
+     * Retrieve the model for a bound value (id, unique_code, or name/slug).
+     *
+     * @param  mixed  $value
+     * @param  string|null  $field
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field) {
+            return parent::resolveRouteBinding($value, $field);
+        }
+
+        // 1. Try numeric ID
+        if (is_numeric($value)) {
+            $cat = $this->where('id', $value)->first();
+            if ($cat) {
+                return $cat;
+            }
+        }
+
+        // 2. Try unique_code (e.g. 12.kcg.0001)
+        $cat = $this->where('unique_code', $value)->first();
+        if ($cat) {
+            return $cat;
+        }
+
+        // 3. Try exact name or slug (e.g. messi or messi-junior)
+        $normalized = strtolower(trim(str_replace(['-', '_'], ' ', $value)));
+        $cat = $this->whereRaw('LOWER(name) = ?', [strtolower(trim($value))])
+            ->orWhereRaw('LOWER(name) = ?', [$normalized])
+            ->first();
+
+        return $cat ?? parent::resolveRouteBinding($value, $field);
+    }
 }
 
 

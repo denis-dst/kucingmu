@@ -18,60 +18,69 @@
             @endif
 
             <!-- Memorial Tribute Hero Card -->
-            <div class="relative overflow-hidden bg-gradient-to-b from-slate-900 to-slate-800 text-white rounded-3xl p-6 sm:p-10 shadow-lg border border-slate-700">
-                <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl select-none pointer-events-none">
+            <div class="relative overflow-hidden bg-white text-slate-900 rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200">
+                <div class="absolute -right-8 -bottom-8 opacity-5 text-9xl select-none pointer-events-none text-slate-900">
                     🐾
                 </div>
 
                 <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10 text-center sm:text-left">
                     <!-- Cat Photo with Memorial Frame -->
                     <div class="relative shrink-0">
-                        <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden border-4 border-amber-400/80 shadow-2xl bg-slate-900">
+                        <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden border-4 border-amber-400 shadow-md bg-slate-100">
                             <img src="{{ $cat->primary_photo_url }}" alt="{{ $cat->name }}" class="w-full h-full object-cover">
                         </div>
-                        <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-outfit text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full shadow-md whitespace-nowrap">
+                        <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-outfit text-[10px] font-extrabold uppercase px-3 py-0.5 rounded-full shadow-xs whitespace-nowrap">
                             In Loving Memory
                         </span>
                     </div>
 
                     <!-- Cat Memorial Info -->
-                    <div class="flex-1 space-y-2">
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-700/80 text-amber-300 text-[11px] font-semibold border border-slate-600">
+                    <div class="flex-1 space-y-2.5">
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-300 text-xs font-bold shadow-2xs">
                             <span>🕊️</span>
                             <span>Mengenang Anabul Tercinta</span>
                         </div>
 
-                        <h1 class="font-outfit text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                        <h1 class="font-outfit text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                             {{ $cat->name }}
                         </h1>
 
-                        <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                        <p class="text-slate-600 text-xs sm:text-sm font-medium leading-relaxed">
                             {{ $cat->breed }} &bull; {{ $cat->gender === 'male' ? 'Jantan' : 'Betina' }}
                             @if($cat->color) &bull; Warna {{ $cat->color }} @endif
                         </p>
 
-                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1 text-xs text-slate-400 pt-1">
+                        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 text-xs text-slate-600 pt-1">
                             @if($cat->date_of_birth)
-                                <span>Lahir: <strong class="text-slate-200">{{ $cat->date_of_birth->format('d M Y') }}</strong></span>
+                                <span class="inline-flex items-center gap-1">
+                                    <span class="text-slate-500">Lahir:</span>
+                                    <strong class="text-slate-900 font-bold">{{ $cat->date_of_birth->format('d M Y') }}</strong>
+                                </span>
                             @endif
                             @if($cat->unique_code)
-                                <span>NIAKuMu: <strong class="text-amber-300 font-mono">{{ $cat->unique_code }}</strong></span>
+                                <span class="inline-flex items-center gap-1">
+                                    <span class="text-slate-500">NIAKuMu:</span>
+                                    <span class="font-mono font-bold text-amber-950 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-300 text-[11px]">{{ $cat->unique_code }}</span>
+                                </span>
                             @endif
                             @if($cat->owner)
-                                <span>Keluarga/Pemilik: <strong class="text-slate-200">{{ $cat->owner->name }}</strong></span>
+                                <span class="inline-flex items-center gap-1">
+                                    <span class="text-slate-500">Keluarga/Pemilik:</span>
+                                    <strong class="text-slate-900 font-bold">{{ $cat->owner->name }}</strong>
+                                </span>
                             @endif
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="pt-4 flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                        <div class="pt-3 flex flex-wrap items-center justify-center sm:justify-start gap-3">
                             <a href="{{ route('cat.memorial.poster', $cat->id) }}" target="_blank"
-                               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md transition cursor-pointer">
+                               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs shadow-xs hover:shadow transition cursor-pointer">
                                 <span>🎨</span>
                                 <span>Lihat Poster Twibbon Kenangan</span>
                             </a>
                             @if(Auth::id() === $cat->user_id)
                                 <a href="{{ route('cat.edit', $cat->id) }}"
-                                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-xs transition">
+                                   class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-900 font-semibold text-xs border border-slate-300 shadow-2xs transition">
                                     <span>✏️</span>
                                     <span>Kelola Data</span>
                                 </a>
