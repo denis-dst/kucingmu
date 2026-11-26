@@ -40,8 +40,8 @@
                         @foreach($notifications as $notif)
                             <div class="p-4 sm:p-5 flex items-start gap-3.5 transition hover:bg-slate-50/80 {{ !$notif->read_at ? 'bg-teal-50/40' : '' }}">
                                 <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 border {{ !$notif->read_at ? 'bg-white border-teal-300 shadow-2xs' : 'bg-slate-100 border-slate-200' }}">
-                                    @if($notif->icon === 'heart') 🤍
-                                    @elseif($notif->icon === 'pill') 💊
+                                    @if($notif->icon === 'heart' || in_array($notif->type, ['cat_memorial', 'cat_deceased', 'cat_condolence'])) 🕊️
+                                    @elseif($notif->icon === 'pill' || $notif->type === 'prescription_dispensed') 💊
                                     @else 🔔
                                     @endif
                                 </div>

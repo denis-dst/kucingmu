@@ -146,6 +146,25 @@
                         <span>Hubungi Kami</span>
                     </a>
                 @endif
+
+                <!-- Pemberitahuan & Notifikasi (Khusus Pengguna Terdaftar) -->
+                @if($authUser)
+                    @php
+                        $unreadNotifsCount = $authUser->notifications()->unread()->count();
+                    @endphp
+                    <a href="{{ route('notifications.index') }}" @click="mobileSidebarOpen = false"
+                        class="sidebar-item flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('notifications.*') ? 'bg-teal-700 text-white font-bold shadow-xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <span class="text-base {{ request()->routeIs('notifications.*') ? 'text-white' : 'text-slate-500' }}">
+                            🔔
+                        </span>
+                        <span class="flex-1">Pemberitahuan</span>
+                        @if($unreadNotifsCount > 0)
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full font-bold bg-rose-500 text-white shadow-2xs">
+                                {{ $unreadNotifsCount }}
+                            </span>
+                        @endif
+                    </a>
+                @endif
             </div>
 
             <!-- Section 2: Dokter Hewan & Rekam Medis -->

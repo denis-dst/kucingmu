@@ -307,7 +307,7 @@ use App\Http\Controllers\NotificationController;
 Route::middleware(['auth'])->prefix('notifications')->name('notifications.')->group(function () {
     Route::get('/', [NotificationController::class, 'index'])->name('index');
     Route::post('/mark-all-read', [NotificationController::class, 'markAllRead'])->name('mark-all-read');
-    Route::post('/{notification}/read', [NotificationController::class, 'markRead'])->name('read');
+    Route::match(['get', 'post'], '/{notification}/read', [NotificationController::class, 'markRead'])->name('read');
 });
 
 require __DIR__.'/auth.php';

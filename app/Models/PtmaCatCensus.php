@@ -66,6 +66,11 @@ class PtmaCatCensus extends Model
         return $this->belongsTo(User::class, 'volunteer_id');
     }
 
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'volunteer_id');
+    }
+
     /**
      * Generate the next 3-digit sequential ID for a given PTMA campus (e.g. UMY-001).
      *

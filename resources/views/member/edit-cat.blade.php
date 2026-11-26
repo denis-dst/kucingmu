@@ -139,6 +139,18 @@
                             </select>
                             <span class="text-[11px] text-slate-500 mt-1 block">Status hidup/mati untuk pencatatan KTAKuMu & data anggota.</span>
                             <x-input-error :messages="$errors->get('status')" class="mt-1" />
+
+                            @if($cat->isDeceased())
+                                <div class="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-2 text-xs">
+                                    <div class="flex items-center gap-1.5 text-amber-900 font-semibold">
+                                        <span>🕊️</span>
+                                        <span>Anabul tercatat telah berpulang. Halaman kenangan & poster belasungkawa aktif.</span>
+                                    </div>
+                                    <a href="{{ route('cat.memorial', $cat->id) }}" class="button-secondary text-[11px] py-1 px-2.5 font-bold text-amber-900 border-amber-300 bg-white hover:bg-amber-100 whitespace-nowrap">
+                                        Lihat Memorial &rarr;
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                     </div>
 

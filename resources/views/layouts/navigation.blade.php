@@ -102,8 +102,8 @@
                                 <a href="{{ route('notifications.read', $notif->id) }}" class="block p-3 hover:bg-slate-50 transition {{ !$notif->read_at ? 'bg-teal-50/50' : '' }}">
                                     <div class="flex items-start gap-2.5">
                                         <span class="text-base shrink-0 mt-0.5">
-                                            @if($notif->icon === 'heart') 🤍
-                                            @elseif($notif->icon === 'pill') 💊
+                                            @if($notif->icon === 'heart' || in_array($notif->type, ['cat_memorial', 'cat_deceased', 'cat_condolence'])) 🕊️
+                                            @elseif($notif->icon === 'pill' || $notif->type === 'prescription_dispensed') 💊
                                             @else 🔔
                                             @endif
                                         </span>
@@ -194,6 +194,10 @@
 
                         <x-dropdown-link :href="route('profile.edit')" class="flex items-center gap-2">
                             <span>👤</span> {{ __('Profil Akun') }}
+                        </x-dropdown-link>
+
+                        <x-dropdown-link :href="route('notifications.index')" class="flex items-center gap-2">
+                            <span>🔔</span> {{ __('Pemberitahuan Sistem') }}
                         </x-dropdown-link>
 
                         <!-- Authentication -->

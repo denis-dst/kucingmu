@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Models\UserNotification;
 
 class Cat extends Model
 {
@@ -113,12 +115,93 @@ class Cat extends Model
             }
         });
 
+        static::created(function ($cat) {
+            $status = strtolower(trim((string) $cat->status));
+            if (in_array($status, ['deceased', 'mati'])) {
+                $cat->dispatchDeceasedNotifications();
+            }
+        });
+
+        static::updated(function ($cat) {
+            // Check if status changed to deceased / mati
+            if ($cat->wasChanged('status')) {
+                $newStatus = strtolower(trim((string) $cat->status));
+                $oldStatus = strtolower(trim((string) $cat->getOriginal('status')));
+
+                if (in_array($newStatus, ['deceased', 'mati']) && !in_array($oldStatus, ['deceased', 'mati'])) {
+                    $cat->dispatchDeceasedNotifications();
+                }
+            }
+        });
+
         static::deleting(function ($cat) {
             if (Auth::check() && empty($cat->deleted_by)) {
                 $cat->deleted_by = Auth::id();
                 $cat->saveQuietly();
             }
         });
+    }
+
+    /**
+     * Dispatch condolences & memorial notifications when a cat passes away.
+     */
+    public function dispatchDeceasedNotifications(): void
+    {
+        if (!$this->user_id) {
+            return;
+        }
+
+        $owner = $this->owner ?? User::find($this->user_id);
+        if (!$owner) {
+            return;
+        }
+
+        try {
+            $memorialUrl = route('cat.memorial', $this->id);
+        } catch (\Throwable $e) {
+            $memorialUrl = url('/cat/' . $this->id . '/memorial');
+        }
+
+        // 1. Notify the cat's owner (Member)
+        UserNotification::make(
+            $this->user_id,
+            '🕊️ Belasungkawa & Kenangan: ' . $this->name . ' Telah Berpulang',
+            "Kami segenap keluarga besar KucingMu turut berduka cita sedalam-dalamnya atas kepergian anabul tercinta Anda, {$this->name}. Halaman memorial kenangan dan poster belasungkawa kini telah aktif untuk Anda bagikan.",
+            $memorialUrl,
+            'cat_memorial',
+            null,
+            'heart',
+            [
+                'cat_id' => $this->id,
+                'cat_name' => $this->name,
+                'event' => 'cat_deceased',
+                'action' => 'memorial',
+            ]
+        );
+
+        // 2. Notify fellow community members so they can offer condolences
+        $ownerName = $owner->name ?? 'Member KucingMu';
+        $fellowMembers = User::where('id', '!=', $this->user_id)
+            ->limit(100)
+            ->get();
+
+        foreach ($fellowMembers as $member) {
+            UserNotification::make(
+                $member->id,
+                '🕊️ Kabar Duka Anabul: ' . $this->name,
+                "Anabul kesayangan {$ownerName}, {$this->name}, telah berpulang ke Rahmatullah. Mari sampaikan doa, simpati hangat, dan ucapan belasungkawa Anda.",
+                $memorialUrl,
+                'cat_deceased',
+                $this->user_id,
+                'heart',
+                [
+                    'cat_id' => $this->id,
+                    'cat_name' => $this->name,
+                    'owner_name' => $ownerName,
+                    'event' => 'cat_deceased_community',
+                ]
+            );
+        }
     }
 
     /**

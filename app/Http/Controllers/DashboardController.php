@@ -11,6 +11,10 @@ use App\Models\MasterWilayah;
 use App\Models\MasterBreed;
 use App\Models\User;
 use App\Models\AppSetting;
+use App\Models\PtmaCatCensus;
+use App\Models\StrayCatSurvey;
+use App\Models\Prescription;
+use App\Models\Event;
 use App\Services\KtamService;
 use App\Services\ImageCompressionService;
 use Carbon\Carbon;
@@ -81,11 +85,11 @@ class DashboardController extends Controller
 
         $userStats = User::selectRaw("
             COUNT(*) as total,
-            COUNT(CASE WHEN role = 'member' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"member\"') THEN 1 END) as member,
-            COUNT(CASE WHEN role = 'verifikator' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"verifikator\"') THEN 1 END) as verifikator,
-            COUNT(CASE WHEN role = 'dokter' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"dokter\"') THEN 1 END) as dokter,
-            COUNT(CASE WHEN role = 'volunteer' OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"volunteer\"') THEN 1 END) as volunteer,
-            COUNT(CASE WHEN role IN ('admin', 'superadmin') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"admin\"') OR JSON_CONTAINS(COALESCE(roles, '[]'), '\"superadmin\"') THEN 1 END) as admin
+            COUNT(CASE WHEN role = 'member' OR roles LIKE '%\"member\"%' THEN 1 END) as member,
+            COUNT(CASE WHEN role = 'verifikator' OR roles LIKE '%\"verifikator\"%' THEN 1 END) as verifikator,
+            COUNT(CASE WHEN role = 'dokter' OR roles LIKE '%\"dokter\"%' THEN 1 END) as dokter,
+            COUNT(CASE WHEN role = 'volunteer' OR roles LIKE '%\"volunteer\"%' THEN 1 END) as volunteer,
+            COUNT(CASE WHEN role IN ('admin', 'superadmin') OR roles LIKE '%\"admin\"%' OR roles LIKE '%\"superadmin\"%' THEN 1 END) as admin
         ")->first();
 
         $ktamCount = KtamCard::whereNotNull('ktam_number')->where('ktam_number', '!=', '')->count();
@@ -620,7 +624,7 @@ class DashboardController extends Controller
      */
     protected function volunteerDashboard()
     {
-        $recentCensus = PtmaCatCensus::with(['creator'])->latest()->take(10)->get();
+        $recentCensus = PtmaCatCensus::with(['volunteer'])->latest()->take(10)->get();
         $recentSurveys = StrayCatSurvey::latest()->take(10)->get();
         $totalCensusCount = PtmaCatCensus::count();
         $totalSurveyCount = StrayCatSurvey::count();
@@ -963,6 +967,7 @@ class DashboardController extends Controller
                 $uniqueCode = Cat::generateUniqueCode($newWilayah, $existingSeq);
             }
 
+            $oldStatus = $cat->status;
             $catStatus = $request->filled('status') ? (in_array($request->status, ['deceased', 'mati']) ? 'deceased' : 'alive') : ($cat->status ?: 'alive');
 
             $cat->update([
@@ -1048,7 +1053,12 @@ class DashboardController extends Controller
             DB::commit();
 
             // Tetap di halaman edit kucing (Point 1.1)
-            return redirect()->route('cat.edit', $cat->id)->with('success', 'Profil kucing berhasil diperbarui.');
+            $successMsg = 'Profil kucing berhasil diperbarui.';
+            if (in_array($catStatus, ['deceased', 'mati']) && !in_array($oldStatus, ['deceased', 'mati'])) {
+                $successMsg = "Profil kucing berhasil diperbarui. Halaman memorial kenangan dan poster belasungkawa untuk {$cat->name} telah aktif.";
+            }
+
+            return redirect()->route('cat.edit', $cat->id)->with('success', $successMsg);
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Gagal memperbarui data kucing: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
@@ -1092,7 +1102,8 @@ class DashboardController extends Controller
         $cat->update(['status' => $newStatus]);
 
         $label = $newStatus === 'alive' ? 'Hidup (Aktif)' : 'Mati (Meninggal)';
-        return redirect()->back()->with('success', "Status kucing {$cat->name} berhasil diubah menjadi: {$label}.");
+        $extraMsg = $newStatus === 'deceased' ? ' Halaman memorial dan poster belasungkawa telah aktif.' : '';
+        return redirect()->back()->with('success', "Status kucing {$cat->name} berhasil diubah menjadi: {$label}.{$extraMsg}");
     }
 
     /**
