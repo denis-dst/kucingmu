@@ -174,4 +174,100 @@ class CatDeathNotificationTest extends TestCase
         $this->assertNotNull($ownerNotif);
         $this->assertStringContainsString('Milo Manis', $ownerNotif->title);
     }
+
+    public function test_member_without_cats_sees_deceased_cat_notifications_in_notifications_page(): void
+    {
+        $owner = User::create([
+            'name' => 'Pak Bambang',
+            'email' => 'bambang@kucingmu.test',
+            'password' => bcrypt('password'),
+            'role' => 'member',
+            'roles' => ['member'],
+        ]);
+
+        // A member with ZERO cats
+        $memberWithoutCats = User::create([
+            'name' => 'Rina Member Baru',
+            'email' => 'rina@kucingmu.test',
+            'password' => bcrypt('password'),
+            'role' => 'member',
+            'roles' => ['member'],
+        ]);
+
+        $this->assertEquals(0, $memberWithoutCats->cats()->count());
+
+        // A cat is marked deceased
+        $cat = Cat::create([
+            'user_id' => $owner->id,
+            'name' => 'Chiko Putih',
+            'breed' => 'Anggora',
+            'gender' => 'male',
+            'status' => 'mati',
+            'date_of_birth' => '2021-01-01',
+        ]);
+
+        // Member without cats visits /notifications
+        $response = $this->actingAs($memberWithoutCats)->get(route('notifications.index'));
+        $response->assertStatus(200);
+
+        // She MUST see the deceased cat notification
+        $response->assertSee('Chiko Putih');
+        $response->assertSee('Kabar Duka Anabul');
+        $response->assertSee('Pak Bambang');
+
+        // Verify the notification was saved in database for her
+        $notif = UserNotification::where('user_id', $memberWithoutCats->id)
+            ->where('type', 'cat_deceased')
+            ->first();
+
+        $this->assertNotNull($notif);
+        $this->assertStringContainsString('Chiko Putih', $notif->title);
+        $this->assertEquals($cat->id, $notif->data['cat_id']);
+    }
+
+    public function test_unlimited_notification_dispatch_when_cat_dies(): void
+    {
+        $owner = User::create([
+            'name' => 'Owner Anabul',
+            'email' => 'owner_unlimited@kucingmu.test',
+            'password' => bcrypt('password'),
+            'role' => 'member',
+            'roles' => ['member'],
+        ]);
+
+        // Create 105 other users (exceeding the old 100 limit)
+        $usersData = [];
+        for ($i = 1; $i <= 105; $i++) {
+            $usersData[] = [
+                'name' => "Member {$i}",
+                'email' => "member{$i}_unlimited@kucingmu.test",
+                'password' => bcrypt('password'),
+                'role' => 'member',
+                'roles' => json_encode(['member']),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        User::insert($usersData);
+
+        $cat = Cat::create([
+            'user_id' => $owner->id,
+            'name' => 'Snowy',
+            'breed' => 'Persia',
+            'gender' => 'female',
+            'status' => 'alive',
+            'date_of_birth' => '2020-03-15',
+        ]);
+
+        // Mark cat deceased
+        $cat->status = 'mati';
+        $cat->save();
+
+        // Check that ALL 105 users received the notification (not limited to 100)
+        $notifiedUsersCount = UserNotification::where('type', 'cat_deceased')
+            ->whereJsonContains('data->cat_id', $cat->id)
+            ->count();
+
+        $this->assertEquals(105, $notifiedUsersCount);
+    }
 }

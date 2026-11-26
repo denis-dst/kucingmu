@@ -209,28 +209,38 @@ class Cat extends Model
         );
 
         // 2. Notify fellow community members so they can offer condolences
+        // Unlimited: all members (including those without cats) receive notifications
         $ownerName = $owner->name ?? 'Member KucingMu';
-        $fellowMembers = User::where('id', '!=', $this->user_id)
-            ->limit(100)
-            ->get();
+        $now = now();
 
-        foreach ($fellowMembers as $member) {
-            UserNotification::make(
-                $member->id,
-                '🕊️ Kabar Duka Anabul: ' . $this->name,
-                "Anabul kesayangan {$ownerName}, {$this->name}, telah berpulang ke Rahmatullah. Mari sampaikan doa, simpati hangat, dan ucapan belasungkawa Anda.",
-                $memorialUrl,
-                'cat_deceased',
-                $this->user_id,
-                'heart',
-                [
-                    'cat_id' => $this->id,
-                    'cat_name' => $this->name,
-                    'owner_name' => $ownerName,
-                    'event' => 'cat_deceased_community',
-                ]
-            );
-        }
+        User::where('id', '!=', $this->user_id)
+            ->chunk(200, function ($users) use ($ownerName, $memorialUrl, $now) {
+                $batch = [];
+                foreach ($users as $member) {
+                    $batch[] = [
+                        'user_id' => $member->id,
+                        'sender_id' => $this->user_id,
+                        'type' => 'cat_deceased',
+                        'title' => '🕊️ Kabar Duka Anabul: ' . $this->name,
+                        'message' => "Anabul kesayangan {$ownerName}, {$this->name}, telah berpulang ke Rahmatullah. Mari sampaikan doa, simpati hangat, dan ucapan belasungkawa Anda.",
+                        'url' => $memorialUrl,
+                        'icon' => 'heart',
+                        'data' => json_encode([
+                            'cat_id' => $this->id,
+                            'cat_name' => $this->name,
+                            'owner_name' => $ownerName,
+                            'event' => 'cat_deceased_community',
+                        ]),
+                        'read_at' => null,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                if (!empty($batch)) {
+                    UserNotification::insert($batch);
+                }
+            });
     }
 
     /**

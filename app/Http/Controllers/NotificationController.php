@@ -13,6 +13,12 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if ($user) {
+            UserNotification::syncDeceasedCatNotificationsForUser($user, true);
+        }
+
         $notifications = UserNotification::where('user_id', Auth::id())
             ->with('sender')
             ->latest()

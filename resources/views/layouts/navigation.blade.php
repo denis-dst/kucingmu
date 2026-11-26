@@ -1,5 +1,8 @@
 @php
     $authUser = Auth::user();
+    if ($authUser) {
+        \App\Models\UserNotification::syncDeceasedCatNotificationsForUser($authUser);
+    }
     $allRoles = $authUser ? $authUser->getAllRoles() : ['member'];
     $activeRole = $authUser ? $authUser->getActiveRole() : 'member';
     $activeMeta = \App\Models\User::getWorkspaceMeta($activeRole);
